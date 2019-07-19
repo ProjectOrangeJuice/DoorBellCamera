@@ -15,7 +15,9 @@ import (
 
 //DBName is the database file name
 const DBName string = "./motions.db"
-const CaptureLocation string = "capture/"
+
+//CaptureLocation is the location of the capture folder
+const CaptureLocation string = "capture"
 
 //Message is the JSON message format
 type Message struct {
