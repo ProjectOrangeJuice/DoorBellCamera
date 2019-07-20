@@ -84,7 +84,7 @@ def motionCheck(name,image,time):
                       body=json.dumps(data))
                 #All frames now sent
                 tc[heldFrames].clear()
-                bodyText = {"time":time,"image":image,"code":tc[code],"count":tc[countOn]}
+                bodyText = {"name":name,"time":time,"image":image,"code":tc[code],"count":tc[countOn]}
                 channel.basic_publish(exchange='',
                       routing_key='motionAlert',
                       body=json.dumps(bodyText))
