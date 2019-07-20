@@ -82,6 +82,8 @@ func convert(msg []byte) {
 	failOnError(err, "prep failed")
 	defer rows.Close()
 	root := "/home/oharris/Documents/cameraProject/motion"
+
+	var fr []string
 	for rows.Next() {
 		var location string
 		var time string
@@ -98,12 +100,17 @@ func convert(msg []byte) {
 		failOnError(err, "Failed reading image")
 		err = aw.AddFrame(data)
 		failOnError(err, "failed to add frame")
-		err = os.Remove(fmt.Sprintf("%s/%s", root, location))
-		failOnError(err, "Failed to remove image")
+		fr = append(fr, fmt.Sprintf("%s/%s", root, location))
 
 	}
 	err = aw.Close()
 	failOnError(err, "Error closing")
+
+	for _, elem := range fr {
+		err = os.Remove(elem)
+		failOnError(err, "Failed to remove image")
+	}
+
 	log.Printf("Start time %s and end time %s", startTime, endTime)
 	addToDatabase(m.Code, startTime, endTime)
 }
