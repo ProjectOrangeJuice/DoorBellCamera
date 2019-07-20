@@ -2,7 +2,7 @@
     "serverAddress" : "192.168.99.100",
     "serverPort" : "31693",
     "threshold":70,
-    "minCount":15,
+    "minCount":5,
     "cameras":[
         {
             "name":"Test Camera@Dontuse",
