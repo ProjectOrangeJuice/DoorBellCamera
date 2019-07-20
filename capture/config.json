@@ -1,0 +1,7 @@
+{
+    "cameraName" : "Test Camera",
+    "cameraAddress":"rtsp://admin:admin@192.168.1.116/11",
+    "FPS" : "10",
+    "serverAddress" : "192.168.99.100",
+    "serverPort" : "31693"
+}
