@@ -106,10 +106,25 @@ func convert(msg []byte) {
 	err = aw.Close()
 	failOnError(err, "Error closing")
 	log.Printf("Start time %s and end time %s", startTime, endTime)
-
+	addToDatabase(m.Code, startTime, endTime)
 }
 
 func addToDatabase(code string, start string, end string) {
+	db, err := sql.Open("sqlite3", DBName)
+	failOnError(err, "Record failed because of DB error")
+	defer db.Close()
+	tx, err := db.Begin()
+	failOnError(err, "Failed to begin on record")
+	stmt, err := tx.Prepare("insert into video(code, startTime,endTime) values(?,?,?)")
+	failOnError(err, "Record sql prep failed")
+	defer stmt.Close()
+	_, err = stmt.Exec(code, start, end)
+	failOnError(err, "Record could not insert")
+	tx.Commit()
+	log.Printf("Saved to db")
+
+	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)
+	failOnError(err, "Couldn't delete motion records")
 
 }
 
