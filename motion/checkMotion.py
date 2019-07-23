@@ -113,14 +113,29 @@ def motionCheck(name,image,time):
 
 
 def checkUpdateCallback(ch, method, properties, body):
-    print(" [x] Received " )
+    print("I got.. "+str(body))
+    j = json.loads(body)
+    if(j["Task"] == "update"):
+        writeConfig(j["Inner"])
+
+def writeConfig(inner):
+    print("Writing to file.. "+str(inner))
+    f = open("cConfig.json", "w+")
+    f.write(str(inner))
+    f.close()
 
 def checkUpdates():
     connection2 = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
 
     channel3 = connection2.channel()
-    channel3.queue_declare(queue='config')
-    channel3.basic_consume(queue='config',
+    channel3.exchange_declare(exchange='config',exchange_type="topic",durable=True)
+    result = channel3.queue_declare('configQueue', exclusive=False)
+    queue_name = result.method.queue
+
+    channel3.queue_bind(
+        exchange='config', queue=queue_name, routing_key="motion.check")
+
+    channel3.basic_consume(queue=queue_name,
                       auto_ack=True,
                       on_message_callback=checkUpdateCallback)
     channel3.start_consuming()
