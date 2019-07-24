@@ -137,7 +137,10 @@ def checkUpdateCallback(ch, method, properties, body):
         returnConfig()
 
 def returnConfig():
-    print("Threshold is.. "+str(dt))
+    f=  open("cConfig.json", "r")
+    v={"Task":"readResponse","Inner":f.read()}
+    channel3.basic_publish(exchange="config",routing_key="motion.check",
+    body=json.dumps(v))
 
 def writeConfig(inner):
     print("Writing to file.. "+str(inner))
@@ -146,6 +149,7 @@ def writeConfig(inner):
     f.close()
 
 def checkUpdates():
+    global channel3
     connection2 = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
 
     channel3 = connection2.channel()
