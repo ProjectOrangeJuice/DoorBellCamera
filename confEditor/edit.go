@@ -21,8 +21,9 @@ var server = "amqp://guest:guest@192.168.99.100:31693/"
 
 func main() {
 	input := ""
+	read := true
 	reader := bufio.NewReader(os.Stdin)
-	for input == "" {
+	for read {
 		fmt.Printf("%-20s%-5s%-20s\n", "get [service]", "-", "Get the config file of the service")
 		fmt.Printf("%-20s%-5s%-20s\n", "set [service]", "-", "Set the config file of the service")
 		input, _ = reader.ReadString('\n')
@@ -35,7 +36,7 @@ func main() {
 			case "set":
 				setCommand(args[1])
 			default:
-				input = ""
+				read = false
 			}
 		}
 	}
@@ -93,10 +94,11 @@ func goListen(rch chan string, arg string) {
 }
 
 func decodeMsg(msg []byte, arg string) {
+	arg = strings.Replace(arg, ".", "-", -1)
 	var m OutMessage
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
-	err = ioutil.WriteFile(fmt.Sprintf("configs/%s", arg), []byte(m.Inner), 0644)
+	err = ioutil.WriteFile(fmt.Sprintf("configs/%s.json", arg), []byte(m.Inner), 0644)
 	failOnError(err, "Failed to write")
 
 }
@@ -156,5 +158,40 @@ func failOnError(err error, msg string) {
 }
 
 func setCommand(arg string) {
+	conn, err := amqp.Dial(server)
+	failOnError(err, "Failed to connect to RabbitMQ (get)")
+	defer conn.Close()
+	arg2 := strings.Replace(arg, ".", "-", -1)
+	dat, err := ioutil.ReadFile(fmt.Sprintf("configs/%s.json", arg2))
+	failOnError(err, "Couldn't read file")
+	body := OutMessage{"update", string(dat)}
+	b, err := json.Marshal(body)
+
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+	err = ch.ExchangeDeclare(
+		"config", // name
+		"topic",  // type
+		true,     // durable
+		false,    // auto-deleted
+		false,    // internal
+		false,    // no-wait
+		nil,      // arguments
+	)
+	failOnError(err, "Failed to declare a exchange")
+
+	err = ch.Publish(
+		"config", // exchange
+		arg,      // routing key
+		false,    // mandatory
+		false,    // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(b),
+		})
+
+	failOnError(err, "Failed to publish a message")
+	log.Print("Sent new config")
 
 }
