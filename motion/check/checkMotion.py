@@ -2,7 +2,7 @@ import pika
 import json
 import cv2
 import numpy as np
-import testHold 
+
 import base64
 import random
 import string
@@ -22,7 +22,7 @@ imgCount = 8
 def readConfig():
     global serverAddress,serverPort,dt,dmin
     namesUpdated = []
-    with open("cConfig.json") as jf:
+    with open("config/cConfig.json") as jf:
         data = json.load(jf)
         serverAddress = data["serverAddress"]
         serverPort = data["serverPort"]
