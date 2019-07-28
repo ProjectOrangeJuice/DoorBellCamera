@@ -3,5 +3,5 @@
     "cameraAddress":"rtsp://admin:admin@192.168.1.116/11",
     "FPS" : 10,
     "serverAddress" : "192.168.1.126",
-    "serverPort" : "32449"
+    "serverPort" : "30188"
 }

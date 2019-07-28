@@ -13,7 +13,7 @@ type OutMessage struct {
 }
 
 func main() {
-	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
+	conn, err := amqp.Dial("amqp://guest:guest@192.168.1.126:30188/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	jsonS :=
