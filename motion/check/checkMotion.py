@@ -78,7 +78,7 @@ def motionCheck(name,image,time):
         split = np.split(res,divBy)
         totals = []
         for x in split:
-            totals.append((np.count_nonzero(x) *100)/x.size)
+            totals.append(int((np.count_nonzero(x) *100)/x.size))
 
         bThres = True
         thresTestCount = 0
