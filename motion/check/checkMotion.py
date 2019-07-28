@@ -73,12 +73,25 @@ def motionCheck(name,image,time):
     else:
         res = cv2.absdiff(cvimg, tc[prevImage])
         res = res.astype(np.uint8)
-        percentage = (np.count_nonzero(res) * 100)/ res.size
+        ##percentage = (np.count_nonzero(res) * 100)/ res.size
+        divBy = len(tc[threshold])
+        split = np.split(res,divBy)
+        totals = []
+        for x in split:
+            totals.append((np.count_nonzero(x) *100)/x.size)
 
-        print(str(percentage) + " - " +str(tc[threshold]))
+        bThres = True
+        thresTestCount = 0
+        for v in totals:
+            if(v < tc[threshold][thresTestCount]):
+                bThres = False
+                break
+            thresTestCount += 1
+
+        print(str(totals) + " - " +str(tc[threshold]) + " so "+str(bThres))
         print(str(tc[countOn]) + " - " +str(tc[countOff]))
         tc[imgCount] += 1
-        if(percentage > tc[threshold]):
+        if(bThres):
             tc[countOn] += 1
             tc[countOff] = 0
 
