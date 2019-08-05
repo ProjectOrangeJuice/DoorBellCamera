@@ -6,3 +6,4 @@ motion/video/videos
 #ignore binary files
 motion/video/image_video
 motion/keep/keep_video
+nginx-portable-master
