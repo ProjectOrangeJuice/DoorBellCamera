@@ -125,7 +125,7 @@
         <div class="container-fluid">
 
           <!-- Page Heading -->
-          <h1 class="h3 mb-4 text-gray-800">Motions detected</h1>
+          <h1 class="h3 mb-4 text-gray-800">Live view.. <div id="long"></div></h1>
 
         </div>
         <!-- /.container-fluid -->
@@ -163,7 +163,30 @@
   <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
 
   <!-- Custom scripts for all pages-->
+
   <script src="js/sb-admin-2.min.js"></script>
+
+
+<script type="text/javascript">
+         var long = document.getElementById("long");
+        
+        // 2
+         var exampleSocket = new WebSocket("ws://localhost:8000/stream")
+         
+         // 3
+         var update = function(){
+           exampleSocket.onmessage = function (event) {
+            decoded = atob(event.data)
+             long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+           }
+         };
+         window.setTimeout(update);
+      </script>
+
+
+
+
 
 </body>
 
