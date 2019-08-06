@@ -23,25 +23,40 @@ include("parts/side.php");
   </header>
 
   <div class="w3-row-padding w3-margin-bottom">
-  <div id="editBox" contenteditable="true" editable>Get the config file first</div>
-  Service to update: <input type="text" id="ser">
-  <button onclick="get">Get</button>
-  <button onclick="set">Set</button>
+  <pre><div id="editBox" contenteditable="true" editable>Get the config file first</div>
+  Service to update: <input type="text" id="ser" value="motion.check"></pre>
+  <button onclick="getSer()">Get</button>
+  <button onclick="setSer()">Set</button>
   </div>
 
  
 <script>
-
+temp = ""
 function getSer(){
-
+  var jsonT;
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("editBox").innerHTML = this.responseText;
+      jsont =  JSON.parse(this.responseText)
+      //jsont.body = body = jsont.body.replace("/\n/g", "<br />");
+      document.getElementById("editBox").innerHTML = jsont.Inner;
     }
   };
   xhttp.open("GET", "http://localhost:8000/config/"+encodeURI(document.getElementById("ser").value), true);
   xhttp.send();
+
+}
+
+function setSer(){
+  data =  document.getElementById("editBox").innerHTML 
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("editBox").innerHTML = "Updated";
+    }
+  };
+  xhttp.open("POST", "http://localhost:8000/config/"+encodeURI(document.getElementById("ser").value), true);
+  xhttp.send(data);
 
 }
 
