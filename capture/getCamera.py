@@ -5,7 +5,7 @@ import json
 import datetime
 
 
-
+# Open the config file and read the values from it
 def readConfig():
     global streamLocation,cameraName,serverAddress,serverPort,delay
     with open("config.json") as jf:
@@ -17,7 +17,7 @@ def readConfig():
         delay = data["FPS"]
 
 
-
+#Make a connection to the rabbit server
 def openConnection():
     print("Making connection")
     global connection,channel
@@ -28,11 +28,15 @@ def openConnection():
     
 
 readConfig()
+#Timing for fps
 prev = 0
+
 vcap = cv2.VideoCapture(streamLocation)
 openConnection()
+#Should stream forever
 while(1):
     while(vcap.isOpened()):
+        #For fps
         time_elapsed = time.time() - prev
         try:
             ret, frame = vcap.read()
@@ -43,16 +47,19 @@ while(1):
         if(time_elapsed > 1./delay):
             image = cv2.imencode(".jpg",frame)[1]
             b64 = base64.b64encode(image)
+            #Testing of sizes
             print("size of b64: "+str((len(b64)/1024)/1024))
             
+            #The json to send to rabbit
             bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
+            #TOPIC rabbit, with the topic being the camera name
             channel.basic_publish(exchange='videoStream',
                         routing_key=cameraName.replace(" ","."),
                         body=json.dumps(bodyText))
         
         
             prev = time.time()
-
+    #Delay reconnection attempt
     time.sleep(5)
     vcap = cv2.VideoCapture(streamLocation)
    
