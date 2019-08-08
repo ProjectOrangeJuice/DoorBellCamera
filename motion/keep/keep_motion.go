@@ -35,7 +35,7 @@ type Message struct {
 	Blocks []int
 }
 
-type OutMessage struct {
+type outMessage struct {
 	Code string
 	name string
 }
@@ -169,7 +169,7 @@ func recordDb(msg Message, loc string) {
 
 func notifyQueue(code string, name string) {
 	log.Printf("NOTIFY")
-	body := OutMessage{code, name}
+	body := outMessage{code, name}
 	b, err := json.Marshal(body)
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
