@@ -190,7 +190,7 @@ func addToDatabase(code string, start string, end string, high int) {
 	stmt, err := tx.Prepare("insert into video(code, startTime,endTime , reason) values(?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(code, start, end, string(high))
+	_, err = stmt.Exec(code, start, end, strconv.Itoa(high))
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	log.Printf("Saved to db")
