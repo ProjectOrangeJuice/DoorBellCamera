@@ -64,6 +64,9 @@ func main() {
 
 //All motion handler
 func getMotions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 
@@ -92,7 +95,8 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 //Get the single data
 func getMotion(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s", params["code"]))
+	//w.Write([]byte("Hello"))
+	http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s.mp4", params["code"]))
 }
 
 //Socket handler
