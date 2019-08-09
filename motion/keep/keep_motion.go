@@ -16,12 +16,12 @@ import (
 )
 
 //DBName is the database file name
-const DBName string = "/shared/motions.db"
+const DBName string = "/mnt/shared/motion/motions.db"
 
-const configLocation string = "/shared/config.txt"
+const configLocation string = "/mnt/shared/motion/config.txt"
 
 //CaptureLocation is the location of the capture folder
-const CaptureLocation string = "/shared/capture"
+const CaptureLocation string = "/mnt/shared/motion/capture"
 
 var server = ""
 
