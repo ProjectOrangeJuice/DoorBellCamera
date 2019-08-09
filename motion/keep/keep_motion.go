@@ -233,6 +233,7 @@ func createDatabase() {
 		'code'	TEXT,
 		'startTime'	TEXT,
 		'endTime'	TEXT,
+		'name' TEXT,
 		'reason' TEXT
 	);`
 
