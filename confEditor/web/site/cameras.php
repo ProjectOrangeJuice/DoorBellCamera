@@ -46,14 +46,22 @@ var socket = new WebSocket("ws://localhost:8000/stream/"+encodeURI(document.getE
          
          // 3
          var update = function(){
+    
+          // Log errors
+socket.onclose = function (error) {
+  long.innerHTML = "Socket has been closed. Connection to camera has failed"
+};
+
            socket.onmessage = function (event) {
             decoded = atob(event.data)
              long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+             
            }
          };
          window.setTimeout(update);
-
-
+       
+        
     // You must return false to prevent the default form behavior
     return false;
 }
