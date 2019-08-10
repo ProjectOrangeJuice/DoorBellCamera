@@ -28,6 +28,7 @@ include("parts/side.php");
         <table id="motionTable">
           <tbody>
             <tr>
+            <td>Camera</td>
               <td>Code</td>
               <td>Reason</td>
               <td>View</td>
@@ -57,10 +58,16 @@ include("parts/side.php");
               var newRow = tableRef.insertRow();
 
               // Insert a cell in the row at index 0
-              var newCell = newRow.insertCell(0);
-              var newCell2 = newRow.insertCell(1);
-              var newCell3 = newRow.insertCell(2);
-              var newCell4 = newRow.insertCell(3);
+              var newCell0 = newRow.insertCell(0);
+
+ // Append a text node to the cell
+ var newText = document.createTextNode(entry.Name);
+              newCell0.appendChild(newText);
+
+              var newCell = newRow.insertCell(1);
+              var newCell2 = newRow.insertCell(2);
+              var newCell3 = newRow.insertCell(3);
+              var newCell4 = newRow.insertCell(4);
   
 
               // Append a text node to the cell
