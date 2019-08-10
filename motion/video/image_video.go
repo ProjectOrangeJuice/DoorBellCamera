@@ -145,6 +145,7 @@ func convert(msg []byte) {
 	var fr []string
 	var totalAvg = 0
 	var counter = 0
+	var thresCount = 0
 	for rows.Next() {
 		counter++
 		var location string
@@ -153,6 +154,7 @@ func convert(msg []byte) {
 		err = rows.Scan(&location, &time, &reason)
 		failOnError(err, "Failed to get")
 		s := strings.Split(reason, "-")
+		thresCount = len(s)
 		for _, val := range s {
 			t, _ := strconv.Atoi(val)
 			totalAvg += t
@@ -167,7 +169,7 @@ func convert(msg []byte) {
 
 	}
 	if totalAvg > 0 && counter > 0 {
-		totalAvg = totalAvg / counter
+		totalAvg = totalAvg / (counter * thresCount)
 	}
 
 	//err = aw.Close()
