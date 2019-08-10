@@ -95,7 +95,6 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 //Get the single data
 func getMotion(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	//w.Write([]byte("Hello"))
 	http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s.mp4", params["code"]))
 }
 
