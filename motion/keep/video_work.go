@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 
 	"gocv.io/x/gocv"
 )
 
-func makeVideo(name string, code string) {
+func makeVideo(code string, name string) {
 	var startTime string
 	var endTime string
 	video, err := gocv.VideoWriterFile(fmt.Sprintf("%s/%s.mp4", videoFolder, code), "avc1", 5.0, 1280, 720, true)
@@ -65,6 +66,7 @@ func makeVideo(name string, code string) {
 
 	log.Printf("Start time %s and end time %s", startTime, endTime)
 	addToDatabase(code, name, startTime, endTime, totalAvg)
+	squashVideo(code)
 }
 
 func addToDatabase(code string, name string, start string, end string, totalAvg int) {
@@ -85,4 +87,11 @@ func addToDatabase(code string, name string, start string, end string, totalAvg 
 	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)
 	failOnError(err, "Couldn't delete motion records")
 
+}
+
+func squashVideo(code string) {
+	cmds := exec.Command("ffmpeg", "-i", fmt.Sprintf("%s/%s.mp4", videoFolder, code), "-crf", "50", fmt.Sprintf("%s/mobile/%s.mp4", videoFolder, code))
+	err := cmds.Run()
+	failOnError(err, "FAiled to compress video")
+	log.Print("Finished making mobile")
 }
