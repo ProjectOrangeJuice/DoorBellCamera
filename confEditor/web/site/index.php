@@ -158,6 +158,37 @@ include("parts/side.php");
         };
         window.setTimeout(update);
       }
+
+      function doorMotion() {
+        var box = document.getElementById("alertBox");
+
+        var txt = document.getElementById("alertText");
+
+        // 2
+        var socket = new WebSocket("ws://localhost:8000/streamDoor")
+
+        // 3
+        var update = function () {
+
+          // Log errors
+          socket.onclose = function (error) {
+            txt.innerHTML = "Socket has been closed. Motion is not being watched"
+            showAlert()
+          };
+
+          socket.onmessage = function (event) {
+            console.log("Motion detected")
+           txt.innerHTML = "Door!"
+           showAlert()
+           setTimeout(hideAlert,5000)
+
+
+          }
+        };
+        window.setTimeout(update);
+      }
+
+
       function showAlert() {
             document.getElementById("alertBox").style.display = "block";
         }
@@ -165,7 +196,7 @@ include("parts/side.php");
             document.getElementById("alertBox").style.display = "none";
         }
         hideAlert()
-        alertMotion()
+        doorMotion()
     </script>
 
 
