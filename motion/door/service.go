@@ -46,6 +46,11 @@ type pre struct {
 	Failed int64
 }
 
+type outMessage struct {
+	Code string
+	Name string
+}
+
 var configVals config
 var camera = make(map[string]*pre)
 
@@ -125,12 +130,14 @@ func decideFate(m Message) {
 	current := camera[m.Name]
 	curConfig := getCam(m.Name)
 	alert := false
-	if current.Alert != 0 && current.Failed != 0 {
-		if time.Since(time.Unix(current.Alert, 0)).Seconds() > float64(curConfig.Quiet) &&
-			time.Since(time.Unix(current.Failed, 0)).Seconds() > float64(curConfig.DelayFailed) {
+
+	if m.Code != current.Code {
+		log.Print("New code")
+		if time.Since(time.Unix(current.Alert, 0)).Seconds() > float64(curConfig.Quiet) {
+			log.Print("New alert can be made")
 			alert = true
 		}
-	} else {
+	} else if current.Alert == 0 {
 		alert = true
 	}
 
@@ -142,6 +149,7 @@ func decideFate(m Message) {
 					sendAlert(m)
 					current.Alert = time.Now().Unix()
 					alerted = true
+					break
 				}
 			}
 			if !alerted {
@@ -158,6 +166,36 @@ func decideFate(m Message) {
 
 func sendAlert(m Message) {
 	log.Printf("Sending alert!")
+	body := outMessage{m.Code, m.Name}
+	b, err := json.Marshal(body)
+	conn, err := amqp.Dial(configVals.ServerAddress)
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		"doorService", // name
+		false,         // durable
+		false,         // delete when unused
+		false,         // exclusive
+		false,         // no-wait
+		nil,           // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	err = ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        b,
+		})
+	failOnError(err, "Failed to publish a message")
 }
 
 func getCam(name string) pConfig {
