@@ -165,7 +165,7 @@ def checkUpdates():
     connection2 = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
 
     channel3 = connection2.channel()
-    channel3.exchange_declare(exchange='config',exchange_type="topic",durable=True)
+    channel3.exchange_declare(exchange='config',exchange_type="topic",durable=False)
     result = channel3.queue_declare('', exclusive=True)
     queue_name = result.method.queue
 

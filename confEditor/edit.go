@@ -129,7 +129,7 @@ func getCommand(arg string) {
 	err = ch.ExchangeDeclare(
 		"config", // name
 		"topic",  // type
-		true,     // durable
+		false,    // durable
 		false,    // auto-deleted
 		false,    // internal
 		false,    // no-wait
@@ -181,7 +181,7 @@ func setCommand(arg string) {
 	err = ch.ExchangeDeclare(
 		"config", // name
 		"topic",  // type
-		true,     // durable
+		false,    // durable
 		false,    // auto-deleted
 		false,    // internal
 		false,    // no-wait
