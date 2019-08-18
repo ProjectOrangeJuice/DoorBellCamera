@@ -109,7 +109,7 @@ include("parts/side.php");
 
           }
         };
-        xhttp.open("GET", "http://localhost:8000/motion", true);
+        xhttp.open("GET", "http://localhost:8000/s/motion", true);
         xhttp.send();
       }
 
@@ -122,7 +122,7 @@ include("parts/side.php");
             location.reload();
           }
         }
-        xhttp.open("DELETE", "http://localhost:8000/delete/" + code, true);
+        xhttp.open("DELETE", "http://localhost:8000/s/motion/" + code, true);
         xhttp.send();
       }
 
