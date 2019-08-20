@@ -19,5 +19,7 @@ func main() {
 	sec.HandleFunc("/refresh", refresh).Methods("GET")
 	sec.HandleFunc("/motion", allMotion).Methods("GET")
 	sec.HandleFunc("/motion/{code}", getMotion).Methods("DELETE", "GET", "OPTIONS")
+	sec.HandleFunc("/stream/{code}", getVideo).Methods("GET", "OPTIONS")
+
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
