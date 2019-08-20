@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -50,10 +49,6 @@ func allMotion(w http.ResponseWriter, r *http.Request) {
 
 //del motion handler
 func delMotion(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.1.126:30016")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Access-Control-Allow-Origin, access-control-allow-headers")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	print("Deleting motion")
 	params := mux.Vars(r)
 
@@ -76,7 +71,6 @@ func getMotion(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s.mp4", params["code"]))
 	} else if r.Method == "DELETE" {
-		log.Printf("Method is delete")
 		delMotion(w, r)
 	}
 }
