@@ -17,7 +17,33 @@ function OtherError() {
     );
 }
 
-class LoginForm extends React.Component {
+export function CheckAuth() {
+    fetch('http://localhost:8000/s/refresh', {
+        method: 'GET',
+        credentials: 'include',
+
+    })
+        .then((res) => {
+            if (res.status === 401) {
+                console.log("Returning false")
+                return false
+            } else {
+                console.log("Returning true")
+                return true
+            }
+
+        },
+            (error) => {
+
+                return false
+
+            }
+        )
+
+        console.log("Reached end of function")
+}
+
+export class LoginForm extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -55,8 +81,11 @@ class LoginForm extends React.Component {
             .then((res) => {
                 if (res.status === 401) {
                     this.setState({ error: true })
+                    localStorage.setItem('login', "false");
                 } else if (res.status === 200) {
                     console.log("logged in");
+                    localStorage.setItem('login', "true");
+                    window.location.reload();
                 }
 
             },
