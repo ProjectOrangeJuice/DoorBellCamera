@@ -13,6 +13,10 @@ var connect amqp.Connection
 
 var templates *template.Template
 
+type pageContent struct {
+	Title string
+}
+
 func main() {
 	//Initiate templates
 	var err error
@@ -29,7 +33,8 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "index", nil)
+	data := pageContent{Title: "Hello"}
+	templates.ExecuteTemplate(w, "index", data)
 }
 func other(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "other", nil)
