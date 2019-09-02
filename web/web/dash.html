@@ -1,7 +1,8 @@
 {{ define "dash" }}
 {{ template "header" . }}
+
 <body class="w3-light-grey">
-{{ template "side" .}}
+  {{ template "side" .}}
 
   <!-- !PAGE CONTENT! -->
   <div class="w3-main" style="margin-left:300px;margin-top:43px;">
@@ -11,12 +12,9 @@
       <h5><b><i class="fa fa-dashboard"></i> Information </b></h5>
     </header>
     <div class="w3-panel w3-red w3-display-bottommiddle" id="alertBox">
-        <p id="alertText"></p>
-      </div>
+      <p id="alertText"></p>
+    </div>
     <div class="w3-row-padding w3-margin-bottom">
-
-    
-
 
       <button class="w3-button w3-blue" onclick="selectToday()">Today</button> <br>
       Or
@@ -36,28 +34,40 @@
         </table>
       </div>
     </div>
-    <div id="videoBox">
-      Video will display here.
+    <div id="id01" class="w3-modal">
+      <div class="w3-modal-content">
+        <div class="w3-container">
+          <span onclick="document.getElementById('id01').style.display='none'"
+            class="w3-button w3-display-topright">&times;</span>
+          <p>
+            <div id="videoBox">
+              Video will display here.
+            </div>
+          </p>
+        </div>
+
+      </div>
     </div>
+
     <script>
       today = true;
-      $( function() {
-    $( ".datepicker" ).datepicker({ dateFormat: 'yy-mm-dd' }).val();
-  } );
+      $(function () {
+        $(".datepicker").datepicker({ dateFormat: 'yy-mm-dd' }).val();
+      });
 
-  function selectToday(){
-    today = true
-    setupTable()
-  }
+      function selectToday() {
+        today = true
+        setupTable()
+      }
 
-  function selectOther(){ 
-    today = false
-    setupTable()
-  }
+      function selectOther() {
+        today = false
+        setupTable()
+      }
 
-  function setupTable(){
-    $("#motionTable tr").remove();
-    $("#motionTable").append(`<tbody>
+      function setupTable() {
+        $("#motionTable tbody").remove();
+        $("#motionTable").append(`<tbody>
             <tr>
               <td>Camera</td>
               <td>Code</td>
@@ -66,8 +76,8 @@
               <td>Delete</td>
             </tr>
           </tbody>`);
-    setup()
-  }
+        setup()
+      }
 
     </script>
     <script>
@@ -96,7 +106,6 @@
               var newCell3 = newRow.insertCell(3);
               var newCell4 = newRow.insertCell(4);
 
-
               // Append a text node to the cell
               var newText = document.createTextNode(entry.Code);
               newCell.appendChild(newText);
@@ -107,6 +116,7 @@
               a.innerHTML = "View"
               a.addEventListener("click", function () {
                 document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/s/motion/" + entry.Code + "'></video>"
+                document.getElementById('id01').style.display = 'block'
               });
 
               newCell3.appendChild(a)
@@ -119,41 +129,35 @@
 
               newCell4.appendChild(b)
 
-
-
             });
-
-
-
 
           }
         };
-        if(today){
+        if (today) {
           xhttp.open("GET", "http://localhost:8000/s/motion", true);
-        }else{
-          url = "http://localhost:8000/s/motion?to="+(document.getElementById("to").value).replace(/\//g,"-")+"&from="+(document.getElementById("from").value).replace(/\//g,"-");  
-          xhttp.open("GET",  encodeURI(url) , true);
+        } else {
+          url = "http://localhost:8000/s/motion?to=" + (document.getElementById("to").value).replace(/\//g, "-") + "&from=" + (document.getElementById("from").value).replace(/\//g, "-");
+          xhttp.open("GET", encodeURI(url), true);
         }
         xhttp.send();
       }
-
 
       function deleteMotion(code) {
-
-        var xhttp = new XMLHttpRequest();
-        xhttp.withCredentials = true;
-        xhttp.onreadystatechange = function () {
-          if (xhttp.readyState == 4 && xhttp.status == 200) {
-            location.reload();
+        var r = confirm("Are you sure?");
+        if (r == true) {
+          var xhttp = new XMLHttpRequest();
+          xhttp.withCredentials = true;
+          xhttp.onreadystatechange = function () {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+              location.reload();
+            }
           }
+          xhttp.open("DELETE", "http://localhost:8000/s/motion/" + code, true);
+          xhttp.send();
         }
-        xhttp.open("DELETE", "http://localhost:8000/s/motion/" + code, true);
-        xhttp.send();
+
+        setupTable()
       }
-
-      setup()
-
-
 
       function alertMotion() {
         var box = document.getElementById("alertBox");
@@ -174,10 +178,9 @@
 
           socket.onmessage = function (event) {
             console.log("Motion detected")
-           txt.innerHTML = "Motion!"
-           showAlert()
-           setTimeout(hideAlert,5000)
-
+            txt.innerHTML = "Motion!"
+            showAlert()
+            setTimeout(hideAlert, 5000)
 
           }
         };
@@ -203,33 +206,28 @@
 
           socket.onmessage = function (event) {
             console.log("Motion detected")
-           txt.innerHTML = "Door!"
-           showAlert()
-           setTimeout(hideAlert,5000)
-
+            txt.innerHTML = "Door!"
+            showAlert()
+            setTimeout(hideAlert, 5000)
 
           }
         };
         window.setTimeout(update);
       }
 
-
       function showAlert() {
-            document.getElementById("alertBox").style.display = "block";
-        }
-        function hideAlert() {
-            document.getElementById("alertBox").style.display = "none";
-        }
-        hideAlert()
-        doorMotion()
+        document.getElementById("alertBox").style.display = "block";
+      }
+      function hideAlert() {
+        document.getElementById("alertBox").style.display = "none";
+      }
+      hideAlert()
+      doorMotion()
     </script>
-
-
-
 
     <!-- End page content -->
   </div>
-{{ template "footer" . }}
+  {{ template "footer" . }}
 
 </body>
 
