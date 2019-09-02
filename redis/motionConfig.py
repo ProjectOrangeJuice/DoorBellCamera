@@ -8,8 +8,8 @@ config = {
 }
 
 cameras = [{
-            "name": "Test Camera2",
-            "threshold": "[80,80,80]",
+            "name": "test",
+            "threshold": "[8,80,80]",
             "minCount": 1
         }]
 r.hmset("config:motion",config )
