@@ -29,13 +29,14 @@ func main() {
 	//Initiate templates
 	var err error
 	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
-		"web/templates/side.html", "web/dash.html", "web/cameras.html")
+		"web/templates/side.html", "web/dash.html", "web/cameras.html", "web/edit.html")
 	failOnError(err, "Failed to read templates")
 
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))))
 	router.HandleFunc("/", index).Methods("GET")
 	router.HandleFunc("/live", live).Methods("GET")
+	router.HandleFunc("/config", edit).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8001", router))
 }
@@ -43,6 +44,11 @@ func main() {
 func index(w http.ResponseWriter, r *http.Request) {
 	data := pageContent{Title: "Dash", Side: makeSide("Dash")}
 	decideTemplate(w, r, "dash", data)
+
+}
+func edit(w http.ResponseWriter, r *http.Request) {
+	data := pageContent{Title: "Config edit", Side: makeSide("Config")}
+	decideTemplate(w, r, "config", data)
 
 }
 
