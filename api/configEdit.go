@@ -19,15 +19,12 @@ type outMessage struct {
 
 //GET for getconfig
 func getConfig(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	params := mux.Vars(r)
-	msg := getCommand(params["service"])
-	body := outMessage{params["service"], msg}
-	b, err := json.Marshal(body)
-	failOnError(err, "failed to create json to send")
-	w.Write(b)
+	output := client.HGetAll(params["service"])
+	o2, _ := output.Result()
+	jsonout, err := json.Marshal(o2)
+	failOnError(err, "Json error")
+	w.Write([]byte(jsonout))
 
 }
 
