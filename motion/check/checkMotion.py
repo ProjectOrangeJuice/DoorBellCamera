@@ -33,7 +33,8 @@ def readConfig():
     dt = json.loads(r.hget("config:motion","threshold"))
     dmin = r.hget("config:motion","minCount")
     for cam in cameras:
-        getCamera(cam["name"])
+        print("cam is.. "+str(cam))
+        getCamera(cam)
   
 readConfig()
 
@@ -96,7 +97,7 @@ def motionCheck(name,image,camtime):
         bThres = True
         thresTestCount = 0
         for v in totals:
-            if(v < tc[threshold][thresTestCount]):
+            if(v < int(tc[threshold][thresTestCount])):
                 bThres = False
                 break
             thresTestCount += 1
@@ -111,7 +112,7 @@ def motionCheck(name,image,camtime):
         
         else:
             tc[countOff] += 1
-            if(tc[minCount] < tc[countOff]):
+            if(int(tc[minCount]) < int(tc[countOff])):
                 tc[countOn] = 0
                 tc[imgCount] = 0
                 if(tc[codeUsed]):
@@ -125,12 +126,12 @@ def motionCheck(name,image,camtime):
                     tc[codeUsed] = False
                     #All frames now sent
                 tc[heldFrames].clear()
-            if(tc[countOff] > 200):
+            if(int(tc[countOff]) > 200):
                 tc[countOff] = 200
                 
                 
                 
-        if(tc[countOn] > tc[minCount]):
+        if(int(tc[countOn]) > int(tc[minCount])):
             #send the held frames
             print("Pushing frames")
             for data in tc[heldFrames]:

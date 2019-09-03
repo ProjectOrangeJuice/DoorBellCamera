@@ -37,7 +37,7 @@ function processForm(e) {
  var long = document.getElementById("imageArea");
 var urlParams = new URLSearchParams(window.location.search);
 // 2
-var socket = new WebSocket("ws://localhost:8000/stream/"+encodeURI(document.getElementById("cname").value))
+var socket = new WebSocket("ws://localhost:8000/s/stream/"+encodeURI(document.getElementById("cname").value))
          
          // 3
          var update = function(){
