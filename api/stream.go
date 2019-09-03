@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/streadway/amqp"
 )
 
 //Message is the json format
@@ -39,55 +41,61 @@ func getVideo(w http.ResponseWriter, r *http.Request) {
 
 //Socket handler
 func getMotionWatch(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	failOnError(err, "Couldn't upgrade")
+	//ws, err := upgrader.Upgrade(w, r, nil)
+	//failOnError(err, "Couldn't upgrade")
 	logger.Printf("Motion watch for %s", r.RemoteAddr)
-	go motionWatch("", ws)
+	//go motionWatch("", ws)
 }
 
 //Socket handler
 func getDoor(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	failOnError(err, "Couldn't upgrade")
+	//ws, err := upgrader.Upgrade(w, r, nil)
+	//failOnError(err, "Couldn't upgrade")
 	logger.Printf("Door watch for %s", r.RemoteAddr)
 	// register client
-	go doorWatch("", ws)
+	//go doorWatch("", ws)
 }
 
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn) {
 	msgs, ch := listenToExchange("videoStream", strings.Replace(cam, " ", ".", -1))
-	defer ch.Close()
-
 	forever := make(chan bool)
-
+	var m Message
 	go func() {
+		defer closeThis(ch)
 		const duration = 3 * time.Second
 		timer := time.NewTimer(duration)
 		for {
 			select {
 			case d := <-msgs:
 				timer.Reset(duration)
-				var m Message
 				err := json.Unmarshal(d.Body, &m)
 				failOnError(err, "Json decode error")
 
 				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 
 				if err != nil {
-					logger.Printf("Websocket error: %s", err)
+					log.Printf("Websocket error: %s", err)
 					ws.Close()
+					msgs = nil
 					return
 				}
 
 			case <-timer.C:
 				fmt.Println("Timeout !")
 				ws.Close()
+				return
 			}
 		}
 
 	}()
 	<-forever
+}
+
+func closeThis(ch *amqp.Channel) {
+	log.Print("Closing channel")
+	ch.Close()
+	ch = nil
 }
 
 //For the connection, get motion and send it
