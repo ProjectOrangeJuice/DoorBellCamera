@@ -50,6 +50,9 @@ def getCamera(name):
     if(r.exists(l)>0):
         if name not in cameras:
             cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
+        else:
+            cameras[name] = [cameras[name][0], cameras[name][1],cameras[name][2], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), cameras[name][5], cameras[name][6], cameras[name][7],cameras[name][8], r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
+    
     else:
         cameras[name] = [0, 0, [], dt, dmin, "", False, None,0,0,0]
     return cameras[name]
