@@ -70,7 +70,7 @@ func edit(w http.ResponseWriter, r *http.Request) {
 
 func inspect(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	data := pageContent{Title: "Inspect", Side: makeSide("Config"), Code: params["code"]}
+	data := pageContent{Title: "Inspect", Side: makeSide("none"), Code: params["code"]}
 	decideTemplate(w, r, "inspect", data)
 
 }
