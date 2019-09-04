@@ -40,5 +40,5 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 		client.HSet(params["service"], index, new)
 	}
 
-	logger.Printf("Set config for %s. Set by %s with %s", params["service"], r.RemoteAddr, objmap)
+	logger.Printf("Set config for %s. Set by %s with %v", params["service"], r.RemoteAddr, objmap)
 }
