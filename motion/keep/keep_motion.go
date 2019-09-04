@@ -73,11 +73,12 @@ func main() {
 
 func readyAndListen() {
 	msgs, ch := listenToQueue("motionAlert")
-	defer ch.Close()
+
 	createTimer()
 	forever := make(chan bool)
 
 	go func() {
+		defer ch.Close()
 		for d := range msgs {
 			decodeMessage(d.Body)
 		}
