@@ -129,7 +129,7 @@ func recordDb(msg Message, loc string) {
 	stmt, err := tx.Prepare("insert into motion(motionCode, location,time,reason) values(?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(msg.Code, loc, msg.Time, strings.Replace(fmt.Sprint(msg.Blocks), " ", ",", -1))
+	_, err = stmt.Exec(msg.Code, loc, msg.Time, msg.Blocks)
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	tc := camera[msg.Name]
