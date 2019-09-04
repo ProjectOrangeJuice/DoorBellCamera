@@ -35,6 +35,9 @@ func makeVideo(code string, name string) {
 		var reason string
 		err = rows.Scan(&location, &time, &reason)
 		failOnError(err, "Failed to get")
+		if reasons == "" {
+			reasons = reason
+		}
 		sp := strings.Split(reason, ",")
 		if len(sp) > 1 {
 			for _, v := range sp {
