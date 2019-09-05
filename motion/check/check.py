@@ -269,8 +269,8 @@ def motionCheck(name,image,camtime):
 def sendFrames(tc):
     print("I've decided to send the frames")
     for data in tc[heldFrames]:
-        channel.basic_publish(exchange='',
-            routing_key='motionAlert',
+        channel2.basic_publish(exchange='motion',
+            routing_key='',
             body=json.dumps(data))
     tc[heldFrames].clear()
     
@@ -283,8 +283,9 @@ def randomString(stringLength=10):
     return ''.join(random.choice(letters) for i in range(stringLength))
 
 
+channel2.exchange_declare(exchange='motion',
+                         exchange_type='fanout')
 
-channel2.queue_declare(queue='motionAlert')
 
 
 

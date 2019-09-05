@@ -88,7 +88,7 @@ func sendVideo(cam string, ws *websocket.Conn) {
 
 //For the connection, get motion and send it
 func motionWatch(cam string, ws *websocket.Conn) {
-	msgs, ch := listenToQueue("motionAlert")
+	msgs, ch := listenToFanout("motion")
 	defer ch.Close()
 	prev := ""
 	forever := make(chan bool)
@@ -118,7 +118,7 @@ func motionWatch(cam string, ws *websocket.Conn) {
 
 //For the connection, get motion and send it
 func doorWatch(cam string, ws *websocket.Conn) {
-	msgs, ch := listenToQueue("doorService")
+	msgs, ch := listenToFanout("doorService")
 	defer ch.Close()
 	prev := ""
 	forever := make(chan bool)
