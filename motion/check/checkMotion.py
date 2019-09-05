@@ -186,7 +186,7 @@ channel2.queue_declare(queue='motionAlert')
 
 
 
-channel.exchange_declare(exchange='videoStream', exchange_type='topic')
+channel.exchange_declare(exchange='videoStream', exchange_type='topic',auto_delete=True)
 
 result = channel.queue_declare('', exclusive=True)
 queue_name = result.method.queue

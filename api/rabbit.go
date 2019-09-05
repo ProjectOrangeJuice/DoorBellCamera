@@ -20,7 +20,7 @@ func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 	qu, err := ch.QueueDeclare(
 		q,     // name
 		false, // durable
-		false, // delete when usused
+		true,  // delete when usused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
@@ -36,6 +36,7 @@ func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 		nil,     // args
 	)
 	failOnError(err, "Failed to register a consumer")
+
 	return msgs, ch
 }
 
@@ -47,7 +48,7 @@ func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.
 		name,    // name
 		"topic", // type
 		false,   // durable
-		false,   // auto-deleted
+		true,    // auto-deleted
 		false,   // internal
 		false,   // no-wait
 		nil,     // arguments
@@ -57,7 +58,7 @@ func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.
 		"",    // name
 		false, // durable
 		true,  // delete when usused
-		false, // exclusive
+		true,  // exclusive
 		false, // no-wait
 		nil,   // arguments
 	)
@@ -94,7 +95,7 @@ func listenToFanout(name string) (<-chan amqp.Delivery, *amqp.Channel) {
 		name,     // name
 		"fanout", // type
 		false,    // durable
-		false,    // auto-deleted
+		true,     // auto-deleted
 		false,    // internal
 		false,    // no-wait
 		nil,      // arguments
@@ -103,8 +104,8 @@ func listenToFanout(name string) (<-chan amqp.Delivery, *amqp.Channel) {
 	q, err := ch.QueueDeclare(
 		"",    // name
 		false, // durable
-		false, // delete when usused
-		false, // exclusive
+		true,  // delete when usused
+		true,  // exclusive
 		false, // no-wait
 		nil,   // arguments
 	)
