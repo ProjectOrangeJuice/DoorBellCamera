@@ -11,9 +11,7 @@
     <header class="w3-container" style="padding-top:22px">
       <h5><b><i class="fa fa-dashboard"></i> Information </b></h5>
     </header>
-    <div class="w3-panel w3-red w3-display-bottommiddle" id="alertBox">
-      <p id="alertText"></p>
-    </div>
+    {{ template "alert" .}}
     <div class="w3-row-padding w3-margin-bottom">
 
       <button class="w3-button w3-green" onclick="selectToday()">Today</button> <br>
@@ -174,70 +172,7 @@
         
       }
 
-      function alertMotion() {
-        var box = document.getElementById("alertBox");
-
-        var txt = document.getElementById("alertText");
-
-        // 2
-        var socket = new WebSocket("ws://localhost:8000/s/service/motion")
-
-        // 3
-        var update = function () {
-
-          // Log errors
-          socket.onclose = function (error) {
-            txt.innerHTML = "Socket has been closed. Motion is not being watched"
-            showAlert()
-          };
-
-          socket.onmessage = function (event) {
-            console.log("Motion detected")
-            txt.innerHTML = "Motion!"
-            showAlert()
-            setTimeout(hideAlert, 5000)
-
-          }
-        };
-        window.setTimeout(update);
-      }
-
-      function doorMotion() {
-        var box = document.getElementById("alertBox");
-
-        var txt = document.getElementById("alertText");
-
-        // 2
-        var socket = new WebSocket("ws://localhost:8000/s/service/door")
-
-        // 3
-        var update = function () {
-
-          // Log errors
-          socket.onclose = function (error) {
-            txt.innerHTML = "Socket has been closed. Motion is not being watched"
-            showAlert()
-          };
-
-          socket.onmessage = function (event) {
-            console.log("Motion detected")
-            txt.innerHTML = "Door!"
-            showAlert()
-            setTimeout(hideAlert, 5000)
-
-          }
-        };
-        window.setTimeout(update);
-      }
-
-      function showAlert() {
-        document.getElementById("alertBox").style.display = "block";
-      }
-      function hideAlert() {
-        document.getElementById("alertBox").style.display = "none";
-      }
-      hideAlert()
-      alertMotion()
+      
     </script>
 
     <!-- End page content -->
