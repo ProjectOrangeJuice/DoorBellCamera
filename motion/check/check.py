@@ -135,7 +135,7 @@ def checkFrame(name,image,camtime):
         ##Now that the maths is done, check if it's a valid motion to report
         if(motion):
             print("I think I saw something at "+str(vals[7]))
-            print("At "+str(len(locations)))
+           
             #Add the zone to this frame
             if(vals[7] not in seen):
                 seen.append(vals[7])
