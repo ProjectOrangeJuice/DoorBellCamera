@@ -108,6 +108,7 @@ def checkFrame(name,image,camtime):
     count = 0 #Which roi we're looking at
     roi = tc[threshold] #Rename var
     seen = [] #What section did we see it in
+    locations = []
     while count < len(roi):
         vals = roi[count]
         ##crop roi
@@ -127,10 +128,14 @@ def checkFrame(name,image,camtime):
         for contour in cnts: 
             if cv2.contourArea(contour) < vals[5]: 
                 continue
-            motion = True  
+            motion = True
+            M = cv2.moments(contour)
+
+            locations.append(M)  
         ##Now that the maths is done, check if it's a valid motion to report
         if(motion):
             print("I think I saw something at "+str(vals[7]))
+            print("At "+str(locations))
             #Add the zone to this frame
             if(vals[7] not in seen):
                 seen.append(vals[7])
@@ -166,104 +171,6 @@ def checkFrame(name,image,camtime):
     tc[imgCount] += 1
     if(doNew):
         tc[prevImage] = gray 
-
-def motionCheck(name,image,camtime):
-    global cameras,timeupdate
-    doNew = False
-    if(minute_passed(timeupdate)):
-        timeupdate = time.time()
-        readConfig()
-        doNew = True
-    if name in cameras:
-        tc = cameras.get(name)
-    else:
-        #countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage
-        #cameras[name] = [0, 0, [], dt, dmin, "", False, None,0]
-        tc = getCamera(name)
-    nparr = np.fromstring(base64.b64decode(image), np.uint8)
-    cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
-    motion = False
-
-
-    # Converting color image to gray_scale image 
-    gray = cv2.cvtColor(cvimg, cv2.COLOR_BGR2GRAY) 
-
-    # Converting gray scale image to GaussianBlur  
-    # so that change can be find easily 
-    bval = int(tc[blur])
-    if(bval > 0):
-        gray = cv2.GaussianBlur(gray, (bval,bval), 0) 
-
-    # In first iteration we assign the value  
-    # of static_back to our first frame 
-    if tc[prevImage] is None: 
-        tc[prevImage] = gray 
-        tc[code] = randomString(10)
-        print("Made a new background")
-        return
-    
-    count = 0
-    roi = tc[threshold]
-    seen = ""
-    tc[imgCount] += 1
-    tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":seen})
-    while count < len(roi):
-        vals = roi[count]
-        ##crop roi
-        static_backt = tc[prevImage][vals[0]:vals[1],vals[2]:vals[3]]
-        grayt = gray[vals[0]:vals[1],vals[2]:vals[3]]
-        # Difference between static background  
-        # and current frame(which is GaussianBlur) 
-        diff_frame = cv2.absdiff(static_backt, grayt) 
-
-        # If change in between static background and 
-        # current frame is greater than 30 it will show white color(255) 
-        thresh_frame = cv2.threshold(diff_frame, vals[4], 255, cv2.THRESH_BINARY)[1] 
-        thresh_frame = cv2.dilate(thresh_frame, None, iterations = 2) 
-        # Finding contour of moving object 
-        (_, cnts, _) = cv2.findContours(thresh_frame.copy(),  
-                        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
-
-        for contour in cnts: 
-            if cv2.contourArea(contour) < vals[5]: 
-                continue
-            motion = True
-        if(motion):
-            print("i saw something in section "+str(vals[7]))
-            # if(tc[countOn]%4 == 0):
-            #     doNew=True
-            if(seen == ""):
-                seen = str(vals[7])
-            else:
-                seen = seen+","+str(vals[7])
-            tc[countOn] += 1
-            if(tc[countOn] > 15):
-                sendFrames(tc)
-        else:
-            tc[countOn] -= 1
-            if(tc[countOn] < 0):
-                tc[countOn] = 0
-                tc[imgCount] = 0
-                if(tc[codeUsed]):
-                    sendFrames(tc)
-                    tc[codeUsed] = False
-                    tc[code] = randomString(10)
-                    
-                else:
-                    tc[heldFrames].clear()
-        if(tc[countOn] > int(vals[6])):
-            tc[codeUsed]=True
-            print("I've seen motion!")
-            tc[codeUsed] = True
-            if(tc[countOn] > int(vals[6])*2):
-                doNew = True
-                tc[countOn] = (int(vals[6])*2)-1
-       
-        
-         
-        count += 1
-        if(doNew):
-            tc[prevImage] = gray 
 
 
 def sendFrames(tc):
