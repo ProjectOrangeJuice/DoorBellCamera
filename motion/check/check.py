@@ -153,12 +153,17 @@ def checkFrame(name,image,camtime):
             tc[countOn][count] -= 1
             if(tc[countOn][count] < 0):
                 tc[countOn][count] = 0
-                tc[heldFrames].clear()
-                tc[imgCount] = 0
-                if(tc[codeUsed]):
-                    tc[code] =  randomString(10)
-                    tc[codeUsed] = False
-                    
+                allz = True
+                for c in tc[countOn]:
+                    if c > 0:
+                        allz = False
+                if(allz):
+                    tc[heldFrames].clear()
+                    tc[imgCount] = 0
+                    if(tc[codeUsed]):
+                        tc[code] =  randomString(10)
+                        tc[codeUsed] = False
+                        
         
         #Has the number of motion frames gone above the min required?
         if(tc[countOn][count]>int(vals[6])):
@@ -178,6 +183,7 @@ def checkFrame(name,image,camtime):
 def sendFrames(tc):
     print("I've decided to send the frames")
     for data in tc[heldFrames]:
+        print("Frame sent")
         channel2.basic_publish(exchange='motion',
             routing_key='',
             body=json.dumps(data))

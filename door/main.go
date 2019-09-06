@@ -20,13 +20,13 @@ type cameras struct {
 
 //Message is the json format
 type Message struct {
-	Image    string
-	Time     string
-	Code     string
-	Count    int
-	Name     string
-	Reason   string
-	Location string
+	Image     string
+	Time      string
+	Code      string
+	Count     int
+	Name      string
+	Reason    string
+	Locations string
 }
 
 type hold struct {
@@ -53,6 +53,7 @@ func main() {
 	go func() {
 		defer ch.Close()
 		for d := range msgs {
+			log.Print("Got a message")
 			decodeMessage(d.Body, &phold)
 		}
 	}()
@@ -71,9 +72,9 @@ func decodeMessage(d []byte, held *hold) {
 func decideFate(msg Message, held *hold) {
 
 	//Decode the points
-	log.Printf("Loc points are.. %s", msg.Location)
+	log.Printf("Loc points are.. %s", msg.Locations)
 	var locPoints []map[string]interface{}
-	err := json.Unmarshal([]byte(msg.Location), &locPoints)
+	err := json.Unmarshal([]byte(msg.Locations), &locPoints)
 	failOnError(err, "Json failed on locpoints")
 	down := false
 	for _, loc := range locPoints {
