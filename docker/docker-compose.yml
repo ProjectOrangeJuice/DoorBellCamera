@@ -1,0 +1,47 @@
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    command: ["redis-server","--appendonly","yes"]
+    networks:
+      -internalNetwork
+  
+  capture:
+    image: capture:latest
+  networks:
+    -internalNetwork
+    -bridge
+  
+  check:
+    image: check:latest
+    networks:
+      -internalNetwork
+
+  keep:
+    image: keep:latest
+    networks:
+      -internalNetwork
+  
+  door:
+    image: door:latest
+    networks:
+      -internalNetwork
+  
+  web:
+    image: door:latest
+    networks:
+      -internalNetwork
+    
+  api:
+    image: api:latest
+    ports:
+      -"8000:8000"
+    networks:
+      -internalNetwork
+      -bridge
+
+
+networks:
+  internalNetwork:
+    driver: overlay
+    internal: true
