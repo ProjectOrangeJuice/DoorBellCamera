@@ -78,7 +78,7 @@ func decideFate(msg Message, held *hold) {
 
 		diff := held.PreviousAlert.Sub(time.Now())
 		//log.Printf("Time %f", diff.Minutes())
-		if diff.Minutes() < -1.0 {
+		if diff.Minutes() < -5.0 {
 			if held.Code != msg.Code {
 				//Don't check
 				checkFrame = true
@@ -106,6 +106,7 @@ func decideFate(msg Message, held *hold) {
 			mX := v1 / v2
 			log.Printf("I worked the value as %f", mX)
 			if held.Code != msg.Code {
+				log.Print("Reset.")
 				held.Count = 0
 				held.FalseCount = 0
 				held.Point = 0
