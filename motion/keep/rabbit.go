@@ -14,7 +14,7 @@ func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 	qu, err := ch.QueueDeclare(
 		q,     // name
 		false, // durable
-		true,  // delete when usused
+		false, // delete when usused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
@@ -89,7 +89,7 @@ func listenToFanout(name string) (<-chan amqp.Delivery, *amqp.Channel) {
 		name,     // name
 		"fanout", // type
 		false,    // durable
-		true,     // auto-deleted
+		false,    // auto-deleted
 		false,    // internal
 		false,    // no-wait
 		nil,      // arguments
