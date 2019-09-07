@@ -9,3 +9,4 @@ motion/keep/keep_video
 nginx-portable-master
 
 *.log
+serviceAccountKey.json
