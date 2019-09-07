@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/streadway/amqp"
 )
@@ -30,9 +32,11 @@ type Message struct {
 }
 
 type hold struct {
-	Code  string
-	Point int
-	Count int
+	Code          string
+	Point         float64
+	Count         int
+	PreviousAlert time.Time
+	FalseCount    int
 }
 
 func readConfig() {
@@ -53,7 +57,6 @@ func main() {
 	go func() {
 		defer ch.Close()
 		for d := range msgs {
-			log.Print("Got a message")
 			decodeMessage(d.Body, &phold)
 		}
 	}()
@@ -70,41 +73,82 @@ func decodeMessage(d []byte, held *hold) {
 }
 
 func decideFate(msg Message, held *hold) {
+	checkFrame := false
+	if !held.PreviousAlert.IsZero() {
 
-	//Decode the points
-	log.Printf("Loc points are.. %s", msg.Locations)
-	var locPoints []map[string]interface{}
-	err := json.Unmarshal([]byte(msg.Locations), &locPoints)
-	failOnError(err, "Json failed on locpoints")
-	down := false
-	for _, loc := range locPoints {
-		v2, _ := strconv.Atoi(fmt.Sprintf("%v", loc["m00"]))
-		v3, _ := strconv.Atoi(fmt.Sprintf("%v", loc["m01"]))
-		mY := v3 / v2
-		if held.Code != msg.Code {
-			log.Print("The code doesn't match. finding the largest point")
-			held.Count = 0
-			if mY > held.Point {
-				held.Point = mY
-			}
-		} else {
-			log.Print("The code matches. We can compare now")
-			if mY > held.Point {
-				down = true
-				held.Point = mY
+		diff := held.PreviousAlert.Sub(time.Now())
+		//log.Printf("Time %f", diff.Minutes())
+		if diff.Minutes() < -1.0 {
+			if held.Code != msg.Code {
+				//Don't check
+				checkFrame = true
+			} else {
+				held.PreviousAlert = time.Now()
 			}
 		}
+	} else {
+		checkFrame = true
 	}
+	//checkFrame = true //ignore the time out
+	if checkFrame {
+		//Decode the points
+		msg.Locations = strings.Replace(msg.Locations, "'", "\"", -1)
+		var locPoints []map[string]interface{}
+		err := json.Unmarshal([]byte(msg.Locations), &locPoints)
+		failOnError(err, "Json failed on locpoints")
+		down := false
+		for _, loc := range locPoints {
+			v1, err := strconv.ParseFloat(fmt.Sprintf("%v", loc["m10"]), 64)
+			v2, err := strconv.ParseFloat(fmt.Sprintf("%v", loc["m00"]), 64)
+			failOnError(err, "failed to convert v2")
+			//v3, _ := strconv.ParseFloat(fmt.Sprintf("%v", loc["m01"]), 64)
+			//mY := v3 / v2
+			mX := v1 / v2
+			log.Printf("I worked the value as %f", mX)
+			if held.Code != msg.Code {
+				held.Count = 0
+				held.FalseCount = 0
+				held.Point = 0
+				if held.Point < 5 {
+					held.Point = mX
+				} else {
 
-	log.Printf("Largest point is %s or %s", held.Point)
-	held.Code = msg.Code
-	if down {
-		log.Print("For this frame i would agree that it's likely to come from the gate.")
-		held.Count++
-	}
+					if mX < held.Point {
+						held.Point = mX
+					}
+				}
+			} else {
+				if held.Point < 5 {
+					held.Point = mX
+				}
+				if mX < held.Point {
+					down = true
+					held.Point = mX
+				}
+			}
+		}
+		if len(locPoints) > 0 {
+			log.Printf("Smallest point is %f", held.Point)
+			held.Code = msg.Code
+			if down {
+				log.Print("For this frame i would agree that it's likely to come from the gate.")
+				held.Count++
+			} else {
+				log.Print("Added to false count")
+				held.FalseCount++
+			}
 
-	if held.Count > 3 {
-		log.Print("I would send a notification now!")
+			if held.FalseCount > 5 {
+				log.Print("False count went over. Decided to delay alerts")
+				held.PreviousAlert = time.Now()
+			}
+
+			if held.Count > 5 {
+				log.Print("I would send a notification now!")
+				held.PreviousAlert = time.Now()
+			}
+		}
+
 	}
 
 }
