@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -8,27 +9,23 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
-
-	_ "net/http/pprof"
 )
 
 var connect *amqp.Connection
 var client *redis.Client
 var logger *log.Logger
 
-const server = "amqp://guest:guest@192.168.1.126:30188/"
+const server = "amqp://guest:guest@rabbit:5672/"
 
 func main() {
 	setupLogging()
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+
 	var err error
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 
 	client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "redis:6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
@@ -54,11 +51,12 @@ func main() {
 }
 
 func setupLogging() {
-	f, err := os.OpenFile("api.log",
+	f, err := os.OpenFile("log/api.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println(err)
 	}
-
 	logger = log.New(f, "api-1 ", log.LstdFlags)
+	mw := io.MultiWriter(os.Stdout, f)
+	logger.SetOutput(mw)
 }
