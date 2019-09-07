@@ -84,7 +84,11 @@ def doWork():
                         frame = cv2.blur(frame,(bval,bval))
                     #kernel = np.ones((2,2),np.float32)/25
                     #frame = cv2.filter2D(frame,-1,kernel)
-                    image = cv2.imencode(".jpg",frame)[1]
+                    try:
+                        image = cv2.imencode(".jpg",frame)[1]
+                    except:
+                        #can be caused by the cam going offline
+                        break
                 
                     b64 = base64.b64encode(image)
                     #Testing of sizes
