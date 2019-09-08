@@ -5,10 +5,61 @@ services:
     command: ["redis-server","--appendonly","yes"]
     networks:
       - internalNetwork
+    logging:
+      driver: "none"
   rabbit:
     image: rabbitmq:latest
     networks:
       - internalNetwork
+    logging:
+      driver: "none"
+  
+  postgres:
+    image: post:latest
+    networks:
+      - internalNetwork
+    logging:
+      driver: "none"
+
+  capture:
+    image: capture:latest
+    networks:
+      - internalNetwork
+      - externalNetwork
+    command: >
+      /bin/bash -c "
+        sleep 10;
+        python3 getCamera.py;"
+
+  check:
+    image: check:latest
+    networks:
+      - internalNetwork
+    command: >
+      /bin/bash -c "
+        sleep 10;
+        python3 check.py"
+
+  keep:
+    image: keep:latest
+    volumes:
+      - ./api-data/motion:/shared
+    networks:
+      - internalNetwork
+    command: >
+      /bin/bash -c "
+        sleep 10;
+        ./keep_motion;"
+
+  web:
+    image: web:latest
+    ports:
+      - "8001:8001"
+    networks:
+      - internalNetwork
+      - externalNetwork
+
+
   api:
     image: api:latest
     volumes:
@@ -18,8 +69,7 @@ services:
     command: >
       /bin/bash -c "
         sleep 10;
-        ./auth;
-      "
+        ./auth;"
     networks:
       - internalNetwork
       - externalNetwork
