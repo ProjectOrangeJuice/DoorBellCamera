@@ -15,7 +15,7 @@ var connect *amqp.Connection
 var client *redis.Client
 var logger *log.Logger
 
-const server = "amqp://guest:guest@rabbit:5672/"
+const server = "amqp://guest:guest@192.168.1.126:30188/"
 
 func main() {
 	setupLogging()
@@ -25,7 +25,7 @@ func main() {
 	failOnError(err, "Failed to connect to RabbitMQ")
 
 	client = redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
+		Addr:     "localhost:6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
