@@ -45,15 +45,15 @@ function showNote(text){
   var box = document.getElementById("noteBox");
 
 var txt = document.getElementById("noteText");
-  txt.inner = text
-  showAlert()
-  setTimeout(hideAlert, 5000)
+  txt.innerHTML = text
+  showNote()
+  setTimeout(hideNote, 5000)
 }
 
-function showAlert() {
+function showNote() {
         document.getElementById("noteBox").style.display = "block";
       }
-      function hideAlert() {
+      function hideNote() {
         document.getElementById("noteBox").style.display = "none";
       }
 hideAlert()
