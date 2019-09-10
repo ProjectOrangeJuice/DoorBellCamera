@@ -38,8 +38,10 @@
     <script>
       function save(){
         name = $("#cname").val()
-        $.get("http://192.168.1.135:8001/add/"+encodeURI(name));
-        location.reload();
+        $.post("http://192.168.1.135:8001/add/"+encodeURI(name),function (data){
+          //location.reload();
+          console.log("New cam!")
+        });
       }
       function processForm(e) {
         if (e.preventDefault) e.preventDefault();
