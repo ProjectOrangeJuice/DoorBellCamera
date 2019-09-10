@@ -9,7 +9,7 @@ function alertMotion() {
         var txt = document.getElementById("alertText");
 
         // 2
-        var socket = new WebSocket("ws://localhost:8000/s/service/motion")
+        var socket = new WebSocket("ws://192.168.1.135:8000/s/service/motion")
 
         // 3
         var update = function () {
@@ -37,7 +37,7 @@ function alertMotion() {
         var txt = document.getElementById("alertText");
 
         // 2
-        var socket = new WebSocket("ws://localhost:8000/s/service/door")
+        var socket = new WebSocket("ws://192.168.1.135:8000/s/service/door")
 
         // 3
         var update = function () {
