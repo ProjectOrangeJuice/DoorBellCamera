@@ -53,7 +53,11 @@ def getCamera(name):
         redisThres = r.hget(l,"threshold")
         redisThres = redisThres.replace("`","\"")
         if name not in cameras:
-            cameras[name] = [[], 0, [], json.loads(redisThres), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
+            try:
+                rts = json.loads(redisThres)
+            except:
+                rts = []
+            cameras[name] = [[], 0, [], [], r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
         else:
             cameras[name] = [cameras[name][0], cameras[name][1],cameras[name][2], json.loads(redisThres), r.hget(l,"minCount"), cameras[name][5], cameras[name][6], cameras[name][7],cameras[name][8], r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
     
