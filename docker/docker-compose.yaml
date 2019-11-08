@@ -7,6 +7,8 @@ services:
       - internalNetwork
     logging:
       driver: "none"
+    volumes:
+      - redis-data:/data
   rabbit:
     image: rabbitmq:latest
     networks:
