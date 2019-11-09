@@ -10,7 +10,8 @@ import socket
 
 import os
 import time
-
+from dotenv import load_dotenv
+load_dotenv()
 
 serverAddress = os.getenv("SERVER")
 serverPort = os.getenv("PORT")
@@ -20,11 +21,11 @@ timeupdate = time.time()
 def getMotionConfig():
     global camConfig
     camConfig = dict()
-    camConfig["countOn"] = 0
+    camConfig["countOn"] = []
     camConfig["heldFrames"] = {}
     camConfig["countOff"] = 0
-    camConfig["threshold"] = os.getenv("THRESHOLD")
-    camConfig["minCount"] = os.getenv("MIN_COUNT")
+    camConfig["threshold"] = json.loads(os.getenv("THRESHOLD"))
+    camConfig["minCount"] = json.loads(os.getenv("MIN_COUNT"))
     camConfig["code"] = ""
     camConfig["codeUsed"] = False
     camConfig["prevImage"] = None
@@ -48,7 +49,7 @@ def checkMotion(image, camtime):
 
     # Converting gray scale image to GaussianBlur  
     # so that change can be found easily 
-    bval = int(8)
+    bval = int(0)
     if(bval > 0):
         gray = cv2.GaussianBlur(gray, (bval,bval), 0) 
     # In first iteration we assign the value  
@@ -67,6 +68,7 @@ def checkMotion(image, camtime):
         if(len(camConfig["countOn"]) < len(roi)):
             camConfig["countOn"] = [0]*(len(roi)+1)
         vals = roi[count]
+
         ##crop roi
         static_backt = camConfig["prevImage"][vals[0]:vals[1],vals[2]:vals[3]]
         grayt = gray[vals[0]:vals[1],vals[2]:vals[3]]
