@@ -2,11 +2,13 @@ import cv2
 import time,base64
 import pika
 
-import sendFrame,checkFrame
+import sendFrame as sf
+import checkFrame as cf
 
 rabbitError = False
 
 def readConfig():
+    global cameraName
     ##Bypass the database
     cameraName = "test"
     delay = 10
@@ -47,9 +49,9 @@ def readFrames():
             #can be caused by the cam going offline
             break
         b64 = base64.b64encode(image)
-        sendFrame(b64,broadcastChannel)
+        sf.sendFrame(b64,cameraName,broadcastChannel)
         ##Do this on a different thread
-        checkFrame(b64,image)
+        cf.checkFrame(b64,image)
 
 openCamera()
 openConnection()
