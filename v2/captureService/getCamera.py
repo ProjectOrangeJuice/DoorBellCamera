@@ -1,5 +1,10 @@
 import cv2
 import time,base64
+import pika
+
+import sendFrame,checkFrame
+
+rabbitError = False
 
 def readConfig():
     ##Bypass the database
@@ -12,6 +17,17 @@ def openCamera():
     global vcap
     if(not vcap.isOpened()):
         vcap = cv2.VideoCapture("streamLocation")
+
+#Make a connection to the rabbit server
+def openConnection():
+    print("Making connection")
+    global connection,broadcastChannel,rabbitError
+    connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,int(serverPort)))
+    broadcastChannel = connection.channel()
+    broadcastChannel.exchange_declare(exchange='videoStream', exchange_type="topic")
+
+    rabbitError = False
+
 
 def readFrames():
     while(vcap.isOpened()):
@@ -31,14 +47,22 @@ def readFrames():
             #can be caused by the cam going offline
             break
         b64 = base64.b64encode(image)
-        sendFrame(b64)
+        sendFrame(b64,broadcastChannel)
         ##Do this on a different thread
         checkFrame(b64,image)
 
-
+openCamera()
+openConnection()
 while(1):
     while(not vcap.isOpened()):
         time.sleep(5)
         openCamera()
+    while(rabbitError):
+        time.sleep(5)
+        openConnection()
     #Do work
-    readFrames()
+    try:
+        readFrames()
+    except pika.exceptions.ChannelClosedByBroker:
+        print("Pika failed!")
+        continue
