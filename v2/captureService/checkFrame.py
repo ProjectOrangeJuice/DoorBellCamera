@@ -26,6 +26,10 @@ def randomString(stringLength=10):
 
 def checkFrame(image,name, frame):
     global settings,frameCount
+    if(frameCount % 2 == 0):
+        #skip frame
+        frameCount += 1
+        return
 
     motion = False
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -60,8 +64,8 @@ def checkFrame(image,name, frame):
             diff_frame, threshold[count], 255, cv2.THRESH_BINARY)[1]
         
         thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
-        cv2.imshow("frame", thresh_frame)
-        cv2.waitKey(1) 
+        # cv2.imshow("frame", thresh_frame)
+        # cv2.waitKey(1) 
         
         # Finding contour of moving object
         try:
@@ -110,7 +114,6 @@ def checkFrame(image,name, frame):
                     settings.heldFrames.clear()
                     settings.imgCount = 0
                     if(settings.codeUsed):
-                        print("Resetting code")
                         settings.code = randomString(5)
                         settings.codeUsed = False
 

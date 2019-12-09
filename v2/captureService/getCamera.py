@@ -7,6 +7,7 @@ import checkFrame as cf
 
 rabbitError = False
 
+
 def readConfig():
     global cameraName
     ##Bypass the database
@@ -23,6 +24,10 @@ def openCamera():
     except NameError:
         vcap = cv2.VideoCapture("rtsp://192.168.1.120")
 
+
+def minute_passed(oldepoch):
+    return time.time() - oldepoch >= 60
+
 #Make a connection to the rabbit server
 def openConnection():
     print("Making connection")
@@ -33,30 +38,36 @@ def openConnection():
 
     rabbitError = False
 
-
+prev = time.time()
 def readFrames():
+    global prev
     while(vcap.isOpened()):
-        try:
-            ret, frame = vcap.read()
-        except:
-            #Error with frame, try again.
-            print("Error with frame")
-            continue
-        #rotation
-        ### TODO ###
+        time_elapsed = time.time() - prev
+        if(time_elapsed > 1./15):
+            prev = time.time()
+            try:
+                ret, frame = vcap.read()
+            except:
+                #Error with frame, try again.
+                print("Error with frame")
+                continue
+            #rotation
+            ### TODO ###
 
-        # encode frame
-        try:
-            image = cv2.imencode(".jpg",frame)[1]
-        except:
-            #can be caused by the cam going offline
-            break
-        b64 = base64.b64encode(image)
-        #sf.sendFrame(b64,cameraName,broadcastChannel)
-        ##Do this on a different thread
-        cf.checkFrame("b64", cameraName, frame)
-       
-       
+            # encode frame
+            try:
+                image = cv2.imencode(".jpg",frame)[1]
+            except:
+                #can be caused by the cam going offline
+                break
+            b64 = base64.b64encode(image)
+            #sf.sendFrame(b64,cameraName,broadcastChannel)
+            ##Do this on a different thread
+            cf.checkFrame("b64", cameraName, frame)
+            # cv2.imshow("frame2", frame)
+        else:
+            vcap.grab()
+        
 
 readConfig()
 openCamera()
