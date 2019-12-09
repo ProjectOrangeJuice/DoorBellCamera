@@ -3,9 +3,9 @@ import random,string,time
 
 
 class Setting:
-    areas = [[0, 240, 0, 250,"Test zone"]]
-    threshold = [[40]]
-    amount = [[10]]
+    areas = [[0, 1028, 0, 720,"Test zone"]]
+    threshold = [[20]]
+    amount = [10]
     minCount = [10]
     countOn = [0]
     code = ""
@@ -15,7 +15,7 @@ class Setting:
     heldFrames = []
 
 settings = Setting()
-
+frameCount = 0
 
 def randomString(stringLength=10):
     """Generate a random string of fixed length """
@@ -25,7 +25,7 @@ def randomString(stringLength=10):
 
 
 def checkFrame(image,name, frame):
-    global settings
+    global settings,frameCount
 
     motion = False
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -49,15 +49,20 @@ def checkFrame(image,name, frame):
         threshold = settings.threshold[count]
         zone = settings.amount[count]
         # Crop for roi
-        roiPrev = settings.prev[current[0]:current[1], current[2]:current[3]]
-        roi = gray[current[0]:current[1], current[2]:current[3]]
+      
+        roiPrev = settings.prev #[current[0]:current[1], current[2]:current[3]]
+        roi = gray#[current[0]:current[1], current[2]:current[3]]
 
         # Difference between frames
         diff_frame = cv2.absdiff(roiPrev, roi)
-
+        
         thresh_frame = cv2.threshold(
             diff_frame, threshold[count], 255, cv2.THRESH_BINARY)[1]
+        
         thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
+        cv2.imshow("frame", thresh_frame)
+        cv2.waitKey(1) 
+        
         # Finding contour of moving object
         try:
             # ( _, cnts , _) -- version issue.
@@ -79,33 +84,33 @@ def checkFrame(image,name, frame):
         ##Maths is done. Check if this is an alert
 
         if(motion):
-            print("I think I saw something in zone "+current[4])
-            ##Change background every 4 frames
-            if(settings.imgCount > 3 and settings.imgCount%4 == 0):
-                settings.prev = gray
+            
             ##Add the zone to seen
             if(current[4] not in seen):
                 seen.append(current[4])
             ##Increase the number of frames that have seen motion
             settings.countOn[count] += 1
             ##When motion stops, it will record 15 more frames
-            if(settings.countOn[count] > settings.minCount[count]*15):
-                settings.countOn[count] = settings.minCount[count]*15
+            if(settings.countOn[count] > settings.minCount[count]+15):
+                settings.countOn[count] = settings.minCount[count]+15
+                print("Send frames!")
         
         #No motion
         else:
+            
             settings.countOn[count] -= 1
-            if(settings.countOn[count] < 0):
+            if(settings.countOn[count] < 1):
                 settings.countOn[count] = 0
                 allEmpty = False
                 #Check to see if all zones have no motion
                 for item in settings.countOn:
-                    if item > 0:
+                    if item >= 0:
                         allEmpty = True
                 if(allEmpty):
                     settings.heldFrames.clear()
                     settings.imgCount = 0
                     if(settings.codeUsed):
+                        print("Resetting code")
                         settings.code = randomString(5)
                         settings.codeUsed = False
 
@@ -118,10 +123,16 @@ def checkFrame(image,name, frame):
                 # send frames
                 print("Send frame")
         
-    count += 1
+        count += 1
     settings.heldFrames.append({"time":str(time.time()),"name":name,"image":image,"code":settings.code,
     "count":settings.imgCount,"blocks":",".join(seen),"locations":str(locations)})
     settings.imgCount += 1
+    ##Update the background every x frames.
+    if(frameCount > 20):
+        settings.prev = gray
+        frameCount = -1
+    frameCount += 1
+    print(settings.countOn)
 
 
        
