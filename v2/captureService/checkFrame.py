@@ -1,9 +1,9 @@
 import cv2
 import random,string,time
-
+import imutils
 
 class Setting:
-    areas = [[0, 1028, 0, 720,"Test zone"]]
+    areas = [[0, 128, 0, 120,"Test zone"]]
     threshold = [[20]]
     amount = [10]
     minCount = [10]
@@ -32,6 +32,7 @@ def checkFrame(image,name, frame):
         return
 
     motion = False
+    #frame = imutils.resize(frame,width=250,height=250)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # blur to make it easier to find objects
@@ -64,8 +65,8 @@ def checkFrame(image,name, frame):
             diff_frame, threshold[count], 255, cv2.THRESH_BINARY)[1]
         
         thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
-        # cv2.imshow("frame", thresh_frame)
-        # cv2.waitKey(1) 
+        cv2.imshow("frame", thresh_frame)
+        cv2.waitKey(1) 
         
         # Finding contour of moving object
         try:
