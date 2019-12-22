@@ -13,3 +13,6 @@ serviceAccountKey.json
 *.mp4
 *.restore
 /docker/api-data
+
+
+/v2/mongo/data
