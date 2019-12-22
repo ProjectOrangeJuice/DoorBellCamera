@@ -23,18 +23,7 @@ func main() {
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	router := mux.NewRouter()
-	// router.HandleFunc("/refresh", refresh).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/motion", allMotion).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/motion/{code}", getMotion).Methods("DELETE", "GET", "OPTIONS")
 	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
-	router.HandleFunc("/service/motion", getMotionWatch).Methods("GET", "OPTIONS")
-	router.HandleFunc("/service/door", getDoor).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/config/{service}", setConfig).Methods("POST", "OPTIONS")
-	// router.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/inspect/{location}", getImage).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/door", addDoorKey).Methods("POST", "OPTIONS")
-	// router.HandleFunc("/makeUser", makeUser).Methods("POST", "OPTIONS")
-
 	logger.Fatal(http.ListenAndServe(":8000", router))
 	logger.Print("ended")
 }
