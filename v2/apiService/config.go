@@ -16,6 +16,7 @@ type cameraSettings struct {
 	FPS        int
 	Area       [][]int
 	Amount     []int
+	Threshold  []int
 	MinCount   []int
 }
 
