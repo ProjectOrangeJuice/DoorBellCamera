@@ -1,6 +1,6 @@
 import cv2
 import random,string,time
-import imutils
+import imutils,json
 import setting as s
 class SettingOld:
     areas = [[0, 128, 0, 120,"Test zone"]]
@@ -24,12 +24,13 @@ def randomString(stringLength=10):
 
 
 
-def checkFrame(image,name, frame):
+def checkFrame(image,name, frame,channel):
+    print(len(image))
     global settings,frameCount
-    if(frameCount % 2 == 0):
-        #skip frame
-        frameCount += 1
-        return
+    # if(frameCount % 2 == 0):
+    #     #skip frame
+    #     frameCount += 1
+    #     return
 
     motion = False
     #frame = imutils.resize(frame,width=250,height=250)
@@ -98,7 +99,7 @@ def checkFrame(image,name, frame):
             ##When motion stops, it will record 15 more frames
             if(settings.countOn[count] > settings.minCount[count]+15):
                 settings.countOn[count] = settings.minCount[count]+15
-                print("Send frames!")
+                sendFrames(settings.name,channel)
         
         #No motion
         else:
@@ -125,7 +126,7 @@ def checkFrame(image,name, frame):
         else:
             if settings.codeUsed:
                 # send frames
-                print("Send frame")
+                sendFrames(settings.name,channel)
         
         count += 1
     settings.heldFrames.append({"time":str(time.time()),"name":name,"image":image,"code":settings.code,
@@ -139,4 +140,10 @@ def checkFrame(image,name, frame):
     print(settings.countOn)
 
 
-       
+def sendFrames(name,channel):
+    for frame in settings.heldFrames:
+        channel.basic_publish(exchange='motion',
+        routing_key= name.replace(" ","."),
+        body= json.dumps(frame))
+    settings.heldFrames.clear()
+
