@@ -38,7 +38,7 @@ def minute_passed(oldepoch):
 def openConnection():
     print("Making connection")
     global connection,broadcastChannel,rabbitError
-    connection = pika.BlockingConnection(pika.ConnectionParameters("serverAddress",int(0)))
+    connection = pika.BlockingConnection(pika.ConnectionParameters("localhost",5672))
     broadcastChannel = connection.channel()
     broadcastChannel.exchange_declare(exchange='videoStream', exchange_type="topic")
 
@@ -68,7 +68,7 @@ def readFrames():
                 #can be caused by the cam going offline
                 break
             b64 = base64.b64encode(image)
-            #sf.sendFrame(b64,cameraName,broadcastChannel)
+            sf.sendFrame(b64,cameraName,broadcastChannel)
             ##Do this on a different thread
             cf.checkFrame("b64", cameraName, frame)
             # cv2.imshow("frame2", frame)
@@ -77,7 +77,7 @@ def readFrames():
 
 readConfig()
 openCamera()
-#openConnection()
+openConnection()
 while(1):
     while(not vcap.isOpened()):
         time.sleep(5)
