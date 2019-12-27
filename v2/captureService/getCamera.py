@@ -15,8 +15,8 @@ s.connect()
 def readConfig():
     global cameraName
     ##Bypass the database
-    cameraName = "test"
-    delay = 10
+    cameraName = s.setting.name#"test"
+    delay = s.setting.fps
     rotation = 0
     blur = 0
 s.update()
