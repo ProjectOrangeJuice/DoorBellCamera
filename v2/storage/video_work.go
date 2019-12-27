@@ -1,13 +1,14 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"gocv.io/x/gocv"
 )
 
@@ -19,26 +20,22 @@ func makeVideo(code string, name string) {
 	//aw, err := mjpeg.New(fmt.Sprintf("%s/%s", videoFolder, m.Code), 1280, 720, 10)
 	failOnError(err, "Setting up video")
 
-	db, err := sql.Open("sqlite3", DBName)
-	failOnError(err, "Record failed because of DB error")
-	rows, err := db.Query("select location,time,reason from motion where motionCode = ?", code)
-	failOnError(err, "prep failed")
-	defer rows.Close()
+	collection := conn.Collection("capture")
+	filter := bson.M{"code": code}
+	cur, _ := collection.Find(context.TODO(), filter)
 
 	var fr []string
 	var counter = 0
 	var reasons string
-	for rows.Next() {
+	for cur.Next(context.TODO()) {
 		counter++
-		var location string
-		var time string
-		var reason string
-		err = rows.Scan(&location, &time, &reason)
-		failOnError(err, "Failed to get")
+		var record dbRecord
+		err := cur.Decode(&record)
+		failOnError(err, "decoding record")
 		if reasons == "" {
-			reasons = reason
+			reasons = record.Reason
 		}
-		sp := strings.Split(reason, ",")
+		sp := strings.Split(record.Reason, ",")
 		if len(sp) > 1 {
 			for _, v := range sp {
 				spr := strings.Split(reasons, ",")
@@ -58,11 +55,11 @@ func makeVideo(code string, name string) {
 			}
 		}
 		if startTime == "" {
-			startTime = time
+			startTime = record.Time
 		} else {
-			endTime = time
+			endTime = record.Time
 		}
-		video.Write(gocv.IMRead(fmt.Sprintf("%s", location), gocv.IMReadAnyColor))
+		video.Write(gocv.IMRead(fmt.Sprintf("%s", record.Location), gocv.IMReadAnyColor))
 
 	}
 
@@ -79,20 +76,19 @@ func makeVideo(code string, name string) {
 	squashVideo(code)
 }
 
-func addToDatabase(code string, name string, start string, end string, reason string) {
+type videoRecord struct {
+	Code   string
+	Name   string
+	Start  string
+	End    string
+	Reason string
+}
 
-	db, err := sql.Open("sqlite3", DBName)
-	failOnError(err, "Record failed because of DB error")
-	defer db.Close()
-	tx, err := db.Begin()
-	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("insert into video(code,name, startTime,endTime ,reason) values(?,?,?,?,?)")
-	failOnError(err, "Record sql prep failed")
-	defer stmt.Close()
-	_, err = stmt.Exec(code, name, start, end, reason)
-	failOnError(err, "Record could not insert")
-	tx.Commit()
-	db.Close()
+func addToDatabase(code string, name string, start string, end string, reason string) {
+	r := videoRecord{code, name, start, end, reason}
+	collection := conn.Collection("video")
+	collection.InsertOne(context.TODO(), r)
+
 	log.Printf("Saved to db")
 
 	//	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)

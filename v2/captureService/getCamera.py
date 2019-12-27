@@ -78,7 +78,7 @@ def readFrames():
             
             ##Do this on a different thread
            
-            cf.checkFrame("b64", cameraName, frame,alertChannel)
+            cf.checkFrame(b64, cameraName, frame,alertChannel)
           
             # cv2.imshow("frame2", frame)
         
