@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -38,19 +37,19 @@ func getVideo(w http.ResponseWriter, r *http.Request) {
 
 //Socket handler
 func getMotionWatch(w http.ResponseWriter, r *http.Request) {
-	//ws, err := upgrader.Upgrade(w, r, nil)
-	//failOnError(err, "Couldn't upgrade")
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
 	logger.Printf("Motion watch for %s", r.RemoteAddr)
-	//go motionWatch("", ws)
+	go motionWatch("", ws)
 }
 
 //Socket handler
 func getDoor(w http.ResponseWriter, r *http.Request) {
-	//ws, err := upgrader.Upgrade(w, r, nil)
-	//failOnError(err, "Couldn't upgrade")
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
 	logger.Printf("Door watch for %s", r.RemoteAddr)
 	// register client
-	//go doorWatch("", ws)
+	go doorWatch("", ws)
 }
 
 //For the connection, get the stream and send it to the socket
@@ -83,8 +82,6 @@ func sendVideo(cam string, ws *websocket.Conn) {
 		}
 
 	}
-
-	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
 
 }
@@ -95,17 +92,35 @@ func motionWatch(cam string, ws *websocket.Conn) {
 	defer ch.Close()
 	prev := ""
 	forever := make(chan bool)
-	go func() {
-		for d := range msgs {
+	const duration = 3 * time.Second
+	timer := time.NewTimer(duration)
+	alive := true
+	for alive {
+		select {
+		case d := <-msgs:
+			timer.Reset(duration)
 			m := decodeMessage(d.Body)
 			if prev != m.Code {
-				ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
+				err := ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
 				prev = m.Code
+				if err != nil {
+					ch.Close()
+					ws.Close()
+					alive = false
+					break
+				}
 			}
+		case <-timer.C:
+			print("Timer!")
+			ch.Close()
+			ws.Close()
+			alive = false
+			break
 		}
 
-	}()
+	}
 	<-forever
+
 }
 
 //For the connection, get motion and send it
@@ -114,17 +129,35 @@ func doorWatch(cam string, ws *websocket.Conn) {
 	defer ch.Close()
 	prev := ""
 	forever := make(chan bool)
-	go func() {
-		for d := range msgs {
+	const duration = 3 * time.Second
+	timer := time.NewTimer(duration)
+	alive := true
+	for alive {
+		select {
+		case d := <-msgs:
+			timer.Reset(duration)
 			m := decodeMessage(d.Body)
 			if prev != m.Code {
-				ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
+				err := ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
 				prev = m.Code
+				if err != nil {
+					ch.Close()
+					ws.Close()
+					alive = false
+					break
+				}
 			}
+		case <-timer.C:
+			print("Timer!")
+			ch.Close()
+			ws.Close()
+			alive = false
+			break
 		}
 
-	}()
+	}
 	<-forever
+
 }
 func decodeMessage(d []byte) Message {
 	var m Message
