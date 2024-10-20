@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/streadway/amqp"
 )
@@ -52,6 +55,9 @@ var camera = make(map[string]*cameraStructure)
 var timer time.Timer
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	var err error
 	file, err := os.Open(configLocation)
 	failOnError(err, "Couldn't open config")
