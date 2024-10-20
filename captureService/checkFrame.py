@@ -99,6 +99,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
             cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
+
         
         ##Maths is done. Check if this is an alert
 
@@ -126,7 +127,6 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                     settings.buffer = 99
         if(settings.countOn[count] < 1):
             settings.countOn[count] = 0
-            boxNoMove = 0
             if(settings.codeUsed):
                 allEmpty = False
                 #Check to see if all zones have no motion
@@ -208,17 +208,14 @@ def sendBuffer(name,code,channel):
     
 def compBoxes(prev,nowBox):
     for item in prev:
-        print("area.. "+str(item[2]*item[3]))
         if((item[2]*item[3]) > 357700):
-            print("Area is large")
             return True
         for item2 in nowBox:
             difx = abs(item2[0] - item[0])
             dify = abs(item2[1] - item[1])
             difh = abs(item2[2] - item[2])
             difw = abs(item2[3] - item[3])
-            if(difx < 15 and dify < 15 and difh < 15 and difw < 15):
-                print("BOx has only had small movement")
+            if(difx < 15 and dify < 15):
                 return True
     return False
 
@@ -227,14 +224,11 @@ def rainBox(prev,nowBox):
         for item2 in nowBox:
             difx = abs(item2[0] - item[0])
             dify = abs(item2[1] - item[1])
-            difh = abs(item2[2] - item[2])
-            difw = abs(item2[3] - item[3])
-            if(difx < 40 and dify < 40 and difh < 40 and difw < 40):
-                print("Box sees movement")
-                return False
-            else:
-                print("Box doesn't see anything move nearby")
-    return True
+          
+            if(difx < 30 and dify < 30):
+                print("Box is close. Continue with motion")
+                return True
+    return False
 
 
 
