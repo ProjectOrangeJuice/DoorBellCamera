@@ -29,7 +29,6 @@ type Claims struct {
 
 // Create the Signin handler
 func signin(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
@@ -39,12 +38,14 @@ func signin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+
 	var creds Credentials
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
+		logger.Printf("Signin bad request from %s", r.RemoteAddr)
 		return
 	}
 
@@ -55,6 +56,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 	// AND, if it is the same as the password we received, the we can move ahead
 	// if NOT, then we return an "Unauthorized" status
 	if !ok || expectedPassword != creds.Password {
+		logger.Printf("Signin attempt from %s", r.RemoteAddr)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -78,6 +80,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If there is an error in creating the JWT return an internal server error
 		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("Signin error from %s with %s", r.RemoteAddr, err)
 		return
 	}
 
@@ -88,6 +91,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
+	logger.Printf("Signin from %s as %s", r.RemoteAddr, creds.Username)
 }
 
 func refresh(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +122,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	// Set the new token as the users `token` cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "token",
-		Path: "/",
+		Path:    "/",
 		Value:   tokenString,
 		Expires: expirationTime,
 	})

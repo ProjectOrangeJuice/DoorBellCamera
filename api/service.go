@@ -42,7 +42,8 @@ func main() {
 	sec.HandleFunc("/config/{service}", setConfig).Methods("POST", "OPTIONS")
 	sec.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
 
-	log.Fatal(http.ListenAndServe(":8000", router))
+	logger.Fatal(http.ListenAndServe(":8000", router))
+	logger.Print("ended")
 }
 
 func setupLogging() {
@@ -51,7 +52,6 @@ func setupLogging() {
 	if err != nil {
 		log.Println(err)
 	}
-	defer f.Close()
 
 	logger = log.New(f, "api-1 ", log.LstdFlags)
 }
