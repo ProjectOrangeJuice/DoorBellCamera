@@ -16,6 +16,13 @@ var templates *template.Template
 
 type pageContent struct {
 	Title string
+	Side  []side
+}
+
+type side struct {
+	Title    string
+	Location string
+	current  bool
 }
 
 func main() {
@@ -36,13 +43,14 @@ func main() {
 func index(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
-
+		data := pageContent{Title: "Login"}
+		templates.ExecuteTemplate(w, "index", data)
 	} else {
 		if c.Expires.After(time.Now()) {
 			data := pageContent{Title: "Login"}
 			templates.ExecuteTemplate(w, "index", data)
 		} else {
-			data := pageContent{Title: "Dash"}
+			data := pageContent{Title: "Dash", Side: makeSide("Dash")}
 			templates.ExecuteTemplate(w, "dash", data)
 		}
 
@@ -57,4 +65,19 @@ func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
 	}
+}
+
+func makeSide(name string) []side {
+	titles := []string{"Dash", "Live", "Config"}
+	loc := []string{"dash", "live", "config"}
+	sidebar := make([]side, len(titles))
+	for index, key := range titles {
+		if name == key {
+			sidebar[index] = side{key, loc[index], true}
+		} else {
+			sidebar[index] = side{key, loc[index], false}
+		}
+
+	}
+	return sidebar
 }
