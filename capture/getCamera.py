@@ -23,7 +23,8 @@ def openConnection():
     global connection,channel
     connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
     channel = connection.channel()
-    channel.queue_declare(queue='videoStream')
+    channel.exchange_declare(exchange='videoStream', exchange_type="topic")
+  
     
 
 readConfig()
@@ -45,8 +46,8 @@ while(1):
             print("size of b64: "+str((len(b64)/1024)/1024))
             
             bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
-            channel.basic_publish(exchange='',
-                        routing_key='videoStream',
+            channel.basic_publish(exchange='videoStream',
+                        routing_key=cameraName.replace(" ","."),
                         body=json.dumps(bodyText))
         
         

@@ -188,7 +188,19 @@ def randomString(stringLength=10):
 
 channel2.queue_declare(queue='motionAlert')
 
-channel.basic_consume(queue='videoStream',
+
+
+
+
+channel.exchange_declare(exchange='videoStream', exchange_type='topic')
+
+result = channel.queue_declare('', exclusive=True)
+queue_name = result.method.queue
+
+channel.queue_bind(
+    exchange='videoStream', queue=queue_name, routing_key="#")
+
+channel.basic_consume(queue=queue_name,
                       auto_ack=False,
                       on_message_callback=callback)
 
