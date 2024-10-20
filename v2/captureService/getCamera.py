@@ -53,8 +53,9 @@ def readFrames():
             ret, frame = vcap.read()
         except:
             #Error with frame, try again.
-            print("Error with frame")
-            continue
+            print("Error with frame (debug, close)")
+            exit(1)
+            #continue
         if(time_elapsed > 1./s.setting.fps):
             prev = time.time()
             
@@ -68,6 +69,7 @@ def readFrames():
                 #can be caused by the cam going offline
                 break
             b64 = base64.b64encode(image)
+            print("My name "+cameraName)
             sf.sendFrame(b64,cameraName,broadcastChannel)
             ##Do this on a different thread
             cf.checkFrame("b64", cameraName, frame)

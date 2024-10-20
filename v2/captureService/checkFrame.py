@@ -26,7 +26,6 @@ def randomString(stringLength=10):
 
 def checkFrame(image,name, frame):
     global settings,frameCount
-    print("My name is "+settings.name)
     if(frameCount % 2 == 0):
         #skip frame
         frameCount += 1
