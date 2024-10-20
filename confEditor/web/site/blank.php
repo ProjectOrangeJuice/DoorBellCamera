@@ -4,7 +4,10 @@ include("parts/header.php");
 ?>
 
 <body class="w3-light-grey">
-<?php include("parts/side.php") ?>
+<?php 
+$sideBar = [["Overview",1,"index.php"],["Cameras",0,"cameras.php"],["Config editor",0,"edit.php"]];
+include("parts/side.php");
+ ?>
 
 <!-- !PAGE CONTENT! -->
 <div class="w3-main" style="margin-left:300px;margin-top:43px;">
