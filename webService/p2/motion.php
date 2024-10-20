@@ -5,6 +5,67 @@ $current = 1;
 include "include/head.php";
 ?>
 
+
+<style>
+    /* Lightbox copy, not written by me */
+    #fade {
+        display: none;
+        position: fixed;
+        top: 0%;
+        left: 0%;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        z-index: 1001;
+        -moz-opacity: 0.8;
+        opacity: .80;
+        filter: alpha(opacity=80);
+    }
+
+    #light {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        max-width: 600px;
+        max-height: 360px;
+        margin-left: -300px;
+        margin-top: -180px;
+        border: 2px solid #FFF;
+        background: #FFF;
+        z-index: 1002;
+        overflow: visible;
+    }
+
+    #boxclose {
+        float: right;
+        cursor: pointer;
+        color: #fff;
+        border: 1px solid #AEAEAE;
+        border-radius: 3px;
+        background: #222222;
+        font-size: 31px;
+        font-weight: bold;
+        display: inline-block;
+        line-height: 0px;
+        padding: 11px 3px;
+        position: absolute;
+        right: 2px;
+        top: 2px;
+        z-index: 1002;
+        opacity: 0.9;
+    }
+
+    .boxclose:before {
+        content: "×";
+    }
+
+    #fade:hover~#boxclose {
+        display: none;
+    }
+</style>
+
+
 <body>
     <?php include "include/side.php"; ?>
 
@@ -63,6 +124,14 @@ include "include/head.php";
 
             </div>
 
+            <div id="light">
+                <a class="boxclose" id="boxclose" onclick="lightbox_close();"></a>
+                <video id="videoPlayer" :src="videoL" width="600" controls>
+                    <!--Browser does not support <video> tag -->
+                </video>
+            </div>
+
+
         </div>
 
         <hr>
@@ -72,7 +141,13 @@ include "include/head.php";
         </div>
 
 
-        <!-- The Modal -->
+
+
+
+        <div id="fade" onClick="lightbox_close();"></div>
+
+
+        <!-- The Modal
         <div id="id01" class="w3-modal">
             <div class="w3-modal-content">
                 <div class="w3-container">
@@ -81,7 +156,7 @@ include "include/head.php";
                     <button onclick="document.getElementById('id01').style.display='none'">Close</button>
                 </div>
             </div>
-        </div>
+        </div> -->
 
 
     </div>
@@ -109,14 +184,39 @@ include "include/head.php";
             document.getElementById("myOverlay").style.display = "none";
         }
 
-        // Modal Image Gallery
-        function onClick(element) {
-            document.getElementById("img01").src = element.src;
-            document.getElementById("modal01").style.display = "block";
-            var captionText = document.getElementById("caption");
-            captionText.innerHTML = element.alt;
+        // // Modal Image Gallery
+        // function onClick(element) {
+        //     document.getElementById("img01").src = element.src;
+        //     document.getElementById("modal01").style.display = "block";
+        //     var captionText = document.getElementById("caption");
+        //     captionText.innerHTML = element.alt;
+        // }
+
+
+        window.document.onkeydown = function(e) {
+
+            if (!e) {
+                e = event;
+            }
+            if (e.keyCode == 27) {
+                lightbox_close();
+            }
         }
 
+        function lightbox_open() {
+            var lightBoxVideo = document.getElementById("videoPlayer");
+            window.scrollTo(0, 0);
+            document.getElementById('light').style.display = 'block';
+            document.getElementById('fade').style.display = 'block';
+            lightBoxVideo.play();
+        }
+
+        function lightbox_close() {
+            var lightBoxVideo = document.getElementById("videoPlayer");
+            document.getElementById('light').style.display = 'none';
+            document.getElementById('fade').style.display = 'none';
+            lightBoxVideo.pause();
+        }
 
         $(function() {
             $("#datepickerTo").datepicker();
@@ -239,7 +339,8 @@ include "include/head.php";
                     console.log("v is .. " + v)
                     this.videoL = "http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/motion/" + v;
                     console.log("video is " + this.videoL)
-                    document.getElementById('id01').style.display = 'block'
+                    // document.getElementById('id01').style.display = 'block'
+                    lightbox_open();
                 }
             }
         })
