@@ -22,7 +22,6 @@ imgCount = 8
 def readConfig():
     global serverAddress,serverPort,dt,dmin
     namesUpdated = []
-    print("Updating from config")
     with open("cConfig.json") as jf:
         data = json.load(jf)
         serverAddress = data["serverAddress"]
@@ -139,15 +138,10 @@ def checkUpdateCallback(ch, method, properties, body):
 def returnConfig(inner):
     f=  open("cConfig.json", "r")
     v={"Task":"readResponse","Inner":f.read()}
-
-
-
-
     channel3.basic_publish(exchange="config",routing_key="config."+inner,
     body=json.dumps(v))
 
 def writeConfig(inner):
-    print("Writing to file.. "+str(inner))
     f = open("cConfig.json", "w+")
     f.write(str(inner))
     f.close()
