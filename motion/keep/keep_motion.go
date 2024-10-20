@@ -15,10 +15,14 @@ import (
 )
 
 //DBName is the database file name
-const DBName string = "./motions.db"
+const DBName string = "shared/motions.db"
+
+const configLocation string = "shared/config.txt"
 
 //CaptureLocation is the location of the capture folder
-const CaptureLocation string = "capture"
+const CaptureLocation string = "shared/capture"
+
+var server = ""
 
 //Message is the JSON message format
 type Message struct {
@@ -54,7 +58,11 @@ func main() {
 }
 
 func readyAndListen() {
-	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
+	serverb, err := ioutil.ReadFile(configLocation)
+	server = string(serverb)
+	failOnError(err, "Failed to read config")
+
+	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -157,7 +165,7 @@ func notifyQueue(code string, name string) {
 	log.Printf("NOTIFY")
 	body := OutMessage{code, name}
 	b, err := json.Marshal(body)
-	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
+	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -208,12 +216,23 @@ func createDatabase() {
 		'motionId'	INTEGER PRIMARY KEY AUTOINCREMENT,
 		'motionCode'	TEXT,
 		'location'	TEXT,
-		'time'	TEXT
+		'time'	TEXT,
+		'reason' TEXT
+	);`
+
+	_, err = db.Exec(sqlStmt)
+
+	sqlStmt = `CREATE TABLE 'video' (
+		'id'	INTEGER PRIMARY KEY AUTOINCREMENT,
+		'code'	TEXT,
+		'startTime'	TEXT,
+		'endTime'	TEXT,
+		'reason' TEXT
 	);`
 
 	_, err = db.Exec(sqlStmt)
 	failOnError(err, "Error creating table")
-
+	readyAndListen()
 }
 
 func failOnError(err error, msg string) {
