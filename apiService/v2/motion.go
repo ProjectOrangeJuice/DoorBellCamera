@@ -62,7 +62,42 @@ func getNextSet(w http.ResponseWriter, r *http.Request) {
 
 // Get all the videos between two dates
 func getBetween(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
 
+	conn := databaseClient.Database("doorbell")
+	collection := conn.Collection("video")
+	findOptions := options.Find()
+	// Sort by
+	findOptions.SetSort(bson.D{{"start", -1}})
+	findOptions.SetLimit(5)
+
+	var filter bson.M
+
+	n, err := strconv.ParseInt(params["first"], 10, 64)
+	if err != nil {
+		log.Printf("Failed to convert string(%s) to int64 - %v", params["first"], err)
+	}
+	n2, err := strconv.ParseInt(params["last"], 10, 64)
+	if err != nil {
+		log.Printf("Failed to convert string(%s) to int64 - %v", params["last"], err)
+	}
+	filter = bson.M{
+		"stamp": bson.M{"$gt": n, "$lt": n2},
+	}
+
+	cur, err := collection.Find(context.TODO(), filter, findOptions)
+	if err != nil {
+		log.Printf("Failed to get video records %v", err)
+	}
+
+	var records []videoRecord
+	for cur.Next(context.TODO()) {
+		var record videoRecord
+		cur.Decode(&record)
+		records = append(records, record)
+	}
+
+	json.NewEncoder(w).Encode(records)
 }
 
 // Delete motion
