@@ -60,7 +60,7 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	//forever := make(chan bool)
 	p := make(chan bool)
 	go pingponger(ws, p, &lock)
-	const duration = 13 * time.Second
+	const duration = 20 * time.Second
 	timer := time.NewTimer(duration)
 	alive := true
 	for alive {
