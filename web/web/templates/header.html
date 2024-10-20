@@ -21,7 +21,9 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
           if (xhttp.readyState == 4 && xhttp.status == 401) {
+            {{ if (ne .Title "Login") }} 
             location.reload();
+            {{ end }}
           }
         }
         xhttp.withCredentials = true;
