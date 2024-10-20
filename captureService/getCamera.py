@@ -80,10 +80,10 @@ def readFrames():
             sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
-           
+            #t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
+            #t.start()
             if(s.setting.active):
-                t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
-                t.start()
+                cf.checkFrame(b64, cameraName, frame,alertChannel)
           
             # cv2.imshow("frame2", frame)
             if(minute_passed(refresh)):
