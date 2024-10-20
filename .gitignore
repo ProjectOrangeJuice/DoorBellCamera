@@ -13,3 +13,8 @@ serviceAccountKey.json
 *.mp4
 *.restore
 /docker/api-data
+
+
+/v2/mongo/data
+/v2/storage/images
+/v2/storage/videos
