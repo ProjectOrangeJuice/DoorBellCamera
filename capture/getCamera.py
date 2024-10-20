@@ -8,27 +8,44 @@ import datetime
 import signal
 import sys
 import numpy as np
+import redis
+r = redis.Redis(decode_responses=True)
+cameraName = "test"
+timed = time.time()
 
+
+def minute_passed(oldepoch):
+    print("Value of passed "+str(time.time() - oldepoch))
+    return time.time() - oldepoch >= 60
+ 
 # Open the config file and read the values from it
 def readConfig():
-    global streamLocation,cameraName,serverAddress,serverPort,delay
-    with open("config.json") as jf:
-        data = json.load(jf)
-        streamLocation = data["cameraAddress"]
-        cameraName = data["cameraName"]
-        serverAddress = data["serverAddress"]
-        serverPort = data["serverPort"]
-        delay = data["FPS"]
+    global streamLocation,cameraName,serverAddress,serverPort,delay, timed,blur, rotation
+    l = "motion:camera:"+cameraName
+    streamLocation = r.hget(l,"camAddress")
+    serverAddress = r.hget(l,"serverAddress")
+    serverPort = r.hget(l,"serverPort")
+    delay = int(r.hget(l,"fps"))
+    rotation = int(r.hget(l,"liveRotation"))
+    blur = int(r.hget(l,"helpBlur"))
+    timed = time.time()
 
 
 #Make a connection to the rabbit server
 def openConnection():
     print("Making connection")
     global connection,channel
-    connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
+    connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,int(serverPort)))
     channel = connection.channel()
     channel.exchange_declare(exchange='videoStream', exchange_type="topic")
-  
+
+
+def rotateImage(image, angle):
+  image_center = tuple(np.array(image.shape[1::-1]) / 2)
+  rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+  result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+  return result
+
     
 
 readConfig()
@@ -39,6 +56,8 @@ openConnection()
 #Should stream forever
 try:
     while(1):
+        if minute_passed(timed):
+            readConfig()
         while(vcap.isOpened()):
             #For fps
             time_elapsed = time.time() - prev
@@ -49,6 +68,9 @@ try:
                 print("Error with frame")
                 continue
             if(time_elapsed > 1./delay):
+                frame = rotateImage(frame,int(rotation))
+                bval = int(blur)
+                frame = cv2.blur(frame,(bval,bval))
                 #kernel = np.ones((2,2),np.float32)/25
                 #frame = cv2.filter2D(frame,-1,kernel)
                 image = cv2.imencode(".jpg",frame)[1]
