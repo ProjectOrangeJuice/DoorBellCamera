@@ -14,7 +14,6 @@ serviceAccountKey.json
 *.restore
 /docker/api-data
 
-
-/v2/mongo/data
-/v2/storage/images
-/v2/storage/videos
+/mongo/data
+/storage/images
+/storage/videos
