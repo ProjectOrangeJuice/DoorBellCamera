@@ -48,7 +48,6 @@ def callback(ch, method, properties, body):
 def motionCheck(name,image,time):
     global cameras
 
-
     if name in cameras:
         tc = cameras.get(name)
     else:
@@ -61,14 +60,14 @@ def motionCheck(name,image,time):
   
 
     if(tc[prevImage] is None ):
+       print ("It is none")
        tc[prevImage] = cvimg 
        tc[code] = randomString(10)
     else:
         res = cv2.absdiff(cvimg, tc[prevImage])
         res = res.astype(np.uint8)
         percentage = (np.count_nonzero(res) * 100)/ res.size
-        #print(percentage)
-      
+       
         if(percentage > tc[threshold]):
             #motion?
            
@@ -100,7 +99,8 @@ def motionCheck(name,image,time):
                 tc[heldFrames].clear()
                 if(tc[codeUsed]):
                     tc[code] = randomString(10)
-        tc[prevImage] = cvimg
+
+    tc[prevImage] = cvimg
 
             
 
