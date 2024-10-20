@@ -59,8 +59,8 @@ body {font-size:16px;}
   
   <!-- Photo grid (modal) -->
   <div class="w3-row-padding" id="app">
-  <p>Date to: <input type="text" id="datepickerTo"></p>
-  <p>Date from: <input type="text" id="datepickerFrom"></p>
+  <p>Date from: <input type="text" id="datepickerTo"></p>
+  <p>Date to: <input type="text" id="datepickerFrom"></p>
   <button v-on:click="loadAlerts">Load</button>
       <li v-for="alert in alerts">
       <input type="checkbox" v-model="selected" :value="alert.Code" number>
@@ -180,9 +180,10 @@ $( function() {
         this.selected.forEach(this.deleteCode);
       },
       deleteAll(){
-        this.selected.forEach(function(entry){
+        var self = this;
+        this.alerts.forEach(function(entry){
           console.log("Deleteing.. "+entry.Code);
-          this.deleteCode(entry.Code);
+          self.deleteCode(entry.Code);
         })
       },
 
