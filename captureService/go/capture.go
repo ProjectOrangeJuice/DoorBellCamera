@@ -4,8 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/color"
 	"log"
 	"time"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/streadway/amqp"
 	"gocv.io/x/gocv"
@@ -18,14 +23,109 @@ type out struct {
 }
 
 const server = "amqp://guest:guest@localhost:5672/"
-const waitTime = 1000000000 / 1
+const secondInNano = time.Nanosecond * time.Second
+
+var connect *amqp.Connection
+var ch *amqp.Channel
 
 func main() {
+	go func() {
+		http.ListenAndServe("localhost:8080", nil)
+	}()
+	connect, ch = setupRabbit()
+	errChan := make(chan *amqp.Error)
+	errChan = connect.NotifyClose(errChan)
+	go watchCloses(errChan)
+	defer connect.Close()
+	defer ch.Close()
+
+	//get the settings and update every minute
+	getSettings()
+	setupMotion()
+
+	stream, err := gocv.OpenVideoCapture("rtsp://192.168.1.120")
+	defer stream.Close()
+	failOnError(err, "Failed to open stream")
+	img := gocv.NewMat()
+	defer img.Close()
+	//Fps delay timer
+	start := time.Now().UnixNano()
+	for {
+		for {
+			//Check to see if we need this frame
+			now := time.Now().UnixNano()
+			diff := now - start
+			if int64(diff) > (secondInNano.Nanoseconds() / int64(setting.FPS)) {
+				start = time.Now().UnixNano() //Update time
+				//Grab the frame
+				if ok := stream.Read(&img); !ok {
+					fmt.Printf("Device closed: %v\n", "Streamer..")
+					break
+				}
+				if img.Empty() {
+					log.Printf("Frame was empty")
+					continue
+				}
+
+				gocv.Flip(img, &img, 1)
+
+				//go sendFrame(img, ch)
+				detect(img)
+
+			} else {
+				//Ignore this frame
+				stream.Grab(1)
+			}
+		}
+		//In the event something fails, it will try again.
+		time.Sleep(time.Second * 2)
+		log.Printf("Reconnecting camera")
+		stream, err := gocv.OpenVideoCapture("rtsp://192.168.1.120")
+		defer stream.Close()
+		failOnError(err, "Failed to open stream")
+	}
+
+}
+
+func watchCloses(err chan *amqp.Error) {
+	off, ok := <-err
+	if ok {
+		log.Printf("Connection closed for rabbit %s", off.Reason)
+		connect, ch = setupRabbit()
+	}
+}
+
+func sendFrame(frame gocv.Mat, ch *amqp.Channel) {
+	//Add timestamp
+	pt := image.Pt(10, 30)
+	stamp := time.Now().Format("01-01-2006 15:04:05")
+	gocv.PutText(&frame, stamp, pt, gocv.FontHersheyComplex, 1, color.RGBA{255, 0, 0, 255}, 1)
+
+	//convert it to a thing we can read
+	buf, _ := gocv.IMEncode(".jpg", frame)
+	encoded := base64.StdEncoding.EncodeToString([]byte(buf))
+	output := out{setting.Name, string(time.Now().Unix()), encoded}
+	b, err := json.Marshal(output)
+
+	err = ch.Publish(
+		"videoStream", // exchange
+		setting.Name,  // routing key
+		false,         // mandatory
+		false,         // immediate
+		amqp.Publishing{
+			Body: []byte(b),
+		})
+	if err != nil {
+		log.Printf("Rabbit isn't connected?")
+	}
+
+}
+
+func setupRabbit() (*amqp.Connection, *amqp.Channel) {
 	connect, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	ch, err := connect.Channel()
 	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
 		"videoStream", // name
@@ -37,50 +137,7 @@ func main() {
 		nil,           // arguments
 	)
 	failOnError(err, "Exchange failed")
-
-	stream, err := gocv.OpenVideoCapture("rtsp://192.168.1.120")
-	defer stream.Close()
-	failOnError(err, "Failed to open stream")
-
-	img := gocv.NewMat()
-	defer img.Close()
-	// wait := time.Nanosecond * 200
-	start := time.Now().UnixNano()
-	for {
-
-		now := time.Now().UnixNano()
-		diff := now - start
-		if diff > 200000000 {
-			start = now
-			//one second
-			if ok := stream.Read(&img); !ok {
-				fmt.Printf("Device closed: %v\n", "Streamer..")
-				return
-			}
-			if img.Empty() {
-				continue
-			}
-
-			//convert it to a thing we can read
-			buf, _ := gocv.IMEncode(".jpg", img)
-			encoded := base64.StdEncoding.EncodeToString([]byte(buf))
-			output := out{"Hello", "Now", encoded}
-			b, err := json.Marshal(output)
-
-			err = ch.Publish(
-				"videoStream", // exchange
-				"Hello",       // routing key
-				false,         // mandatory
-				false,         // immediate
-				amqp.Publishing{
-					Body: []byte(b),
-				})
-			failOnError(err, "Failed to publish a message")
-		} else {
-			stream.Grab(1)
-		}
-	}
-
+	return connect, ch
 }
 
 func failOnError(err error, msg string) {
