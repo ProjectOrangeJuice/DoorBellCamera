@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/icza/mjpeg"
 	_ "github.com/mattn/go-sqlite3"
@@ -97,8 +98,8 @@ func convert(msg []byte) {
 		failOnError(err, "Failed reading image")
 		err = aw.AddFrame(data)
 		failOnError(err, "failed to add frame")
-		//err = os.Remove(fmt.Sprintf("%s/%s", root, location))
-		//failOnError(err, "Failed to remove image")
+		err = os.Remove(fmt.Sprintf("%s/%s", root, location))
+		failOnError(err, "Failed to remove image")
 
 	}
 	err = aw.Close()
