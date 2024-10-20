@@ -37,7 +37,7 @@ type Message struct {
 
 type outMessage struct {
 	Code string
-	name string
+	Name string
 }
 
 type cameraStructure struct {
