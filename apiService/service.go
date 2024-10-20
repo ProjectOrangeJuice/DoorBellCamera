@@ -33,6 +33,7 @@ func main() {
 	router.HandleFunc("/config", getConfig).Methods("GET")
 	router.HandleFunc("/config", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
+	router.HandleFunc("/motionAlert", getMotionAlert).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion", getMotions).Methods("GET")
 	router.HandleFunc("/motion/{code}", getMotion).Methods("GET")
 	router.HandleFunc("/motion/{code}", deleteMotion).Methods("DELETE")

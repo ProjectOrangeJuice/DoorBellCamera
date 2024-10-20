@@ -43,7 +43,7 @@ def openConnection():
     broadcastChannel.exchange_declare(exchange='videoStream', exchange_type="topic")
 
     alertChannel = connection.channel()
-    alertChannel.exchange_declare(exchange='motion', exchange_type="fanout")
+    alertChannel.exchange_declare(exchange='motion', exchange_type="topic")
 
     rabbitError = False
 

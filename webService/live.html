@@ -143,9 +143,42 @@
           }
         };
         window.setTimeout(update);
+        alerts();
       });
 
     }
+
+    function alerts() {
+      var socket = new WebSocket("ws://localhost:8000/motionAlert")
+      var long = document.getElementById("imageArea");
+      long.innerHTML = ""
+      // 3
+      var update = function () {
+
+        // Log errors
+        socket.onclose = function (error) {
+          console.log("Alert closed")
+        };
+
+        socket.onmessage = function (event) {
+          obj  = JSON.parse(event.data)
+          date = new Date(obj.Time * 1000)
+          // Hours part from the timestamp
+          var hours = date.getHours();
+          // Minutes part from the timestamp
+          var minutes = "0" + date.getMinutes();
+          // Seconds part from the timestamp
+          var seconds = "0" + date.getSeconds();
+          long.innerHTML = "Alert for " + obj.Name + " At "+hours+":"+minutes+":"+seconds;
+          console.log("Alert " + event.data)
+          //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+
+        }
+      };
+      window.setTimeout(update);
+    }
+
   </script>
 
 

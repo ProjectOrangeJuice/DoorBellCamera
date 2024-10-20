@@ -65,7 +65,7 @@ func main() {
 }
 
 func readyAndListen() {
-	msgs, ch := listenToFanout("motion")
+	msgs, ch := listenToExchange("motion", "#")
 
 	createTimer()
 	forever := make(chan bool)
