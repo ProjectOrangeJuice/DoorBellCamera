@@ -33,12 +33,12 @@ def minute_passed(oldepoch):
 
 def readConfig():
     global serverAddress,serverPort,dt,dmin
-    serverAddress = str(r.hget("config:motion","serverAddress"))
+    serverAddress = "rabbit" #str(r.hget("config:motion","serverAddress"))
     serverAddress = socket.gethostbyname(serverAddress)
     print("Address "+serverAddress)
-    serverPort = r.hget("config:motion","serverPort")
-    dt = json.loads(r.hget("config:motion","threshold"))
-    dmin = r.hget("config:motion","minCount")
+    serverPort = 5672 #r.hget("config:motion","serverPort")
+    #dt = json.loads(r.hget("config:motion","threshold"))
+    #dmin = r.hget("config:motion","minCount")
     for cam in cameras:
         print("cam is.. "+str(cam))
         getCamera(cam)
@@ -62,7 +62,10 @@ def getCamera(name):
             cameras[name] = [cameras[name][0], cameras[name][1],cameras[name][2], json.loads(redisThres), r.hget(l,"minCount"), cameras[name][5], cameras[name][6], cameras[name][7],cameras[name][8], r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
     
     else:
-        cameras[name] = [[], 0, [], dt, dmin, "", False, None,0,0,0]
+        #The camera does not exist! Shouldn't be checked.
+        print("Camera doesn't exist in config! "+str(name))
+        return None
+        #cameras[name] = [[], 0, [], dt, dmin, "", False, None,0,0,0]
     return cameras[name]
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))

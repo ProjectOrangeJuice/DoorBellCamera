@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -47,7 +46,7 @@ type hold struct {
 }
 
 const (
-	host   = "localhost"
+	host   = "192.168.1.135"
 	port   = 5432
 	user   = "door"
 	passdb = "door"
@@ -60,7 +59,7 @@ func readConfig() {
 
 var connect *amqp.Connection
 
-const server = "amqp://guest:guest@192.168.1.126:30188/"
+const server = "amqp://guest:guest@192.168.1.135:5672/"
 
 func main() {
 
@@ -184,26 +183,26 @@ func decideFate(msg Message, held *hold) {
 }
 
 func sendNotification() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, passdb, dbname)
+	// psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	// 	"password=%s dbname=%s sslmode=disable",
+	// 	host, port, user, passdb, dbname)
 
-	db, err := sql.Open("postgres", psqlInfo)
-	failOnError(err, "Database opening error")
-	defer db.Close()
-	sqlStatement := `SELECT key FROM keys`
-	row, err := db.Query(sqlStatement)
-	failOnError(err, "Query error")
-	defer row.Close()
-	var keys []string
-	for row.Next() {
-		var key string
-		err = row.Scan(&key)
-		failOnError(err, "Failed to scan")
-		keys = append(keys, key)
-	}
-	log.Printf("Keys! %s", keys)
-
+	// db, err := sql.Open("postgres", psqlInfo)
+	// failOnError(err, "Database opening error")
+	// defer db.Close()
+	// sqlStatement := `SELECT key FROM keys`
+	// row, err := db.Query(sqlStatement)
+	// failOnError(err, "Query error")
+	// defer row.Close()
+	// var keys []string
+	// for row.Next() {
+	// 	var key string
+	// 	err = row.Scan(&key)
+	// 	failOnError(err, "Failed to scan")
+	// 	keys = append(keys, key)
+	// }
+	// log.Printf("Keys! %s", keys)
+	keys := []string{"erlnh0uEks8:APA91bGs_p5Na7oEpZHm44POkc5jq4c6XAJ7kd7WxbflEiGo4JtuH3CRRdOVhChVjbzXWkjeWOaV6GICSXMicDC7sRiRyIA6dkpwD262Hy-Juq0qZJg2JCqHz0O2hQ_718EtVSALz-xh"}
 	opt := option.WithCredentialsFile("serviceAccountKey.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
