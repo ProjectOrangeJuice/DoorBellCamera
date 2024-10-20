@@ -8,6 +8,8 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
+
+	_ "net/http/pprof"
 )
 
 var connect *amqp.Connection
@@ -18,6 +20,9 @@ const server = "amqp://guest:guest@192.168.1.126:30188/"
 
 func main() {
 	setupLogging()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	var err error
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")

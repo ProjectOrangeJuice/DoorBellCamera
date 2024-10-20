@@ -56,12 +56,14 @@ func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.
 	q, err := ch.QueueDeclare(
 		"",    // name
 		false, // durable
-		false, // delete when usused
+		true,  // delete when usused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+	err = ch.Qos(1, 0, true)
+	failOnError(err, "Setting QOS")
 
 	err = ch.QueueBind(
 		q.Name,  // queue name
