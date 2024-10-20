@@ -14,6 +14,7 @@ class Setting:
     fps = 0
     name = "hello"
     connection = ""
+    active = False
 
 setting = Setting()
 
@@ -27,6 +28,7 @@ def update():
     setting.fps = x["fps"]
     setting.name = x["name"]
     setting.connection = x["connection"]
+    setting.active = x["motion"]
 
 
 def connect():

@@ -73,13 +73,13 @@ def readFrames():
                 print("error here")
                 break
             b64 = base64.b64encode(image)
-         
             sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
             #t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
             #t.start()
-            cf.checkFrame(b64, cameraName, frame,alertChannel)
+            if(s.setting.active):
+                cf.checkFrame(b64, cameraName, frame,alertChannel)
           
             # cv2.imshow("frame2", frame)
         
