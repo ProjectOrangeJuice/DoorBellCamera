@@ -22,22 +22,31 @@ type videoDB struct {
 	Code  string
 	Size  int64
 	Image string
+	Stamp int64
+}
+
+type makeVideoPing struct {
+	Code  string
+	Stamp int64
 }
 
 func recvMotionImg(buf chan *Buffer) {
-	vidStream := make(chan string)
+	vidStream := make(chan makeVideoPing)
 	go makeVideo(vidStream)
 	timer := time.NewTimer(5 * time.Second)
 	codeUsed := ""
+	var lastStamp int64
 	for {
 		select {
 		case msg := <-buf:
 
 			if codeUsed == "" {
 				codeUsed = msg.Code
+				lastStamp = msg.Time
 			} else if codeUsed != msg.Code {
 				log.Println("Make video due to new code")
-				vidStream <- codeUsed
+				s := makeVideoPing{codeUsed, lastStamp}
+				vidStream <- s
 				codeUsed = msg.Code
 			}
 
@@ -54,7 +63,8 @@ func recvMotionImg(buf chan *Buffer) {
 		case <-timer.C:
 			// end to last code
 			if codeUsed != "" {
-				vidStream <- codeUsed
+				s := makeVideoPing{codeUsed, lastStamp}
+				vidStream <- s
 				log.Println("Make video due to timeout")
 				codeUsed = ""
 			}
@@ -63,8 +73,9 @@ func recvMotionImg(buf chan *Buffer) {
 	}
 }
 
-func makeVideo(codes chan string) {
-	for vid := range codes {
+func makeVideo(codes chan makeVideoPing) {
+	for v := range codes {
+		vid := v.Code
 		s := getSetting()
 		fps := fmt.Sprintf("%v", s.FPS)
 		saveToFull := fmt.Sprintf("%s/%s.mp4", fullVideoLocation, vid)
@@ -118,7 +129,7 @@ func makeVideo(codes chan string) {
 		size := fi.Size()
 
 		// Update the database
-		dbRecord := videoDB{vid, size, sEnc}
+		dbRecord := videoDB{vid, size, sEnc, v.Stamp}
 		conn := databaseClient.Database("doorbell")
 		db := conn.Collection("video")
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

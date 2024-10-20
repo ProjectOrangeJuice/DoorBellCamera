@@ -189,7 +189,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 
 		// Add this frame to the buffer
 		bufImg, _ := gocv.IMEncodeWithParams(".jpg", f.image, []int{gocv.IMWriteJpegQuality, 80})
-		buf := Buffer{Time: string(time.Now().Unix()), Name: setting.Name,
+		buf := Buffer{Time: time.Now().Unix(), Name: setting.Name,
 			Image: bufImg, Count: fameNum, Blocks: boxesLocations}
 
 		//We can't pre make the buffer as it can dynamically change
