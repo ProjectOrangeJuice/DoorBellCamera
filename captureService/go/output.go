@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/streadway/amqp"
 	"gocv.io/x/gocv"
 )
@@ -60,6 +62,7 @@ func motionStreamPush() {
 	rabbitChannel := setupLiveStream()
 	defer rabbitChannel.Close()
 	for data := range motionStream {
+		fmt.Println("Push frame")
 		//Convert the image to jpg
 		rabbitChannel.Publish("", "camera", false, false, amqp.Publishing{
 			DeliveryMode: amqp.Transient,

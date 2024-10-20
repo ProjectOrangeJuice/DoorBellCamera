@@ -1,0 +1,16 @@
+syntax = "proto3";
+package main;
+
+message Point{
+    int64 x = 1;
+    int64 y = 2;
+}
+
+message Buffer{
+    string time = 1;
+    string name = 2;
+    string code = 3;
+    int64 count = 4;
+    bytes image = 5;
+    repeated Point blocks = 6;
+}

@@ -40,12 +40,12 @@ func main() {
 
 	fmt.Println("Reading the video now")
 	preTime := time.Now()
-	fps := 1. / 99
+	fps := 1. / 10
 	for {
 		//Skip some frames
 		timeSince := time.Since(preTime)
 		if timeSince.Seconds() < fps {
-			video.Grab(1)
+			//video.Grab(1)
 			continue
 		}
 		preTime = time.Now()

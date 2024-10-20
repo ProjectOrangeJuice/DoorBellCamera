@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	proto "github.com/golang/protobuf/proto"
 	"gocv.io/x/gocv"
 )
 
@@ -29,7 +30,7 @@ type inputImage struct {
 var (
 	counter       = 0
 	blocks        [][]image.Rectangle
-	buffer        []buffered
+	buffer        []Buffer
 	bufferCounter = 0
 	code          = ""
 	sendFrame     = 0
@@ -72,7 +73,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 		//Set vars for this frame
 		fameNum := time.Now().Unix()
 		motion := false
-		var boxesLocations []image.Point
+		var boxesLocations []*Point
 		gocv.CvtColor(f.frame, &grayMap, gocv.ColorBGRToGray)
 		gocv.GaussianBlur(grayMap, &blurMap, image.Pt(setting.Blur, setting.Blur), 0, 0, gocv.BorderDefault)
 		// Ensure the premade vars are the correct sizes
@@ -134,6 +135,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 				x, y := findClosestBox(midX, midY, i)
 
 				if x > zone.BoxJump || y > zone.BoxJump {
+					fmt.Printf("Too far (%v,%v) vs (%v,%v)\n", x, y, zone.BoxJump, zone.BoxJump)
 					// Box is too far (large gap)
 					// RED
 					if setting.Debug {
@@ -142,6 +144,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 					continue
 				}
 				if x < zone.SmallIgnore || y < zone.SmallIgnore {
+					fmt.Printf("Too little (%v,%v) vs %v\n", x, y, zone.SmallIgnore)
 					// Box moved too little
 					noMove = true
 					// PURPLE
@@ -155,10 +158,11 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 				if setting.Debug {
 					gocv.Rectangle(&f.image, rect, green, 2)
 				}
+				fmt.Println("Motion hit true")
 				motion = true
 
 				// Add boundary boxes to locations
-				boxesLocations = append(boxesLocations, image.Point{midX, midY})
+				boxesLocations = append(boxesLocations, &Point{X: int64(midX), Y: int64(midY)})
 			}
 			if !motion && noMove {
 				noMovement++
@@ -190,7 +194,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 
 		// Add this frame to the buffer
 		bufImg, _ := gocv.IMEncodeWithParams(".jpg", f.image, []int{gocv.IMWriteJpegQuality, 80})
-		buf := buffered{Time: string(time.Now().Unix()), Name: setting.Name,
+		buf := Buffer{Time: string(time.Now().Unix()), Name: setting.Name,
 			Image: bufImg, Count: fameNum, Blocks: boxesLocations}
 
 		//We can't pre make the buffer as it can dynamically change
@@ -207,6 +211,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 
 		if sendFrame > 0 {
 			//Send the buffer
+			sendBuffer(code)
 		}
 
 		//No movement should cause a refresh of background
@@ -224,15 +229,17 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 }
 
 func sendBuffer(code string) {
+
 	for _, b := range buffer {
 		b.Code = code
-		err := enc.Encode(b)
+		j, err := proto.Marshal(&b)
 		if err != nil {
-			log.Printf("Failed to gob encode %s", err)
+			log.Printf("Failed to json encode %s", err)
 			continue
 		}
-		motionStream <- network.Bytes()
+		motionStream <- j
 	}
+	buffer = buffer[:0]
 }
 
 func findClosestBox(x int, y int, index int) (int, int) {
