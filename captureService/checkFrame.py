@@ -39,7 +39,7 @@ def checkFrame(image,name, frame,channel,stamp):
     #Pretend debug switch
     mimg = frame
     # blur to make it easier to find objects
-    gray = cv2.GaussianBlur(gray, (45, 45), 0)  # 21,21 is default
+    gray = cv2.GaussianBlur(gray, (21, 21), 0)  # 21,21 is default
 
     # First iteration then assign the value
     if settings.prev is None:
@@ -87,12 +87,12 @@ def checkFrame(image,name, frame,channel,stamp):
 
         newPrev = []
         areaMax = False
+        totalArea = 0
         # Check if it is over the threshold
         for contour in cnts:
             if cv2.contourArea(contour) < zone:
                 continue
-            if cv2.contourArea(contour) > perArea and not areaMax:
-                boxNoMove += 1
+            totalArea += cv2.contourArea(contour)
 
             motion = True
             M = cv2.moments(contour)
@@ -106,6 +106,8 @@ def checkFrame(image,name, frame,channel,stamp):
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
         prevBox = newPrev
+        if totalArea > areaMax:
+            boxNoMove += 1
         ##Maths is done. Check if this is an alert
 
         if(motion):
