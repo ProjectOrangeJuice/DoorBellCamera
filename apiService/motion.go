@@ -27,7 +27,11 @@ type videoRecord struct {
 func getMotions(w http.ResponseWriter, r *http.Request) {
 	log.Print("get motion")
 	collection := conn.Collection("video")
-	cur, err := collection.Find(context.TODO(), bson.M{})
+	findOptions := options.Find()
+	// Sort by
+	findOptions.SetSort(bson.D{{"start", -1}})
+
+	cur, err := collection.Find(context.TODO(), bson.M{}, findOptions)
 	failOnError(err, "Failed to get video records")
 
 	var records []videoRecord
