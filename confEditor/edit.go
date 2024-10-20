@@ -17,7 +17,7 @@ type OutMessage struct {
 	Inner string
 }
 
-var server = "amqp://guest:guest@192.168.99.100:31693/"
+var server = "amqp://guest:guest@192.168.1.126:30188/"
 
 func main() {
 	input := ""

@@ -1,3 +1,32 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: config-vol
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/shared/check"
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: config-vol
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+
 apiVersion: apps/v1 
 kind: Deployment
 metadata:
@@ -14,25 +43,17 @@ spec:
         app: check-motion
 
   
-
- 
-
     spec:
       # Add the ConfigMap as a volume to the Pod
       volumes:
-        # `name` here must match the name
-        # specified in the volume mount
-        - name: config
-        # Populate the volume with config map data
-          configMap:
-            # `name` here must match the name 
-            # specified in the ConfigMap's YAML 
-            name: check-motion-config
+      - name: config-vol
+        persistentVolumeClaim:
+          claimName: config-vol
       containers:
       - name: check-motion
-        image: localhost:32000/check-motion
+        image: localhost:32000/check-motion:latest
       # Mount the volume that contains the configuration data 
       # into your container filesystem
         volumeMounts:
-        - name: config
+        - name: config-vol
           mountPath: /config
