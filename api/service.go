@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
 )
@@ -14,5 +17,8 @@ func main() {
 	sec := router.PathPrefix("/s").Subrouter()
 	sec.Use(auth)
 	sec.HandleFunc("/refresh", refresh).Methods("GET")
-
+	sec.HandleFunc("/motion", allMotion).Methods("GET")
+	sec.HandleFunc("/motion/{code}", getMotion).Methods("GET", "OPTIONS")
+	sec.HandleFunc("/motion/{code}", delMotion).Methods("DELETE", "OPTIONS")
+	log.Fatal(http.ListenAndServe(":8000", router))
 }
