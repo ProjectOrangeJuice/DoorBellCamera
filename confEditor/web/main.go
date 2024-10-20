@@ -183,31 +183,33 @@ func doStream(cam string, ws *websocket.Conn) {
 	failOnError(err, "Failed to register a consumer")
 
 	forever := make(chan bool)
-	const duration = 3 * time.Second
-	timer := time.NewTimer(duration)
+
 	go func() {
+		const duration = 3 * time.Second
+		timer := time.NewTimer(duration)
+		for {
+			select {
+			case d := <-msgs:
+				timer.Reset(duration)
+				var m Message
+				err := json.Unmarshal(d.Body, &m)
+				failOnError(err, "Json decode error")
 
-		select {
-		case d := <-msgs:
-			timer.Reset(duration)
-			var m Message
-			err := json.Unmarshal(d.Body, &m)
-			failOnError(err, "Json decode error")
+				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 
-			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
-			if err != nil {
-				log.Printf("Websocket error: %s", err)
+				if err != nil {
+					log.Printf("Websocket error: %s", err)
+					ws.Close()
+					return
+				}
+
+			case <-timer.C:
+				fmt.Println("Timeout !")
 				ws.Close()
-				return
 			}
-		case <-timer.C:
-			fmt.Println("Timeout !")
-			ch.Close()
-			return
 		}
 
 	}()
-
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 	log.Printf("Finished..")
