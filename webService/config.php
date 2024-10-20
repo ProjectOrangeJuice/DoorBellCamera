@@ -231,13 +231,13 @@
             this.name = response.data.Name;
             this.connection = response.data.Connection;
             this.fps = response.data.FPS;
-            this.blur = response.data.blur;
-            this.boxJump = response.data.boxJump;
-            this.debug = response.data.debug;
-            this.bufferBefore = response.data.bufferBefore;
-            this.bufferAfter = response.data.bufferAfter;
-            this.refreshCount = response.data.refreshCount;
-            this.smallMove = response.data.smallMove;
+            this.blur = response.data.Blur;
+            this.boxJump = response.data.BoxJump;
+            this.debug = response.data.Debug;
+            this.bufferBefore = response.data.BufferBefore;
+            this.bufferAfter = response.data.BufferAfter;
+            this.refreshCount = response.data.NoMoveRefreshCount;
+            this.smallMove = response.data.SmallMove;
 
             if (response.data.Area != null) {
               this.area = response.data.Area;
@@ -316,7 +316,7 @@
               Debug: this.debug,
               BufferBefore: this.bufferBefore,
               BufferAfter: this.bufferAfter,
-              RefreshCount: this.refreshCount,
+              NoMoveRefreshCount: this.refreshCount,
               SmallMove: this.smallMove,
             })
             .then(response => {
