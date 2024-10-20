@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"time"
 
@@ -52,7 +51,7 @@ var timer time.Timer
 var conn *mongo.Database
 
 func main() {
-	go http.ListenAndServe("localhost:8080", nil)
+	//go http.ListenAndServe("localhost:8080", nil)
 	var err error
 	conn, err = configDB(context.Background())
 	if err != nil {
@@ -198,6 +197,6 @@ func storeImage(msg Message) {
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		//log.Fatalf("%s: %s", msg, err)
+		log.Printf("%s: %s", msg, err)
 	}
 }
