@@ -40,7 +40,9 @@ type Message struct {
 func sendVideo(cam string, ws *websocket.Conn) {
 	msgs, ch := listenToExchange("videoStream", cam)
 	var m Message
-	forever := make(chan bool)
+	//forever := make(chan bool)
+	p := make(chan bool)
+	go pingponger(ws, p)
 	const duration = 13 * time.Second
 	timer := time.NewTimer(duration)
 	alive := true
@@ -60,22 +62,25 @@ func sendVideo(cam string, ws *websocket.Conn) {
 			// sEnc := b64.StdEncoding.EncodeToString([]byte(send_s3))
 			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 			if err != nil {
-				ch.Close()
-				ws.Close()
+
 				alive = false
 				break
 			}
-		case <-timer.C:
-			print("Timer!")
-			ch.Close()
-			ws.Close()
+		case <-p:
+			log.Println("Ending connection due to ping pong1")
 			alive = false
 			break
+
+		case <-timer.C:
+			//Connection to camera failed
+			print("Timer!")
+			alive = false
+			break
+
 		}
-
 	}
-	<-forever
-
+	ch.Close()
+	ws.Close()
 }
 
 //Socket handler
@@ -97,33 +102,46 @@ type alert struct {
 func getMotionAlerts(ws *websocket.Conn) {
 	msgs, ch := listenToExchange("motion", "#")
 	var m alert
-	forever := make(chan bool)
-	const duration = 120 * time.Second
-	timer := time.NewTimer(duration)
+	p := make(chan bool)
+	go pingponger(ws, p)
 	alive := true
 	for alive {
 		select {
 		case d := <-msgs:
-			timer.Reset(duration)
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
 			b, _ := json.Marshal(m)
 			err = ws.WriteMessage(websocket.TextMessage, b)
 			if err != nil {
-				ch.Close()
-				ws.Close()
 				alive = false
 				break
 			}
-		case <-timer.C:
-			print("Timer!")
-			ch.Close()
-			ws.Close()
+		case <-p:
+			log.Println("Ending connection due to ping pong")
 			alive = false
 			break
 		}
 
 	}
-	<-forever
+	ch.Close()
+	ws.Close()
+
+}
+
+func pingponger(ws *websocket.Conn, c chan bool) {
+	ws.WriteMessage(websocket.TextMessage, []byte("PING"))
+	for {
+		_, bytes, err := ws.ReadMessage()
+		if err != nil || string(bytes) != "PONG" {
+			break
+		}
+		time.Sleep(5 * time.Second)
+		err = ws.WriteMessage(websocket.TextMessage, []byte("PING"))
+		if err != nil {
+			log.Println("Write Error: ", err)
+			break
+		}
+	}
+	c <- false
 
 }
