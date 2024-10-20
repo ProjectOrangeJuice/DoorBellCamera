@@ -11,6 +11,7 @@ connection = pika.BlockingConnection(pika.ConnectionParameters('192.168.99.100',
 channel = connection.channel()
 channel2 = connection.channel()
 countOn = 0
+heldFrames = []
 countOff = 0
 threshold = 50
 minCount = 15
@@ -44,8 +45,16 @@ def motionCheck(image,time):
             #motion?
             
             countOn += 1
+            
             if(countOn > minCount):
                 print("Motion!!!")
+                #send the held frames
+                for data in heldFrames:
+                    channel.basic_publish(exchange='',
+                      routing_key='motionAlert',
+                      body=json.dumps(data))
+                #All frames now sent
+                heldFrames.clear()
                 bodyText = {"time":time,"image":image,"code":code,"count":countOn}
                 channel.basic_publish(exchange='',
                       routing_key='motionAlert',
@@ -53,14 +62,16 @@ def motionCheck(image,time):
                 countOff = 0
                 codeUsed = True
             else:
+                heldFrames.append({"time":time,"image":image,"code":code,"count":countOn})
                 print("Possible motion")
         else:
             countOff += 1
             if(countOff > minCount):
                 countOn = 0
+                heldFrames.clear()
                 if(codeUsed):
                     code = randomString(10)
-            print("Nothing")
+ 
             
 
 
