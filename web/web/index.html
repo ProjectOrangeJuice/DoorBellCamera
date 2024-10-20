@@ -1,19 +1,7 @@
-<?php 
-header('Access-Control-Allow-Origin: http://localhost:8000');
-
-header('Access-Control-Allow-Methods: GET, POST, DELETE');
-
-header("Access-Control-Allow-Headers: X-Requested-With");
-
-$title = "Hello world";
-include("parts/header.php");
-?>
-
+{{ define "index" }}
+{{ template "header" }}
 <body class="w3-light-grey">
-  <?php 
-$sideBar = [["Overview",1,"index.php"],["Cameras",0,"cameras.php"],["Config editor",0,"edit.php"]];
-include("parts/side.php");
- ?>
+{{ template "side"}}
 
   <!-- !PAGE CONTENT! -->
   <div class="w3-main" style="margin-left:300px;margin-top:43px;">
@@ -202,12 +190,14 @@ include("parts/side.php");
     </script>
 
 
-    <?php include("parts/footer.php") ?>
+
 
     <!-- End page content -->
   </div>
-
+{{ template "footer" }}
 
 </body>
 
 </html>
+
+{{ end }}
