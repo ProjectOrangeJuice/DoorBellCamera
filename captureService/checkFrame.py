@@ -138,7 +138,7 @@ def checkFrame(image,name, frame,channel,stamp):
 
     #Pretend debug switch
     image = cv2.imencode(".jpg",mimg)[1]
-    cv2.putText(image, st, (10, 25),
+    cv2.putText(image, stamp, (10, 25),
 	cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     b64 = base64.b64encode(image)
     
