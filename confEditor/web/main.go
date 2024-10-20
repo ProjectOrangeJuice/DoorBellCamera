@@ -86,8 +86,7 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 		full = append(full, body)
 
 	}
-	fmt.Printf("Bodycurrently is %+v\n", full)
-	fmt.Printf("Single one is %v", full[1])
+
 	//f1 := microJson{full}
 	b, err := json.Marshal(full)
 	fmt.Printf("Json bytes are %s\n", b)
