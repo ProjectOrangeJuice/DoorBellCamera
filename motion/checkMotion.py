@@ -90,7 +90,7 @@ def motionCheck(name,image,time):
                 tc[countOff] = 0
                 tc[codeUsed] = True
             else:
-                tc[heldFrames].append({"time":time,"image":image,"code":code,"count":countOn})
+                tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
                 print("Possible motion")
         else:
             tc[countOff] += 1
