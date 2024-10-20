@@ -24,10 +24,10 @@ def randomString(stringLength=10):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
 
-
-
+boxNoMove = 0
+prevBox = []
 def checkFrame(image,name, frame,channel,stamp):
-    global settings,frameCount
+    global settings,frameCount,boxNoMove,prevBox
     # if(frameCount % 2 == 0):
     #     #skip frame
     #     frameCount += 1
@@ -39,7 +39,7 @@ def checkFrame(image,name, frame,channel,stamp):
     #Pretend debug switch
     mimg = frame
     # blur to make it easier to find objects
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)  # 21,21 is default
+    gray = cv2.GaussianBlur(gray, (45, 45), 0)  # 21,21 is default
 
     # First iteration then assign the value
     if settings.prev is None:
@@ -61,7 +61,11 @@ def checkFrame(image,name, frame,channel,stamp):
       
         roiPrev = settings.prev[current[0]:current[1], current[2]:current[3]]#settings.prev #
         roi = gray[current[0]:current[1], current[2]:current[3]]#gray#
-
+        xtem = current[1] - current[0]
+        ytem = current[3] - current[2]
+        areatemp = ytem*xtem
+        perArea = (areatemp/100)*60#60 percent of area
+      
         # Difference between frames
         diff_frame = cv2.absdiff(roiPrev, roi)
         
@@ -81,19 +85,27 @@ def checkFrame(image,name, frame,channel,stamp):
             ( _, cnts , _) = cv2.findContours(thresh_frame.copy(),
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+        newPrev = []
+        areaMax = False
         # Check if it is over the threshold
         for contour in cnts:
             if cv2.contourArea(contour) < zone:
                 continue
+            if cv2.contourArea(contour) > perArea and not areaMax:
+                boxNoMove += 1
+
             motion = True
             M = cv2.moments(contour)
             locations.append(M)
             #pretend debug switch
             (x, y, w, h) = cv2.boundingRect(contour)
+            newPrev.append([x,y,w,h])
             x = x + current[2]
             y = y + current[0]
             cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
-
+        if compBoxes(prevBox,newPrev):
+            boxNoMove += 1
+        prevBox = newPrev
         ##Maths is done. Check if this is an alert
 
         if(motion):
@@ -119,6 +131,7 @@ def checkFrame(image,name, frame,channel,stamp):
                     settings.buffer = 99
         if(settings.countOn[count] < 1):
             settings.countOn[count] = 0
+            boxNoMove = 0
             if(settings.codeUsed):
                 allEmpty = False
                 #Check to see if all zones have no motion
@@ -126,7 +139,7 @@ def checkFrame(image,name, frame,channel,stamp):
                     if item >= 0:
                         allEmpty = True
                 if(allEmpty and not settings.bufferUse):
-                    settings.buffer = 25
+                    settings.buffer = 15
                     settings.bufferUse = True
         
         count += 1
@@ -177,10 +190,12 @@ def checkFrame(image,name, frame,channel,stamp):
 
 
 
-    ##Update the background every x frames.
-    if(frameCount > 3):
+    
+    if(boxNoMove > 2):
         settings.prev = gray
         frameCount = -1
+        boxNoMove = 0
+        print("New frame")
     frameCount += 1
     print(settings.countOn)
     # cv2.imshow("frame", mimg)
@@ -198,6 +213,14 @@ def sendBuffer(name,code,channel):
         routing_key= name.replace(" ","."),
         body= json.dumps(frame))
     
+def compBoxes(prev,nowBox):
+    for item in prev:
+        for item2 in nowBox:
+            if(item == item2):
+                print("A box is the same")
+                return True
+
+    return False
 
 def sendEnd(name,channel):
     channel.basic_publish(exchange='motion',
