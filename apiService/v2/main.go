@@ -34,6 +34,7 @@ func main() {
 	router.HandleFunc("/motion/{code}", deleteMotion).Methods("DELETE")
 	// videos
 	router.HandleFunc("/videos/{last}", getNextSet).Methods("GET")
+	router.HandleFunc("/videos/", getNextSet).Methods("GET")
 	router.HandleFunc("/videos/{start}/{end}", getBetween).Methods("GET")
 
 	cors := handlers.CORS(
