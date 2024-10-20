@@ -31,7 +31,7 @@ body {font-size:16px;}
   <div class="w3-bar-block">
     <a href="/" onclick="w3_close()" class="w3-bar-item w3-button w3-white w3-hover-white">Home</a> 
     <a href="/live.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a> 
-    <a href="/com.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Mobile</a> 
+     
     <a href="/motion.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a> 
     <a href="/config.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Settings</a> 
   </div>
