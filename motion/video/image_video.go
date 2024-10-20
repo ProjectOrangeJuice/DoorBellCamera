@@ -17,6 +17,7 @@ import (
 
 type outMessage struct {
 	Code string
+	Name string
 }
 
 //DBName is the database file name
@@ -65,6 +66,7 @@ func makeDatabase() {
 		'code'	TEXT,
 		'startTime'	TEXT,
 		'endTime'	TEXT,
+		'name' TEXT,
 		'reason' TEXT
 	);`
 
@@ -175,20 +177,20 @@ func convert(msg []byte) {
 	}
 
 	log.Printf("Start time %s and end time %s", startTime, endTime)
-	addToDatabase(m.Code, startTime, endTime, high)
+	addToDatabase(m.Code, m.Name, startTime, endTime, high)
 }
 
-func addToDatabase(code string, start string, end string, high int) {
+func addToDatabase(code string, name string, start string, end string, high int) {
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 	defer db.Close()
 	tx, err := db.Begin()
 	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("insert into video(code, startTime,endTime ,reason) values(?,?,?,?)")
+	stmt, err := tx.Prepare("insert into video(code,name, startTime,endTime ,reason) values(?,?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(code, start, end, strconv.Itoa(high))
+	_, err = stmt.Exec(code, name, start, end, strconv.Itoa(high))
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	log.Printf("Saved to db")
