@@ -74,7 +74,7 @@
     <!-- Photo grid (modal) -->
     <div class="w3-row-padding">
 
-      <img id="video"></img>
+      <img id="video" width="100%"></img>
       <button class="w3-button w3-blue" onclick="loadVideo()">Load</button>
 
     </div>
