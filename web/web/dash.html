@@ -18,7 +18,10 @@
     
 
 
-
+      <button class="w3-button w3-blue" onclick="selectToday()">Today</button> <br>
+      Or
+      <p>From: <input type="text" class="datepicker" id="from"> To: <input id="to" type="text" class="datepicker"></p>
+      <button class="w3-button w3-blue" onclick="selectOther()">Update</button>
       <div id="motionBox">
         <table id="motionTable">
           <tbody>
@@ -29,9 +32,6 @@
               <td>View</td>
               <td>Delete</td>
             </tr>
-
-
-
           </tbody>
         </table>
       </div>
@@ -39,6 +39,37 @@
     <div id="videoBox">
       Video will display here.
     </div>
+    <script>
+      today = true;
+      $( function() {
+    $( ".datepicker" ).datepicker({ dateFormat: 'yy-mm-dd' }).val();
+  } );
+
+  function selectToday(){
+    today = true
+    setupTable()
+  }
+
+  function selectOther(){ 
+    today = false
+    setupTable()
+  }
+
+  function setupTable(){
+    $("#motionTable tr").remove();
+    $("#motionTable").append(`<tbody>
+            <tr>
+              <td>Camera</td>
+              <td>Code</td>
+              <td>Reason</td>
+              <td>View</td>
+              <td>Delete</td>
+            </tr>
+          </tbody>`);
+    setup()
+  }
+
+    </script>
     <script>
       function setup() {
         var jsonT;
@@ -97,7 +128,12 @@
 
           }
         };
-        xhttp.open("GET", "http://localhost:8000/s/motion", true);
+        if(today){
+          xhttp.open("GET", "http://localhost:8000/s/motion", true);
+        }else{
+          url = "http://localhost:8000/s/motion?to="+(document.getElementById("to").value).replace(/\//g,"-")+"&from="+(document.getElementById("from").value).replace(/\//g,"-");  
+          xhttp.open("GET",  encodeURI(url) , true);
+        }
         xhttp.send();
       }
 
