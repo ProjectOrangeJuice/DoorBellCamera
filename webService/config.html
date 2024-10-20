@@ -13,190 +13,249 @@
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
   integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-  integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-  crossorigin="anonymous"></script>
+  integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <style>
-body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
-body {font-size:16px;}
-.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
-.w3-half img:hover{opacity:1}
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: "Poppins", sans-serif
+  }
+
+  body {
+    font-size: 16px;
+  }
+
+  .w3-half img {
+    margin-bottom: -6px;
+    margin-top: 16px;
+    opacity: 0.8;
+    cursor: pointer
+  }
+
+  .w3-half img:hover {
+    opacity: 1
+  }
 </style>
+
 <body>
 
-<!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-red w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px;font-weight:bold;" id="mySidebar"><br>
-  <a href="javascript:void(0)" onclick="w3_close()" class="w3-button w3-hide-large w3-display-topleft" style="width:100%;font-size:22px">Close Menu</a>
-  <div class="w3-container">
-    <h3 class="w3-padding-64"><b>House<br>Cam</b></h3>
-  </div>
-  <div class="w3-bar-block">
-    <a href="/" onclick="w3_close()" class="w3-bar-item w3-button  w3-hover-white">Home</a> 
-    <a href="/live.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a> 
-    <a href="/motion.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a> 
-    <a href="/config.html" onclick="w3_close()" class="w3-bar-item w3-white w3-button w3-hover-white">Settings</a> 
-  </div>
-</nav>
+  <!-- Sidebar/menu -->
+  <nav class="w3-sidebar w3-red w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px;font-weight:bold;"
+    id="mySidebar"><br>
+    <a href="javascript:void(0)" onclick="w3_close()" class="w3-button w3-hide-large w3-display-topleft"
+      style="width:100%;font-size:22px">Close Menu</a>
+    <div class="w3-container">
+      <h3 class="w3-padding-64"><b>House<br>Cam</b></h3>
+    </div>
+    <div class="w3-bar-block">
+      <a href="/" onclick="w3_close()" class="w3-bar-item w3-button  w3-hover-white">Home</a>
+      <a href="/live.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a>
+      <a href="/motion.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a>
+      <a href="/config.html" onclick="w3_close()" class="w3-bar-item w3-white w3-button w3-hover-white">Settings</a>
+    </div>
+  </nav>
 
-<!-- Top menu on small screens -->
-<header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
-  <a href="javascript:void(0)" class="w3-button w3-red w3-margin-right" onclick="w3_open()">☰</a>
-  <span>House Cam</span>
-</header>
+  <!-- Top menu on small screens -->
+  <header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
+    <a href="javascript:void(0)" class="w3-button w3-red w3-margin-right" onclick="w3_open()">☰</a>
+    <span>House Cam</span>
+  </header>
 
-<!-- Overlay effect when opening sidebar on small screens -->
-<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+  <!-- Overlay effect when opening sidebar on small screens -->
+  <div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu"
+    id="myOverlay"></div>
 
-<!-- !PAGE CONTENT! -->
-<div class="w3-main" style="margin-left:340px;margin-right:40px">
+  <!-- !PAGE CONTENT! -->
+  <div class="w3-main" style="margin-left:340px;margin-right:40px">
 
-  <!-- Header -->
-  <div class="w3-container" style="margin-top:80px" id="showcase">
-    <h1 class="w3-jumbo"><b>Settings</b></h1>
-    <hr style="width:50px;border:5px solid red" class="w3-round">
-  </div>
-  
-  <!-- Photo grid (modal) -->
-  <div class="w3-row-padding" id="app">
- 
+    <!-- Header -->
+    <div class="w3-container" style="margin-top:80px" id="showcase">
+      <h1 class="w3-jumbo"><b>Settings</b></h1>
+      <hr style="width:50px;border:5px solid red" class="w3-round">
+    </div>
+
+    <!-- Photo grid (modal) -->
+    <div class="w3-row-padding" id="app">
+
 
       <div class="form-group">
-        <label >Name</label>
+        <label>Name</label>
         <input class="form-control" v-model="name">
       </div>
       <div class="form-group">
-        <label >Connection</label>
+        <label>Connection</label>
         <input class="form-control" v-model="connection">
       </div>
       <div class="form-group">
-        <label >FPS</label>
+        <label>FPS</label>
         <input class="form-control" v-model.number="fps">
       </div>
       <h3>Zones</h3>
+
+      <img v-bind:src="vid"></img>
+
+
       <div v-for="(a,index) in area" class="row">
         <div class="col">
-        <label >x1</label>
-        <input class="form-control" v-model.number="a[0]">
+          <label>x1</label>
+          <input class="form-control" v-model.number="a[0]">
         </div>
         <div class="col">
-        <label >x2</label>
-        <input class="form-control" v-model.number="a[1]">
-      </div>
-      <div class="col">
-        <label >y1</label>
-        <input class="form-control" v-model.number="a[2]">
-      </div>
-      <div class="col">
-        <label >y2</label>
-        <input class="form-control" v-model.number="a[3]">
-      </div>
-  
+          <label>x2</label>
+          <input class="form-control" v-model.number="a[1]">
+        </div>
+        <div class="col">
+          <label>y1</label>
+          <input class="form-control" v-model.number="a[2]">
+        </div>
+        <div class="col">
+          <label>y2</label>
+          <input class="form-control" v-model.number="a[3]">
+        </div>
+
       </div>
       <div class="form-group">
-        <label >Amount</label>
+        <label>Amount</label>
         <input class="form-control" v-model="amount">
       </div>
       <div class="form-group">
-        <label >Threshold</label>
+        <label>Threshold</label>
         <input class="form-control" v-model="threshold">
       </div>
       <div class="form-group">
-        <label >Min count</label>
+        <label>Min count</label>
         <input class="form-control" v-model="mincount">
       </div>
       <div class="form-group">
-        <label >Active</label>
+        <label>Active</label>
         <input type="checkbox" v-model="active">
       </div>
-     
-        <input class="btn btn-primary" type="submit" value="Update" v-on:click="save">
-  
-  
-  
+
+      <input class="btn btn-primary" type="submit" value="Update" v-on:click="save">
+
+
+
+    </div>
+
+
+    <!-- End page content -->
   </div>
 
-  
-<!-- End page content -->
-</div>
+  <!-- W3.CSS Container -->
+  <div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px">
+    <p class="w3-right">Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank"
+        class="w3-hover-opacity">w3.css</a></p>
+  </div>
 
-<!-- W3.CSS Container -->
-<div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px"><p class="w3-right">Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-opacity">w3.css</a></p></div>
+  <script>
+    // Script to open and close sidebar
+    function w3_open() {
+      document.getElementById("mySidebar").style.display = "block";
+      document.getElementById("myOverlay").style.display = "block";
+    }
 
-<script>
-// Script to open and close sidebar
-function w3_open() {
-  document.getElementById("mySidebar").style.display = "block";
-  document.getElementById("myOverlay").style.display = "block";
-}
- 
-function w3_close() {
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("myOverlay").style.display = "none";
-}
+    function w3_close() {
+      document.getElementById("mySidebar").style.display = "none";
+      document.getElementById("myOverlay").style.display = "none";
+    }
 
-// Modal Image Gallery
-function onClick(element) {
-  document.getElementById("img01").src = element.src;
-  document.getElementById("modal01").style.display = "block";
-  var captionText = document.getElementById("caption");
-  captionText.innerHTML = element.alt;
-}
-</script>
+    // Modal Image Gallery
+    function onClick(element) {
+      document.getElementById("img01").src = element.src;
+      document.getElementById("modal01").style.display = "block";
+      var captionText = document.getElementById("caption");
+      captionText.innerHTML = element.alt;
+    }
 
 
-<script>
-  var app = new Vue({
-    el: '#app',
-    data: {
-      name: '',
-      connection: '',
-      fps: '',
-      area: '',
-      amount: '',
-      threshold: '',
-      active: true,
-      mincount: 0
-    }, mounted() {
-      axios
-        .get("http://localhost:8000/config")
-        .then(response => {
-          this.name = response.data.Name;
-          this.connection = response.data.Connection;
-          this.fps = response.data.FPS;
-          this.area = response.data.Area;
-          this.amount = response.data.Amount;
-          this.threshold = response.data.Threshold;
-          this.mincount = response.data.MinCount;
-          this.active = response.data.Motion;
-        })
-        .catch(response => {
-          console.log("Error " + response);
-        });
-    },
-    methods: {
-      save: function () {
+
+
+  </script>
+
+
+  <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        name: '',
+        connection: '',
+        fps: '',
+        area: '',
+        amount: '',
+        threshold: '',
+        active: true,
+        mincount: 0,
+        vid:""
+         }, mounted() {
         axios
-          .post("http://localhost:8000/config", {
-            Name: this.name,
-            Connection: this.connection,
-            FPS: this.fps,
-            Area: this.area,
-            Amount: this.amount,
-            Threshold: this.threshold,
-            MinCount: this.mincount,
-            Motion: this.active,
-          })
+          .get("http://localhost:8000/config")
           .then(response => {
-            alert("Saved");
+            this.name = response.data.Name;
+            this.connection = response.data.Connection;
+            this.fps = response.data.FPS;
+            this.area = response.data.Area;
+            this.amount = response.data.Amount;
+            this.threshold = response.data.Threshold;
+            this.mincount = response.data.MinCount;
+            this.active = response.data.Motion;
           })
           .catch(response => {
-            alert("Failed to save");
+            console.log("Error " + response);
           });
+
+          this.vid = "data:image/png;base64,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";
+
+
+        // 2
+        var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI("Hello"))
+     
+          // Log errors
+          socket.onclose = function (error) {
+
+            vid = "";
+          };
+          let self = this;
+          socket.onmessage = function (event) {
+            decoded = atob(event.data)
+
+            self.vid = "data:image/jpg;base64, " + event.data;
+            console.log("Updating")
+            //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+
+          }
+       
+
+
       },
-    }
-  })
-</script>
+      methods: {
+     
+        save: function () {
+          axios
+            .post("http://localhost:8000/config", {
+              Name: this.name,
+              Connection: this.connection,
+              FPS: this.fps,
+              Area: this.area,
+              Amount: this.amount,
+              Threshold: this.threshold,
+              MinCount: this.mincount,
+              Motion: this.active,
+            })
+            .then(response => {
+              alert("Saved");
+            })
+            .catch(response => {
+              alert("Failed to save");
+            });
+        },
+      }
+    })
+  </script>
 
 </body>
+
 </html>
-
-
