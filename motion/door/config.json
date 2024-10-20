@@ -1,5 +1,6 @@
 {
-    "maxThreshold":[80,80,80],
+    "serverAddress" : "amqp://guest:guest@192.168.1.126:30188/",
+    "maxThreshold":[100,100,100],
     "minThreshold":[80,80,80],
     "minCount":10,
     "quiet":10,
@@ -10,7 +11,8 @@
             "maxThreshold":[80,80,80],
             "minThreshold":[80,80,80],
             "minCount":1,
-            "delayFailed":10
+            "delayFailed":10,
+            "quiet":10
         }
     ]
 
