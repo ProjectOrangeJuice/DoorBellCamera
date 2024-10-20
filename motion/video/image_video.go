@@ -166,7 +166,10 @@ func convert(msg []byte) {
 		video.Write(gocv.IMRead(fmt.Sprintf("%s", location), gocv.IMReadAnyColor))
 
 	}
-	totalAvg = totalAvg / counter
+	if totalAvg > 0 && counter > 0 {
+		totalAvg = totalAvg / counter
+	}
+
 	//err = aw.Close()
 	//failOnError(err, "Error closing")
 	video.Close()
