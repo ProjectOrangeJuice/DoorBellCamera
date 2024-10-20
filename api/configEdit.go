@@ -48,8 +48,8 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 type userStruct struct {
-	user     string
-	password string
+	User     string
+	Password string
 }
 
 func makeUser(w http.ResponseWriter, r *http.Request) {
@@ -71,12 +71,12 @@ func makeUser(w http.ResponseWriter, r *http.Request) {
 	WHERE
 	NOT EXISTS ( SELECT user FROM public.accounts WHERE "user"=$1);
 	`
-	results, err := db.Exec(sqlStatement, up.user, up.password)
+	results, err := db.Exec(sqlStatement, up.User, up.Password)
 	failOnError(err, "Query error")
 	ra, err := results.RowsAffected()
 	failOnError(err, "Failed to get rows")
 	if ra > 0 {
-		logger.Printf("created %s by %s", up.user, username)
+		logger.Printf("created %s by %s", up.User, username)
 		w.WriteHeader(200)
 	} else {
 		w.WriteHeader(409)
