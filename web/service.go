@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 	"github.com/streadway/amqp"
 )
 
 const (
-	host   = "postgres"
-	port   = 5432
+	host   = "sqldata"
+	port   = 3306
 	user   = "door"
-	passdb = "door"
+	passdb = "pass"
 	dbname = "doorservice"
 )
 
@@ -39,8 +40,14 @@ type side struct {
 }
 
 func main() {
+	host, err := net.LookupIP(host)
+	if err != nil {
+		fmt.Println("Unknown host")
+	} else {
+		fmt.Println("IP address: ", host)
+	}
 	//Initiate templates
-	var err error
+
 	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
 		"web/templates/side.html", "web/dash.html", "web/cameras.html", "web/edit.html",
 		"web/edit/cam.html", "web/inspect.html", "web/templates/alert.html", "web/edit/user.html")
@@ -51,7 +58,7 @@ func main() {
 	router.HandleFunc("/", index).Methods("GET")
 	router.HandleFunc("/live", live).Methods("GET")
 	router.HandleFunc("/config", edit).Methods("GET")
-	router.HandleFunc("/add/{name}", addCam).Methods("GET")
+	router.HandleFunc("/add/{name}", addCam).Methods("POST")
 	router.HandleFunc("/inspect/{code}", inspect).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8001", router))
@@ -101,16 +108,20 @@ func addCam(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("token")
 	if err == nil {
 		params := mux.Vars(r)
-		psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-			"password=%s dbname=%s sslmode=disable",
-			host, port, user, passdb, dbname)
+		sqlInfo := fmt.Sprintf("%s:%s@tcp(%s)/%s",
+			user, passdb, host, dbname)
 
-		db, err := sql.Open("postgres", psqlInfo)
+		db, err := sql.Open("mysql", sqlInfo)
 		failOnError(err, "Database opening error")
 		defer db.Close()
-		sqlStatement := `INSERT INTO cameras(name) VALUES ($1)`
-		_, err = db.Exec(sqlStatement, params["name"])
+		sqlStatement := `INSERT INTO cameras(name) VALUES (?)`
+		stmt, err := db.Prepare(sqlStatement)
+		failOnError(err, "making statement failed")
+
+		_, err = stmt.Exec(params["name"])
 		failOnError(err, "Failed to insert")
+	} else {
+		log.Printf("Cam error %s", err)
 	}
 }
 
@@ -121,11 +132,11 @@ func failOnError(err error, msg string) {
 }
 
 func getCams() []string {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, passdb, dbname)
+	sqlInfo := fmt.Sprintf("%s:%s@tcp(%s)/%s",
+		user, passdb, host, dbname)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := sql.Open("mysql", sqlInfo)
+	failOnError(err, "Database opening error")
 	failOnError(err, "Database opening error")
 	defer db.Close()
 	sqlStatement := `SELECT name FROM cameras`

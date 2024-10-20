@@ -293,10 +293,11 @@
 
 
   function newCam(){
-    name = $("#cname").val()
-        $.get("http://192.168.1.135:8001/add/"+encodeURI(name));
-    location.reload();
-  }
+        name = $("#cname").val()
+        $.post("http://192.168.1.135:8001/add/"+encodeURI(name),function (data){
+          location.reload();
+        });
+      }
 
 </script>
 
