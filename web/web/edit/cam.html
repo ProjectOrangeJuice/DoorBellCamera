@@ -174,7 +174,7 @@
     xhttp.withCredentials = true;
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
-
+        showNote("Saved!")
       }
     };
     xhttp.open("POST", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
@@ -282,7 +282,7 @@
     xhttp.withCredentials = true;
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
-
+        showNote("Saved!")
       }
     };
     xhttp.open("POST", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
