@@ -7,9 +7,6 @@ import base64
 import random
 import string
 
-connection = pika.BlockingConnection(pika.ConnectionParameters('192.168.99.100',31693))
-channel = connection.channel()
-channel2 = connection.channel()
 cameras = {}
 countOn = 0
 heldFrames = 2
@@ -19,6 +16,26 @@ minCount = 4
 code = 5
 codeUsed = 6
 prevImage = 7
+
+def readConfig():
+    global serverAddress,serverPort,dt,dmin
+    with open("cConfig.json") as jf:
+        data = json.load(jf)
+        serverAddress = data["serverAddress"]
+        serverPort = data["serverPort"]
+        dt = data["threshold"]
+        dmin = data["minCount"]
+        for cam in data["cameras"]:
+            cameras[cam["name"]] = [0, 0, [], cam["threshold"], cam["minCount"], "", False, None]
+
+
+readConfig()
+
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
+channel = connection.channel()
+channel2 = connection.channel()
+
 
 channel.queue_declare(queue='videoStream')
 def callback(ch, method, properties, body):
@@ -34,7 +51,7 @@ def motionCheck(name,image,time):
         tc = cameras.get(name)
     else:
         #countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage
-        cameras[name] = [0, 0, [], 50, 15, "", False, None]
+        cameras[name] = [0, 0, [], dt, dmin, "", False, None]
         tc = cameras.get(name)
 
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
