@@ -49,9 +49,10 @@ try:
                 print("Error with frame")
                 continue
             if(time_elapsed > 1./delay):
-                image = cv2.imencode(".jpg",frame)[1]
                 #kernel = np.ones((2,2),np.float32)/25
-                #newImage = cv2.filter2D(image,-1,kernel)
+                #frame = cv2.filter2D(frame,-1,kernel)
+                image = cv2.imencode(".jpg",frame)[1]
+               
                 b64 = base64.b64encode(image)
                 #Testing of sizes
                 #print("size of b64: "+str((len(b64)/1024)/1024))
