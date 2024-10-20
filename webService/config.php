@@ -225,7 +225,7 @@
       },
       methods: {
         displayCamera() {
-          var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/stream/" + encodeURI(this.name))
+          var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/mobilestream/" + encodeURI(this.name))
           // Log errors
           socket.onclose = function (error) {
             vid = "";
