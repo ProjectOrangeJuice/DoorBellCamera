@@ -12,13 +12,15 @@ include "include/head.php";
 
 
        <div style="height:100vh">
-            <img id="video" width="100%" height="100%"></img>
+            <img id="video" width="100%" height="95%"></img>
             <p id="imageArea" class="w3-text-red">If this text is still displayed after 10s. It is unable to connect, a reset of API is required.</p>
 </div>
 
 
     <script>
         var camName = "test";
+        var audio = new Audio('doorbell-1.mp3');
+
         //On page load, decide if the full stream should be selected
         var cip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"
         var fullRez = false;
@@ -55,8 +57,14 @@ include "include/head.php";
             //Reset image err
             imgErr.innerHTML = ""
             //Set socket
-          
+            try {
                 socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/stream/" + encodeURI(camName))
+                }
+            catch(err) {
+                imgErr.innerHTML = "Socket has been closed.  Trying again"
+                window.setTimeout(loadVideo, 3000);
+            }
+               
            
 
             //Connect to socket
@@ -88,7 +96,7 @@ include "include/head.php";
         }
 
 
-
+        var lastAlert = new Date();
         function alerts() {
             //Close existing connection
             try {
@@ -121,6 +129,14 @@ include "include/head.php";
                         imgErr.innerHTML = "Alert for " + obj.Name + " At " + hours + ":" + minutes + ":" + seconds;
                         console.log("Alert " + event.data)
                         //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+
+                        var diff = (date.getTime() - lastAlert.getTime()) / 1000;
+                        if(diff > 30){
+                            audio.play();
+                        }
+                            lastAlert = date;
+                        
                     }
 
                 }
