@@ -24,6 +24,8 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func main() {
 	var err error
+	socketList = make(map[string][]*sharedWS)
+
 	//Create a database connection
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -35,7 +37,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/config/{cam}", getConfig).Methods("GET")
 	router.HandleFunc("/config/{cam}", setConfig).Methods("POST")
-	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
+	router.HandleFunc("/stream/{camera}", getVideoShared).Methods("GET", "OPTIONS")
 	router.HandleFunc("/mobilestream/{camera}", getCompressedVideo).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motionAlert/{camera}", getMotionAlert).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion", getMotions).Methods("GET")
