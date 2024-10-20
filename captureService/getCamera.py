@@ -59,6 +59,7 @@ def readFrames():
         time_elapsed = time.time() - prev
         try:
             ret, frame = vcap.read()
+            frame = cv2.flip(frame,1)
         except:
             #Error with frame, try again.
             print("Error with frame (debug, close)")
