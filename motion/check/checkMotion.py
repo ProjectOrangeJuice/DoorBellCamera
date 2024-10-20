@@ -11,7 +11,7 @@ import threading
 import redis
 import time
 r = redis.Redis(decode_responses=True)
-
+#countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage, blur, rot
 cameras = {}
 countOn = 0
 heldFrames = 2
@@ -22,6 +22,8 @@ code = 5
 codeUsed = 6
 prevImage = 7
 imgCount = 8
+blur = 9
+rot = 10
 
 timeupdate = time.time()
 
@@ -46,9 +48,9 @@ def getCamera(name):
     l = "motion:camera:"+name
     if(r.exists(l)>0):
         if name not in cameras:
-            cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0]
+            cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"blur"),r.hget(l,"rotation")]
     else:
-        cameras[name] = [0, 0, [], dt, dmin, "", False, None,0]
+        cameras[name] = [0, 0, [], dt, dmin, "", False, None,0,0,0]
     return cameras[name]
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
@@ -78,8 +80,9 @@ def motionCheck(name,image,camtime):
         tc = getCamera(name)
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
     cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
-    kernel = np.ones((2,2),np.float32)/25
-    newImage = cv2.filter2D(cvimg,-1,kernel)
+    bval = int(tc[blur])
+    newImage = cv2.blur(cvimg,(bval,bval))
+  
 
     if(tc[prevImage] is None ):
        tc[prevImage] = newImage 
