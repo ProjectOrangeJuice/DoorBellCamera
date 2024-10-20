@@ -90,6 +90,7 @@ function onClick(element) {
 function loadVideo(){
 
   var long = document.getElementById("imageArea");
+  long.innerHTML = ""
   var urlParams = new URLSearchParams(window.location.search);
   // 2
   var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI("Hello"))
