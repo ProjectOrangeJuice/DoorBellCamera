@@ -48,6 +48,9 @@ func main() {
 
 	router.HandleFunc("/information", getInformation).Methods("GET")
 
+	router.HandleFunc("/profile/{cam}", createProfile).Methods("POST")
+	router.HandleFunc("/profile/{cam}", deleteProfile).Methods("DELETE")
+
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),
 		handlers.AllowedOrigins([]string{"*"}),
