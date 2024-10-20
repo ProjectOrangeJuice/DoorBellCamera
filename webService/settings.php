@@ -127,7 +127,7 @@ include "include/head.php";
                 </ul>
 
                 <hr>
-                <button class="w3-button w3-green">Update</button>
+                <button class="w3-button w3-green" v-on:click="setSettings()">Update</button>
 
             </div>
         </div> <!-- W3.CSS Container -->
@@ -190,6 +190,7 @@ include "include/head.php";
                             this.socket.close()
                         } catch (err) {}
                         this.displayVideo();
+                        this.getSettings();
                     },
 
 
@@ -215,12 +216,80 @@ include "include/head.php";
                             smallAmount: 5,
                         })
                     },
+                    setSettings() {
+                        var formattedZones = []
+                        this.zoneInfo.forEach(function(entry) {
+                            formattedZones.push({
+                                x1: entry.x1,
+                                y1: entry.y1,
+                                x2: entry.x2,
+                                y2: entry.y2,
+                                threshold: entry.threshold,
+                                minCount: entry.minCount,
+                                BoxJump: entry.boxJump,
+                                SmallIgnore: entry.smallAmount
 
+                            })
+                        });
+                        axios
+                            .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam), {
+                                Connection: this.connection,
+                                FPS: this.fps,
+                                Motion: this.active,
+                                Blur: this.blur,
+                                Debug: this.debug,
+                                BufferBefore: this.bufferBefore,
+                                BufferAfter: this.bufferAfter,
+                                NoMoveRefreshCount: this.refreshCount,
+                                Zones: formattedZones,
+
+                            })
+                            .then(response => {
+                                alert("Saved");
+                            })
+                            .catch(response => {
+                                alert("Failed to save");
+                            });
+                    },
                     getSettings() {
                         axios
                             .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam))
                             .then(response => {
 
+                                this.connection = response.data.Connection;
+                                this.fps = response.data.FPS;
+                                this.blur = response.data.Blur;
+                                this.debug = response.data.Debug;
+                                this.bufferBefore = response.data.BufferBefore;
+                                this.bufferAfter = response.data.BufferAfter;
+                                this.refreshCount = response.data.NoMoveRefreshCount;
+                                this.active = response.data.Motion;
+
+                                if (response.data.Zones != null) {
+                                    let self = this;
+                                    response.data.Zones.forEach(function(z, index) {
+                                        self.zones.push({
+                                            startX: z.X1,
+                                            startY: z.Y1,
+                                            w: z.X2 - z.X1,
+                                            h: z.Y2 - z.Y1,
+                                            dragTL: false,
+                                            dragBL: false,
+                                            dragTR: false,
+                                            dragBR: false,
+                                        })
+                                        self.zoneInfo.push({
+                                            x1: z.X1,
+                                            y1: z.Y1,
+                                            x2: z.X2,
+                                            y2: z.Y2,
+                                            threshold: z.Threshold,
+                                            minCount: z.MinCount,
+                                            boxJump: z.BoxJump,
+                                            smallAmount: z.SmallIgnore,
+                                        })
+                                    });
+                                }
 
                             })
                             .catch(response => {
