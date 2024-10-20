@@ -20,10 +20,10 @@ type outMessage struct {
 }
 
 //DBName is the database file name
-const DBName string = "/shared/motions.db"
-const captureFolder string = "/shared/capture"
-const videoFolder string = "/shared/videos"
-const configLocation string = "/shared/config.txt"
+const DBName string = "/mnt/shared/motion/motions.db"
+const captureFolder string = "/mnt/shared/motion/capture"
+const videoFolder string = "/mnt/shared/motion/videos"
+const configLocation string = "/mnt/shared/motion/config.txt"
 
 var server = ""
 
@@ -118,7 +118,7 @@ func readyListen() {
 		}
 	}()
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	log.Printf(" [*] This is version2 ")
 	<-forever
 
 }
@@ -129,14 +129,13 @@ func convert(msg []byte) {
 	var endTime string
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
-	video, err := gocv.VideoWriterFile(fmt.Sprintf("%s/%s", videoFolder, m.Code), "avc1", 5.0, 1280, 720, true)
+	video, err := gocv.VideoWriterFile(fmt.Sprintf("%s/%s.mp4", videoFolder, m.Code), "avc1", 5.0, 1280, 720, true)
 
 	//aw, err := mjpeg.New(fmt.Sprintf("%s/%s", videoFolder, m.Code), 1280, 720, 10)
 	failOnError(err, "Setting up video")
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
-
 	rows, err := db.Query("select location,time,reason from motion where motionCode = ?", m.Code)
 	failOnError(err, "prep failed")
 	defer rows.Close()
@@ -164,12 +163,6 @@ func convert(msg []byte) {
 			endTime = time
 		}
 		video.Write(gocv.IMRead(fmt.Sprintf("%s", location), gocv.IMReadAnyColor))
-		//data, err := ioutil.ReadFile(fmt.Sprintf("%s", location))
-		//failOnError(err, "Failed reading image")
-		//err = aw.AddFrame(data)
-		//failOnError(err, "failed to add frame")
-		//fr = append(fr, fmt.Sprintf("%s", location))
-		//exec.Command("ffmpeg", "-r 15", fmt.Sprintf("-i %s*", m.Code), "-vcodec libx264", "-crf 20", "-pix_fmt yuv420p", fmt.Sprintf("%s/%s.mp4", videoFolder, m.Code))
 
 	}
 	//err = aw.Close()
