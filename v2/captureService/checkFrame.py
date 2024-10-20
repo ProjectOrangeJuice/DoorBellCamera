@@ -6,9 +6,8 @@ class Setting:
     areas = [[0, 240, 0, 250,"Test zone"]]
     threshold = [[40]]
     amount = [[10]]
-    minCount = [[10]]
-    countOn = 0
-    countOff = 0
+    minCount = [10]
+    countOn = [0]
     code = ""
     codeUsed = False
     prev = None
@@ -57,12 +56,13 @@ def checkFrame(image,name, frame):
         diff_frame = cv2.absdiff(roiPrev, roi)
 
         thresh_frame = cv2.threshold(
-            diff_frame, threshold, 255, cv2.THRESH_BINARY)[1]
+            diff_frame, threshold[count], 255, cv2.THRESH_BINARY)[1]
         thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
         # Finding contour of moving object
         try:
             # ( _, cnts , _) -- version issue.
-            (cnts, _) = cv2.findContours(thresh_frame.copy(),
+            # (cnts, _)
+            (_,cnts, _) = cv2.findContours(thresh_frame.copy(),
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         except ValueError:
             print("Not enough values...")
