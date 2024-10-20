@@ -16,16 +16,35 @@
 
   <div id="app">
     <div class="form-group">
+      <label for="exampleInputEmail1">Name</label>
+      <input class="form-control" v-model="name">
+    </div>
+    <div class="form-group">
       <label for="exampleInputEmail1">Connection</label>
       <input class="form-control" v-model="connection">
     </div>
     <div class="form-group">
       <label for="exampleInputEmail1">FPS</label>
-      <input class="form-control" v-model="fps">
+      <input class="form-control" v-model.number="fps">
     </div>
-    <div class="form-group">
-      <label for="exampleInputEmail1">Area</label>
-      <input class="form-control" v-model="area">
+    <div v-for="(a,index) in area" class="row">
+      <div class="col">
+      <label for="exampleInputEmail1">x1</label>
+      <input class="form-control" v-model.number="a[0]">
+      </div>
+      <div class="col">
+      <label for="exampleInputEmail1">x2</label>
+      <input class="form-control" v-model.number="a[1]">
+    </div>
+    <div class="col">
+      <label for="exampleInputEmail1">y1</label>
+      <input class="form-control" v-model.number="a[2]">
+    </div>
+    <div class="col">
+      <label for="exampleInputEmail1">y2</label>
+      <input class="form-control" v-model.number="a[3]">
+    </div>
+
     </div>
     <div class="form-group">
       <label for="exampleInputEmail1">Amount</label>
@@ -83,7 +102,7 @@
       save: function () {
         axios
           .post("http://localhost:8000/config", {
-            Name: this.commentBox,
+            Name: this.name,
             Connection: this.connection,
             FPS: this.fps,
             Area: this.area,
