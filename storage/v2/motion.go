@@ -92,10 +92,15 @@ func makeVideo(code chan string) {
 	for vid := range code {
 
 		saveToFull := fmt.Sprintf("%s/%s.mp4", fullVideoLocation, vid)
-		//saveToSmall := fmt.Sprintf("%s/%s.mp4", smallVideoLocation, code)
+		saveToSmall := fmt.Sprintf("%s/%s.mp4", smallVideoLocation, code)
 		imgs := fmt.Sprintf("%s/%s-*.jpg", imageLocation, vid)
 		fmt.Printf("code: %s imgs: %s\n", vid, imgs)
 		output, err := exec.Command("ffmpeg", "-framerate", "5", "-pattern_type", "glob", "-i", imgs, saveToFull).Output()
+		log.Println(output)
+		failOnError(err, "c")
+
+		// Squash
+		output, err = exec.Command("ffmpeg", "-i", saveToFull, "-vcodec", "libx265", "-crf", "45", saveToSmall).Output()
 		log.Println(output)
 		failOnError(err, "c")
 
