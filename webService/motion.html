@@ -15,7 +15,11 @@
   
   
     <div id="app">
-     
+      <li v-for="alert in alerts">
+        <a v-bind:href="'http://localhost:8000/motion/'+alert.Code">{{ alert.Code }}</a> Occured at {{ dateChange(alert.Start) }}
+        <button v-on:click="deleteCode(alert.Code)">Delete</button>
+
+      </li>
       </div>
   
   </body>
@@ -24,18 +28,38 @@
     var app = new Vue({
       el: '#app',
       data: {
-      
+      alerts: []
       }, mounted() {
-        axios
-          .get("http://localhost:8000/config")
+       this.updateMotion();
+      
+      },
+      methods: {
+        dateChange(d){
+          date = new Date(d*1000);
+          return(date.toLocaleString());
+        },
+        deleteCode(code){
+          axios
+          .delete("http://localhost:8000/motion/"+code)
           .then(response => {
-            this.name = response.data.Name;
+            this.updateMotion()
    
           })
           .catch(response => {
             console.log("Error " + response);
           });
-      
+        },
+        updateMotion(){
+          axios
+          .get("http://localhost:8000/motion")
+          .then(response => {
+            this.alerts = response.data;
+   
+          })
+          .catch(response => {
+            console.log("Error " + response);
+          });
+        }
       }
     })
   </script>
