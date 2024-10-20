@@ -2,6 +2,7 @@ import cv2
 import random,string,time
 import imutils,json
 import setting as s
+import base64
 class SettingOld:
     areas = [[0, 128, 0, 120,"Test zone"]]
     threshold = [[20]]
@@ -34,7 +35,8 @@ def checkFrame(image,name, frame,channel):
     motion = False
     #frame = imutils.resize(frame,width=250,height=250)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+    #Pretend debug switch
+    mimg = frame
     # blur to make it easier to find objects
     gray = cv2.GaussianBlur(gray, (21, 21), 0)  # 21,21 is default
 
@@ -53,6 +55,7 @@ def checkFrame(image,name, frame,channel):
         current = settings.areas[count]
         threshold = settings.threshold[count]
         zone = settings.amount[count]
+       
         # Crop for roi
       
         roiPrev = settings.prev[current[0]:current[1], current[2]:current[3]]#settings.prev #
@@ -65,8 +68,7 @@ def checkFrame(image,name, frame,channel):
             diff_frame, threshold, 255, cv2.THRESH_BINARY)[1]
         
         thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
-        # cv2.imshow("frame", thresh_frame)
-        # cv2.waitKey(1) 
+       
         
         # Finding contour of moving object
         try:
@@ -85,6 +87,11 @@ def checkFrame(image,name, frame,channel):
             motion = True
             M = cv2.moments(contour)
             locations.append(M)
+            #pretend debug switch
+            (x, y, w, h) = cv2.boundingRect(contour)
+            x = x + current[2]
+            y = y + current[0]
+            cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
 
         ##Maths is done. Check if this is an alert
 
@@ -128,15 +135,22 @@ def checkFrame(image,name, frame,channel):
                 sendFrames(settings.name,channel)
         
         count += 1
-    settings.heldFrames.append({"time":str(time.time()),"name":name,"image":image.decode('utf-8'),"code":settings.code,
+
+    #Pretend debug switch
+    image = cv2.imencode(".jpg",mimg)[1]
+    b64 = base64.b64encode(image)
+    
+    settings.heldFrames.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":settings.imgCount,"blocks":",".join(seen),"locations":str(locations)})
     settings.imgCount += 1
     ##Update the background every x frames.
-    if(frameCount > 10):
+    if(frameCount > 3):
         settings.prev = gray
         frameCount = -1
     frameCount += 1
     print(settings.countOn)
+    cv2.imshow("frame", mimg)
+    cv2.waitKey(1)
 
 
 def sendFrames(name,channel):
