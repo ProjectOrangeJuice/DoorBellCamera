@@ -82,7 +82,7 @@ func failOnError(err error, msg string) {
 
 func makeSide(name string) []side {
 	titles := []string{"Dash", "Live", "Config"}
-	loc := []string{"dash", "live", "config"}
+	loc := []string{"/", "live", "config"}
 	sidebar := make([]side, len(titles))
 	for index, key := range titles {
 		if name == key {
