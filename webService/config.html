@@ -95,7 +95,7 @@
       </div>
       <h3>Zones</h3>
 
-      <img v-bind:src="vid" width="500px"></img>
+      <img v-bind:src="vid" width="500px" v-on:click="zone"></img>
 
 
       <div v-for="(a,index) in area" class="row">
@@ -193,7 +193,8 @@
         threshold: '',
         active: true,
         mincount: 0,
-        vid: ""
+        vid: "",
+        newZone: true
       }, mounted() {
         axios
           .get("http://localhost:8000/config")
@@ -235,6 +236,22 @@
 
       },
       methods: {
+        zone(e){
+          var x = this.$el.offsetWidth - e.pageX;
+          var y = this.$el.offsetHeight - e.pageY ;
+          if(this.newZone){
+            this.amount.push(50);
+            this.mincount.push(5);
+            this.threshold.push(15);
+            this.area.push([x,0,y,0]);
+            this.newZone = false;
+          }else{
+            v = this.area[this.area.length- 1]
+            v[1] = x;
+            v[3] = y;
+            this.newZone = true;
+          }
+        },
         deleteZone(index){
           this.area.splice(index, 1);
           this.threshold.splice(index, 1);
