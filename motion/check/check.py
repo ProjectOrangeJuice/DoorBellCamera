@@ -145,9 +145,7 @@ def checkFrame(name,image,camtime):
             tc[countOn][count] += 1
             if(tc[countOn][count] > int(vals[6])*2):
                 tc[countOn][count] = int(vals[6]*2)
-            #Replace the background every 4 frames of motion
-            if(tc[countOn][count]%4 == 0):
-                doNew = True
+       
         else:
             #No motion
             tc[countOn][count] -= 1
@@ -167,6 +165,10 @@ def checkFrame(name,image,camtime):
         
         #Has the number of motion frames gone above the min required?
         if(tc[countOn][count]>int(vals[6])):
+             #Replace the background every 4 frames
+            if(tc[countOn][count]%4 == 0):
+                print("Asking for a new background")
+                doNew = True
             sendFrames(tc)
             tc[codeUsed] = True
         else:
