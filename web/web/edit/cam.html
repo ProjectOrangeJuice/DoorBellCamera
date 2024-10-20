@@ -111,11 +111,11 @@
         var newCell5 = newRow.insertCell(5);
 
         var ni = document.createElement("input")
-        ni.value = "[" + firstClick[0] + "," + Math.round(X) + "]"
+        ni.value =  firstClick[0] + "," + Math.round(X)
         newCell0.appendChild(ni)
 
         var ni = document.createElement("input")
-        ni.value = "[" + firstClick[1] + "," + Math.round(Y) + "]"
+        ni.value =  firstClick[1] + "," + Math.round(Y) 
         newCell1.appendChild(ni)
 
         var ni = document.createElement("input")
@@ -155,7 +155,9 @@
       are = cols[3].getElementsByTagName("input")[0].value
       min = cols[4].getElementsByTagName("input")[0].value
       temp.push(x, y, t, are, min)
+      console.log("Temp is "+temp)
       per.push(temp)
+      console.log("Per after push is "+per)
     }
 
     var dataJson = JSON.stringify({
@@ -214,23 +216,23 @@
           var newCell5 = newRow.insertCell(5);
 
           var ni = document.createElement("input")
-          ni.value = "["+element[0]+"]"
+          ni.value = element[0]+","+element[1]
           newCell0.appendChild(ni)
 
           var ni = document.createElement("input")
-          ni.value = "["+element[1]+"]"
+          ni.value = element[2]+","+element[3]
           newCell1.appendChild(ni)
 
           var ni = document.createElement("input")
-          ni.value = element[2]
+          ni.value = element[4]
           newCell2.appendChild(ni)
 
           var ni = document.createElement("input")
-          ni.value = element[3]
+          ni.value = element[5]
           newCell3.appendChild(ni)
 
           var ni = document.createElement("input")
-          ni.value = element[4]
+          ni.value = element[6]
           newCell4.appendChild(ni)
 
           var a = document.createElement("button")
