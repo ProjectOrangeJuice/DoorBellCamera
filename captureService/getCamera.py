@@ -52,6 +52,7 @@ def minute_passed(oldepoch):
 
 prev = time.time()
 refresh = time.time()
+failedImage = 0 
 def readFrames():
     global prev,refresh
     while(vcap.isOpened()):
@@ -74,8 +75,14 @@ def readFrames():
                 image = cv2.imencode(".jpg",frame)[1]
             except Exception as e:
                 #can be caused by the cam going offline
-                print("error here "+e)
+                print("error here "+str(e))
+                failedImage += 1
+                if(failedImage > 3):
+                    #Reset camera connection
+                    vcap.release()
                 break
+            #reset error
+            failedImage = 0
             b64 = base64.b64encode(image)
             sf.sendFrame(b64,cameraName,broadcastChannel)
             
