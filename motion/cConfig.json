@@ -1,7 +1,7 @@
 {
     "serverAddress" : "192.168.99.100",
     "serverPort" : "31693",
-    "threshold":50,
+    "threshold":70,
     "minCount":15,
     "cameras":[
         {
