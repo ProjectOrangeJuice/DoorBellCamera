@@ -81,3 +81,53 @@ func sendVideo(cam string, ws *websocket.Conn) {
 	<-forever
 
 }
+
+//Socket handler
+func getMotionAlert(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
+	// register client
+
+	log.Printf("Get motion, socket upgraded for %s to watch", r.RemoteAddr)
+	go getMotionAlerts(ws)
+}
+
+type alert struct {
+	Name string
+	Time string
+}
+
+//For the connection, get the stream and send it to the socket
+func getMotionAlerts(ws *websocket.Conn) {
+	msgs, ch := listenToExchange("motion", "#")
+	var m alert
+	forever := make(chan bool)
+	const duration = 120 * time.Second
+	timer := time.NewTimer(duration)
+	alive := true
+	for alive {
+		select {
+		case d := <-msgs:
+			timer.Reset(duration)
+			err := json.Unmarshal(d.Body, &m)
+			failOnError(err, "Json decode error")
+			b, _ := json.Marshal(m)
+			err = ws.WriteMessage(websocket.TextMessage, b)
+			if err != nil {
+				ch.Close()
+				ws.Close()
+				alive = false
+				break
+			}
+		case <-timer.C:
+			print("Timer!")
+			ch.Close()
+			ws.Close()
+			alive = false
+			break
+		}
+
+	}
+	<-forever
+
+}
