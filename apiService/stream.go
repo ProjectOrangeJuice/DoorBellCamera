@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	b64 "encoding/base64"
 	"encoding/json"
+	"image"
+	"image/jpeg"
 	"log"
 	"net/http"
 	"time"
@@ -24,7 +28,18 @@ func getVideo(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	cam := params["camera"]
 	log.Printf("Get video, socket upgraded for %s to watch %s", r.RemoteAddr, params["camera"])
-	go sendVideo(cam, ws)
+	go sendVideo(cam, ws, false)
+}
+
+//Socket handler
+func getCompressedVideo(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
+	// register client
+	params := mux.Vars(r)
+	cam := params["camera"]
+	log.Printf("Get video, socket upgraded for %s to watch %s", r.RemoteAddr, params["camera"])
+	go sendVideo(cam, ws, true)
 }
 
 //Message is the json format
@@ -37,7 +52,7 @@ type Message struct {
 }
 
 //For the connection, get the stream and send it to the socket
-func sendVideo(cam string, ws *websocket.Conn) {
+func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	msgs, ch := listenToExchange("videoStream", cam)
 	var m Message
 	//forever := make(chan bool)
@@ -52,15 +67,20 @@ func sendVideo(cam string, ws *websocket.Conn) {
 			timer.Reset(duration)
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
-			// sDec, _ := b64.StdEncoding.DecodeString(m.Image)
-			// image, _, err := image.Decode(bytes.NewReader(sDec))
+			if compressed {
+				sDec, _ := b64.StdEncoding.DecodeString(m.Image)
+				image, _, err := image.Decode(bytes.NewReader(sDec))
+				failOnError(err, "Failed to read image to compress")
 
-			// buf := new(bytes.Buffer)
-			// err = jpeg.Encode(buf, image, &jpeg.Options{15})
-			// send_s3 := buf.Bytes()
+				buf := new(bytes.Buffer)
+				err = jpeg.Encode(buf, image, &jpeg.Options{15})
+				sends3 := buf.Bytes()
 
-			// sEnc := b64.StdEncoding.EncodeToString([]byte(send_s3))
-			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
+				sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
+				err = ws.WriteMessage(websocket.TextMessage, []byte(sEnc))
+			} else {
+				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
+			}
 			if err != nil {
 
 				alive = false
