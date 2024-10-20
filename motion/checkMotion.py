@@ -10,73 +10,83 @@ import string
 connection = pika.BlockingConnection(pika.ConnectionParameters('192.168.99.100',31693))
 channel = connection.channel()
 channel2 = connection.channel()
+cameras = {}
 countOn = 0
-heldFrames = []
-countOff = 0
-threshold = 50
-minCount = 15
-code = ""
-codeUsed = False
+heldFrames = 2
+countOff = 1
+threshold = 3
+minCount = 4
+code = 5
+codeUsed = 6
+prevImage = 7
 
 channel.queue_declare(queue='videoStream')
 def callback(ch, method, properties, body):
     #print(" [x] Received " )
     y = json.loads(body)
-    motionCheck(y["image"],y["time"])
+    motionCheck(y["cameraName"],y["image"],y["time"])
 
-def motionCheck(image,time):
-    global code, codeUsed
-    global countOn,countOff
+def motionCheck(name,image,time):
+    global cameras
 
-    testHold.counter += 1
+
+    if name in cameras:
+        tc = cameras.get(name)
+    else:
+        #countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage
+        cameras[name] = [0, 0, [], 50, 15, "", False, None]
+        tc = cameras.get(name)
+
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
     cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
   
 
-    if(testHold.prevFrame is None ):
-        testHold.prevFrame = cvimg 
+    if(tc[prevImage] is None ):
+       tc[prevImage] = cvimg 
+       tc[code] = randomString(10)
     else:
-        res = cv2.absdiff(cvimg, testHold.prevFrame)
+        res = cv2.absdiff(cvimg, tc[prevImage])
         res = res.astype(np.uint8)
         percentage = (np.count_nonzero(res) * 100)/ res.size
         #print(percentage)
       
-        if(percentage > threshold):
+        if(percentage > tc[threshold]):
             #motion?
+           
             
-            countOn += 1
+            tc[countOn] += 1
             
-            if(countOn > minCount):
+            if(tc[countOn] > tc[minCount]):
                 print("Motion!!!")
                 #send the held frames
-                for data in heldFrames:
+                for data in tc[heldFrames]:
                     channel.basic_publish(exchange='',
                       routing_key='motionAlert',
                       body=json.dumps(data))
                 #All frames now sent
-                heldFrames.clear()
-                bodyText = {"time":time,"image":image,"code":code,"count":countOn}
+                tc[heldFrames].clear()
+                bodyText = {"time":time,"image":image,"code":tc[code],"count":tc[countOn]}
                 channel.basic_publish(exchange='',
                       routing_key='motionAlert',
                       body=json.dumps(bodyText))
-                countOff = 0
-                codeUsed = True
+                tc[countOff] = 0
+                tc[codeUsed] = True
             else:
-                heldFrames.append({"time":time,"image":image,"code":code,"count":countOn})
+                tc[heldFrames].append({"time":time,"image":image,"code":code,"count":countOn})
                 print("Possible motion")
         else:
-            countOff += 1
-            if(countOff > minCount):
-                countOn = 0
-                heldFrames.clear()
-                if(codeUsed):
-                    code = randomString(10)
+            tc[countOff] += 1
+            if(tc[countOff] > minCount):
+                tc[countOn] = 0
+                tc[heldFrames].clear()
+                if(tc[codeUsed]):
+                    tc[code] = randomString(10)
+        tc[prevImage] = cvimg
  
             
 
 
-       
-        testHold.prevFrame = cvimg
+
 
 
 def randomString(stringLength=10):
@@ -85,7 +95,7 @@ def randomString(stringLength=10):
     return ''.join(random.choice(letters) for i in range(stringLength))
 
 
-code = randomString(10)
+
 channel2.queue_declare(queue='motionAlert')
 
 channel.basic_consume(queue='videoStream',
