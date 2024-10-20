@@ -5,13 +5,15 @@
 
   <!-- !PAGE CONTENT! -->
   <div class="w3-main">
-      <div class="w3-panel w3-red w3-display-container" id="error" style="display:none;">
-          <span onclick="this.parentElement.style.display='none'"
-          class="w3-button w3-large w3-display-topright">&times;</span>
-          <h3>Login error!</h3>
-          <p>Username or password is incorrect</p>
-        </div>
+    <div class="w3-content w3-center">
+    <div class="w3-panel w3-red w3-display-container" id="error" style="display:none;">
+      <span onclick="this.parentElement.style.display='none'"
+        class="w3-button w3-large w3-display-topright">&times;</span>
+      <h3>Login error!</h3>
+      <p>Username or password is incorrect</p>
+    </div>
     <form class="w3-container" id="loginform">
+      <h1>Login to the door service</h1>
       <div class="w3-section">
         <label><b>Username</b></label>
         <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Enter Username" name="usrname"
@@ -22,6 +24,7 @@
 
       </div>
     </form>
+    </div>
 
     <script>
       $("#loginform").on("submit", function () {
