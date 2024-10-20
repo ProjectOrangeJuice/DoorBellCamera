@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"gocv.io/x/gocv"
@@ -27,9 +26,8 @@ func makeVideo(code string, name string) {
 	defer rows.Close()
 
 	var fr []string
-	var totalAvg = 0
 	var counter = 0
-	var thresCount = 0
+	var reasons string
 	for rows.Next() {
 		counter++
 		var location string
@@ -37,13 +35,24 @@ func makeVideo(code string, name string) {
 		var reason string
 		err = rows.Scan(&location, &time, &reason)
 		failOnError(err, "Failed to get")
-		s := strings.Split(reason, "-")
-		thresCount = len(s)
-		for _, val := range s {
-			t, _ := strconv.Atoi(val)
-			totalAvg += t
-		}
+		sp := strings.Split(reason, ",")
+		for _, v := range sp {
+			spr := strings.Split(reasons, ",")
+			found := false
+			for _, v2 := range spr {
+				if v2 == v {
+					found = true
+				}
+				if !found {
+					if reasons == "" {
+						reasons = v
+					} else {
+						reasons = reasons + "," + v
+					}
+				}
+			}
 
+		}
 		if startTime == "" {
 			startTime = time
 		} else {
@@ -51,9 +60,6 @@ func makeVideo(code string, name string) {
 		}
 		video.Write(gocv.IMRead(fmt.Sprintf("%s", location), gocv.IMReadAnyColor))
 
-	}
-	if totalAvg > 0 && counter > 0 {
-		totalAvg = totalAvg / (counter * thresCount)
 	}
 
 	//err = aw.Close()
@@ -65,11 +71,11 @@ func makeVideo(code string, name string) {
 	}
 
 	log.Printf("Start time %s and end time %s", startTime, endTime)
-	addToDatabase(code, name, startTime, endTime, totalAvg)
+	addToDatabase(code, name, startTime, endTime, reasons)
 	squashVideo(code)
 }
 
-func addToDatabase(code string, name string, start string, end string, totalAvg int) {
+func addToDatabase(code string, name string, start string, end string, reason string) {
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
@@ -79,7 +85,7 @@ func addToDatabase(code string, name string, start string, end string, totalAvg 
 	stmt, err := tx.Prepare("insert into video(code,name, startTime,endTime ,reason) values(?,?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(code, name, start, end, strconv.Itoa(totalAvg))
+	_, err = stmt.Exec(code, name, start, end, reason)
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	log.Printf("Saved to db")
