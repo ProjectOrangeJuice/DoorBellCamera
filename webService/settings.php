@@ -83,12 +83,55 @@ include "include/head.php";
                 </div>
 
                 <h2>Zone editor</h2>
-                <canvas width=500 height=500 id="c"></canvas>
+                <div class="form-group">
+                    <label>Motion detection</label>
+                    <input type="checkbox" v-model="active">
+                </div>
+                <canvas height="300px" width="500px" id="canvasImage"></canvas>
+                <button class="w3-button w3-green" v-on:click="addZone">Add zone</button>
+                <h3>Zones</h3>
+                <table class="w3-table">
+                    <tr>
 
+                        <td>Top left X</td>
+                        <td>Top left Y</td>
+                        <td>Bottom right X</td>
+                        <td>Bottom right Y</td>
+                        <td>Threshold</td>
+                        <td>Min count</td>
+                        <td>Box jump</td>
+                        <td>Small ignore</td>
+                        <td></td>
+
+                    </tr>
+                    <tr v-for="zone in zoneInfo">
+                        <td> <input class="form-control" v-model.number="zone.x1"></td>
+                        <td> <input class="form-control" v-model.number="zone.y1"></td>
+                        <td> <input class="form-control" v-model.number="zone.x2"></td>
+                        <td> <input class="form-control" v-model.number="zone.y2"></td>
+                        <td> <input class="form-control" v-model.number="zone.threshold"></td>
+                        <td> <input class="form-control" v-model.number="zone.minCount"></td>
+                        <td> <input class="form-control" v-model.number="zone.boxJump"></td>
+                        <td> <input class="form-control" v-model.number="zone.smallAmount"></td>
+                        <td><button class="w3-button w3-red">Delete</button></td>
+                    </tr>
+
+
+                </table>
+                <hr>
+                <ul>
+                    <li>Threshold is the difference threshold. It's how different a pixel is to the previous value. A low value is sensitive</li>
+                    <li>Min count is the number of frames that must be different before it sets an alert</li>
+                    <li>Box jump ignores boxes where in two frames the alert is not in the same area. Increase with lower FPS</li>
+                    <li>Small ignore is used to ignore motion that isn't moving much, such as leaves or shadows. Put this value too high and slow people will also be ignored</li>
+                </ul>
+
+                <hr>
+                <button class="w3-button w3-green">Update</button>
 
             </div>
         </div> <!-- W3.CSS Container -->
-        <div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px">
+        <div class=" w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px">
             <p class="w3-right">Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-opacity">w3.css</a></p>
         </div>
 
@@ -106,14 +149,11 @@ include "include/head.php";
         </script>
 
         <script>
-            var c = document.getElementById("c");
-            var ctx = c.getContext("2d");
             var app = new Vue({
                 el: '#app',
                 data: {
                     camNames: [],
                     selectedCam: "",
-
                     socket: "",
                     name: '',
                     connection: '',
@@ -132,10 +172,17 @@ include "include/head.php";
                     bufferBefore: 10,
                     bufferAfter: 10,
                     refreshCount: 5,
+                    zones: [],
+                    zoneInfo: [],
                 },
                 mounted() {
                     //this.updateMotion();
                     this.updateInfo();
+
+                    var canvas = document.getElementById("canvasImage");
+                    canvas.addEventListener('mousedown', this.mouseDown, false);
+                    canvas.addEventListener('mouseup', this.mouseUp, false);
+                    canvas.addEventListener('mousemove', this.mouseMove, false);
                 },
                 methods: {
                     updateDisplay() {
@@ -143,6 +190,42 @@ include "include/head.php";
                             this.socket.close()
                         } catch (err) {}
                         this.displayVideo();
+                    },
+
+
+                    addZone() {
+                        this.zones.push({
+                            startX: 40,
+                            startY: 20,
+                            w: 30,
+                            h: 20,
+                            dragTL: false,
+                            dragBL: false,
+                            dragTR: false,
+                            dragBR: false,
+                        })
+                        this.zoneInfo.push({
+                            x1: 40,
+                            y1: 20,
+                            x2: 70,
+                            y2: 40,
+                            threshold: 20,
+                            minCount: 7,
+                            boxJump: 5,
+                            smallAmount: 5,
+                        })
+                    },
+
+                    getSettings() {
+                        axios
+                            .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam))
+                            .then(response => {
+
+
+                            })
+                            .catch(response => {
+                                console.log("Error " + response);
+                            });
                     },
                     updateInfo() {
                         axios
@@ -162,19 +245,165 @@ include "include/head.php";
                             vid = "";
                         };
                         let self = this;
+
+
                         this.socket.onmessage = function(event) {
-                            decoded = atob(event.data)
-                            var tot = "data:image/jpg;base64, " + event.data;
-                            var image = new Image();
-                            image.onload = function() {
-                                ctx.drawImage(image, 0, 0);
-                            };
-                            image.src = tot;
+
+                            if (event.data == "PING") {
+                                self.socket.send("PONG")
+                            } else {
+                                decoded = atob(event.data)
+                                var c = document.getElementById("canvasImage");
+                                var ctx = c.getContext("2d");
+                                var image = new Image();
+                                image.onload = function() {
+                                    ctx.drawImage(image, 0, 0, c.width, c.height);
+                                    self.canvasDraw();
+                                };
+
+                                image.src = "data:image/jpg;base64, " + event.data;
+
+                                // imgBox.src = "data:image/jpg;base64, " + event.data
+                            }
+
+
+
                         }
+                    },
+                    mouseDown(e) {
+                        console.log("Logged mousedown");
+                        var c = document.getElementById("canvasImage");
+                        var ctx = c.getContext("2d");
+                        mouseX = e.pageX - c.offsetLeft;
+                        mouseY = e.pageY - c.offsetTop;
+
+                        this.zones.forEach(function(rect) {
+
+                            // if there isn't a rect yet
+                            if (rect.w === undefined) {
+
+                                rect.startX = mouseY;
+                                rect.startY = mouseX;
+                                rect.dragBR = true;
+                            }
+
+                            // if there is, check which corner
+                            //   (if any) was clicked
+                            //
+                            // 4 cases:
+                            // 1. top left
+                            else if (checkCloseEnough(mouseX, rect.startX) && checkCloseEnough(mouseY, rect.startY)) {
+                                rect.dragTL = true;
+                            }
+                            // 2. top right
+                            else if (checkCloseEnough(mouseX, rect.startX + rect.w) && checkCloseEnough(mouseY, rect.startY)) {
+                                rect.dragTR = true;
+
+                            }
+                            // 3. bottom left
+                            else if (checkCloseEnough(mouseX, rect.startX) && checkCloseEnough(mouseY, rect.startY + rect.h)) {
+                                rect.dragBL = true;
+
+                            }
+                            // 4. bottom right
+                            else if (checkCloseEnough(mouseX, rect.startX + rect.w) && checkCloseEnough(mouseY, rect.startY + rect.h)) {
+                                rect.dragBR = true;
+
+                            }
+                            // (5.) none of them
+                            else {
+                                // handle not resizing
+                            }
+
+                        });
+
+                    },
+                    mouseMove(e) {
+                        var c = document.getElementById("canvasImage");
+                        var ctx = c.getContext("2d");
+                        mouseX = e.pageX - c.offsetLeft;
+                        mouseY = e.pageY - c.offsetTop;
+                        let self = this;
+                        this.zones.forEach(function(rect, index) {
+                            if (rect.dragTL) {
+                                rect.w += rect.startX - mouseX;
+                                rect.h += rect.startY - mouseY;
+                                rect.startX = mouseX;
+                                rect.startY = mouseY;
+                            } else if (rect.dragTR) {
+                                rect.w = Math.abs(rect.startX - mouseX);
+                                rect.h += rect.startY - mouseY;
+                                rect.startY = mouseY;
+                            } else if (rect.dragBL) {
+                                rect.w += rect.startX - mouseX;
+                                rect.h = Math.abs(rect.startY - mouseY);
+                                rect.startX = mouseX;
+                            } else if (rect.dragBR) {
+                                rect.w = Math.abs(rect.startX - mouseX);
+                                rect.h = Math.abs(rect.startY - mouseY);
+                            }
+
+                            self.zoneInfo[index].x1 = rect.startX;
+                            self.zoneInfo[index].y1 = rect.startY;
+                            self.zoneInfo[index].x2 = rect.startX + rect.w;
+                            self.zoneInfo[index].y2 = rect.startY + rect.h;
+
+                        });
+                    },
+                    mouseUp() {
+                        this.zones.forEach(function(rect) {
+                            rect.dragTL = false;
+                            rect.dragTR = false;
+                            rect.dragBL = false;
+                            rect.dragBR = false;
+
+                        });
+
+                    },
+
+
+                    canvasDraw() {
+                        var c = document.getElementById("canvasImage");
+                        var ctx = c.getContext("2d");
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+                        this.zones.forEach(function(rect) {
+                            ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
+                            drawHandles(rect);
+                        });
                     },
 
                 }
             })
+        </script>
+
+        <script>
+            var drag = false,
+                mouseX,
+                mouseY,
+                closeEnough = 10
+
+
+
+
+            function drawHandles(rect) {
+                drawCircle(rect.startX, rect.startY, closeEnough);
+                drawCircle(rect.startX + rect.w, rect.startY, closeEnough);
+                drawCircle(rect.startX + rect.w, rect.startY + rect.h, closeEnough);
+                drawCircle(rect.startX, rect.startY + rect.h, closeEnough);
+            }
+
+            function checkCloseEnough(p1, p2) {
+                return Math.abs(p1 - p2) < closeEnough;
+            }
+
+            function drawCircle(x, y, radius) {
+                var c = document.getElementById("canvasImage");
+                var ctx = c.getContext("2d");
+                ctx.fillStyle = "#FF0000";
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
         </script>
 
 
