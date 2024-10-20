@@ -123,6 +123,7 @@ include "include/head.php";
                 <hr>
                 <ul>
                     <li>Threshold is the difference threshold. It's how different a pixel is to the previous value. A low value is sensitive</li>
+                    <li>Area is the size of the motion box. W*H in pixels</li>
                     <li>Min count is the number of frames that must be different before it sets an alert</li>
                     <li>Box jump ignores boxes where in two frames the alert is not in the same area. Increase with lower FPS</li>
                     <li>Small ignore is used to ignore motion that isn't moving much, such as leaves or shadows. Put this value too high and slow people will also be ignored</li>
