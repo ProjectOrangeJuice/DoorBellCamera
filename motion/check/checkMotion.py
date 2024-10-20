@@ -41,14 +41,13 @@ def readConfig():
 readConfig()
 
 def minute_passed(oldepoch):
-    print("Value of passed "+str(time.time() - oldepoch))
     return time.time() - oldepoch >= 60
  
 def getCamera(name):
     l = "motion:camera:"+name
     if(r.exists(l)>0):
         if name not in cameras:
-            cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"blur"),r.hget(l,"rotation")]
+            cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
     else:
         cameras[name] = [0, 0, [], dt, dmin, "", False, None,0,0,0]
     return cameras[name]
@@ -88,7 +87,8 @@ def motionCheck(name,image,camtime):
     cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
     #Blur the image
     bval = int(tc[blur])
-    newImage = cv2.blur(cvimg,(bval,bval))
+    if(bval > 0):
+        newImage = cv2.blur(cvimg,(bval,bval))
     #rotate the image
     newImage = rotateImage(newImage,int(tc[rot]))
 
@@ -100,23 +100,27 @@ def motionCheck(name,image,camtime):
         res = res.astype(np.uint8)
         ##percentage = (np.count_nonzero(res) * 100)/ res.size
         divBy = len(tc[threshold])
+        #second div
+        divByOther = len(tc[threshold][0])
         split = np.split(res,divBy)
-        totals = []
+        alert = True
+        firstDivCount = 0
+        totals = [] 
         for x in split:
-            totals.append(int((np.count_nonzero(x) *100)/x.size))
-
-        bThres = True
-        thresTestCount = 0
-        for v in totals:
-            if(v < int(tc[threshold][thresTestCount])):
-                bThres = False
-                break
-            thresTestCount += 1
-
-        print(str(totals) + " - " +str(tc[threshold]) + " so "+str(bThres))
-        print(str(tc[countOn]) + " - " +str(tc[countOff]))
+            secondDivCount = 0
+            temptotals = []
+            split2 = np.split(x,divByOther)
+            for y in split2:
+                tot = int((np.count_nonzero(y) *100)/y.size)
+                if(tot < tc[threshold][firstDivCount][secondDivCount]):
+                    alert = False
+                secondDivCount += 1
+                temptotals.append(tot)
+            totals.append(temptotals)
+            firstDivCount += 1
+        print("Calculated "+str(totals) +" Requires "+str(tc[threshold]))
         tc[imgCount] += 1
-        if(bThres):
+        if(alert):
             tc[countOn] += 1
             tc[countOff] = 0
 
@@ -150,13 +154,13 @@ def motionCheck(name,image,camtime):
                     routing_key='motionAlert',
                     body=json.dumps(data))
             tc[heldFrames].clear()
-            tc[countOn] = tc[minCount]
+            tc[countOn] = int(tc[minCount])
             tc[codeUsed] = True 
         #elif (tc[countOn] > 0):
             #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
            # tc[countOn] -= 1
 
-        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":totals})
+        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":0})
 
        
 
