@@ -92,3 +92,59 @@ func DoStream(cam string, ws *websocket.Conn) {
 	<-forever
 	log.Printf("Finished..")
 }
+
+//For the connection, get motion and send it
+func doMotionCheck(cam string, ws *websocket.Conn) {
+	log.Printf("Setting up connection for %s", cam)
+	conn, err := amqp.Dial(server)
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		"motionAlert", // name
+		false,         // durable
+		false,         // delete when usused
+		false,         // exclusive
+		false,         // no-wait
+		nil,           // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	failOnError(err, "Failed to register a consumer")
+	prev := ""
+	forever := make(chan bool)
+
+	go func() {
+		for d := range msgs {
+			m := decodeMessage(d.Body)
+			if prev != m.Code {
+				ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
+				prev = m.Code
+			}
+		}
+
+	}()
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
+}
+
+func decodeMessage(d []byte) Message {
+	var m Message
+	err := json.Unmarshal(d, &m)
+	failOnError(err, "Json decode error")
+	return m
+
+}
