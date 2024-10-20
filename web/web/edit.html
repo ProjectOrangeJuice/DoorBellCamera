@@ -19,6 +19,7 @@
 
       {{ template "motionConf" .}}
       {{ template "camConf" .}}
+      {{ template "userConf" .}}
 
       <div class="w3-panel w3-green w3-display-bottommiddle" id="noteBox">
         <p id="noteText"></p>
@@ -45,6 +46,7 @@ function showNote(text){
 
 var txt = document.getElementById("noteText");
   txt.inner = text
+  showAlert()
   setTimeout(hideAlert, 5000)
 }
 
