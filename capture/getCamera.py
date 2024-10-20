@@ -15,7 +15,6 @@ timed = time.time()
 
 
 def minute_passed(oldepoch):
-    print("Value of passed "+str(time.time() - oldepoch))
     return time.time() - oldepoch >= 60
  
 # Open the config file and read the values from it
@@ -59,6 +58,8 @@ try:
         if minute_passed(timed):
             readConfig()
         while(vcap.isOpened()):
+            if minute_passed(timed):
+                readConfig()
             #For fps
             time_elapsed = time.time() - prev
             try:
@@ -70,7 +71,8 @@ try:
             if(time_elapsed > 1./delay):
                 frame = rotateImage(frame,int(rotation))
                 bval = int(blur)
-                frame = cv2.blur(frame,(bval,bval))
+                if(bval > 0):
+                    frame = cv2.blur(frame,(bval,bval))
                 #kernel = np.ones((2,2),np.float32)/25
                 #frame = cv2.filter2D(frame,-1,kernel)
                 image = cv2.imencode(".jpg",frame)[1]
