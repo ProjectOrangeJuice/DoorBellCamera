@@ -59,7 +59,9 @@ func makeVideo(code string, name string) {
 		} else {
 			endTime = record.Time
 		}
-		video.Write(gocv.IMRead(fmt.Sprintf("%s", record.Location), gocv.IMReadAnyColor))
+		im := gocv.IMRead(fmt.Sprintf("%s", record.Location), gocv.IMReadAnyColor)
+		video.Write(im)
+		im.Close()
 
 	}
 
@@ -70,10 +72,10 @@ func makeVideo(code string, name string) {
 		err = os.Remove(elem)
 		failOnError(err, "Failed to remove image")
 	}
-
+	video = nil
 	log.Printf("Start time %s and end time %s", startTime, endTime)
 	addToDatabase(code, name, startTime, endTime, reasons)
-	squashVideo(code)
+	//squashVideo(code)
 }
 
 type videoRecord struct {
