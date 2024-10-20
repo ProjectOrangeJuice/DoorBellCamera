@@ -91,6 +91,8 @@ try:
             
             
                 prev = time.time()
+            else:
+                time.sleep((1./delay)-time_elapsed)
         #Delay reconnection attempt
         time.sleep(5)
         vcap = cv2.VideoCapture(streamLocation)
