@@ -62,10 +62,6 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
       
         roiPrev = settings.prev[current[0]:current[1], current[2]:current[3]]#settings.prev #
         roi = gray[current[0]:current[1], current[2]:current[3]]#gray#
-        xtem = current[1] - current[0]
-        ytem = current[3] - current[2]
-        areatemp = ytem*xtem
-        perArea = (areatemp/100)*60#60 percent of area
       
         # Difference between frames
         diff_frame = cv2.absdiff(roiPrev, roi)
@@ -87,12 +83,10 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         newPrev = []
-        totalArea = 0
         # Check if it is over the threshold
         for contour in cnts:
             if cv2.contourArea(contour) < zone:
                 continue
-            totalArea += cv2.contourArea(contour)
 
             motion = True
             M = cv2.moments(contour)
@@ -106,9 +100,6 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
         prevBox = newPrev
-        if totalArea > perArea:
-            print("Total area is larger")
-            boxNoMove += 1
         ##Maths is done. Check if this is an alert
 
         if(motion):
@@ -169,11 +160,9 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
     if(settings.buffer == 99):
         sendBuffer(settings.name,settings.code,channel)
-        print("Sending start buffer!")
         settings.buffer = 50
     #Update the buffer values
     if(settings.bufferUse):
-        print("Buffer in use "+str(settings.buffer))
         settings.buffer -= 1
         if(settings.buffer == 0):
             settings.bufferUse = False
@@ -185,7 +174,6 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
     #If the code is used, we can send the information
     if(settings.codeUsed):
-        print("Code is used. Sending frame")
         sendFrame(settings.name,
          {"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":frameNum,"blocks":",".join(seen),"locations":str(locations)},
@@ -200,7 +188,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
         boxNoMove = 0
         print("New frame")
     frameCount += 1
-    print(settings.countOn)
+    #print(settings.countOn)
     sf.sendFrame(b64,settings.name,debugpub)
     # cv2.imshow("frame", mimg)
     # cv2.waitKey(1)
@@ -219,19 +207,31 @@ def sendBuffer(name,code,channel):
     
 def compBoxes(prev,nowBox):
     for item in prev:
+        print("area.. "+str(item[2]*item[3]))
+        if((item[2]*item[3]) > 357700):
+            print("Area is large")
+            return True
         for item2 in nowBox:
             difx = abs(item2[0] - item[0])
             dify = abs(item2[1] - item[1])
             difh = abs(item2[2] - item[2])
             difw = abs(item2[3] - item[3])
-            print("x %d y %d h %d w %d" % (difx, dify, difh, difw))
             if(difx < 10 and dify < 10 and difh < 10 and difw < 10):
                 print("BOx has only had small movement")
                 return True
-           
+       
+            
     return False
 
 def sendEnd(name,channel):
     channel.basic_publish(exchange='motion',
         routing_key= name.replace(" ","."),
         body= json.dumps({"end":True,"code":settings.code,"name":name}))
+
+
+import datetime,sys
+old_f = sys.stdout
+class F:
+    def write(self, x):
+        old_f.write(x.replace("\n", " [%s]\n" % str(datetime.datetime.now())))
+sys.stdout = F()
