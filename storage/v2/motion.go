@@ -65,13 +65,12 @@ func recvMotionImg(buf chan *Buffer) {
 
 func makeVideo(codes chan string) {
 	for vid := range codes {
-		setting := getSetting()
-
+		s := getSetting()
+		fps := fmt.Sprintf("%v", s.FPS)
 		saveToFull := fmt.Sprintf("%s/%s.mp4", fullVideoLocation, vid)
 		saveToSmall := fmt.Sprintf("%s/%s.mp4", smallVideoLocation, vid)
 		imgs := fmt.Sprintf("%s/%s-*.jpg", imageLocation, vid)
-		fmt.Printf("code: %s imgs: %s\n", vid, imgs)
-		output, err := exec.Command("ffmpeg", "-framerate", string(setting.FPS), "-pattern_type", "glob", "-i", imgs, saveToFull).Output()
+		output, err := exec.Command("ffmpeg", "-framerate", fps, "-pattern_type", "glob", "-i", imgs, saveToFull).Output()
 		log.Println(output)
 		failOnError(err, "c")
 
