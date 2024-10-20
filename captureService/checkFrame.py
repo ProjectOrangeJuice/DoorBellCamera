@@ -79,15 +79,18 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
             if cv2.contourArea(contour) < zone:
                 continue
             (x, y, w, h) = cv2.boundingRect(contour)
-            x = x + current[2]
-            y = y + current[0]
-            (sx,sy,xSeen) = smallestDif(prevBox,[x,y])
-            if(sx < settings.boxJump and sy < settings.boxJump):
-                newPrev.append([x,y,w,h,xSeen])
-            else:
-                newPrev.append([x,y,w,h,0])
-                xSeen = 0
-            txt = "X:"+str(sx)+" Y:"+str(sy)+" Seen "+str(xSeen)
+            M = cv2.moments(contour)
+            cX = int(M["m10"] / M["m00"]) + current[2]
+            cY = int(M["m01"] / M["m00"])+ current[0]
+            # x = x + current[2]
+            # y = y + current[0]
+            x = cX
+            y = cY
+            (sx,sy) = smallestDif(prevBox,[x,y])
+
+            newPrev.append([x,y,w,h])
+
+            txt = "X:"+str(sx)+" Y:"+str(sy)
             if (sx > settings.boxJump or sy > settings.boxJump):
                 # ignore this box as it's rain
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,0, 255), 2)
@@ -96,6 +99,11 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
             elif(cv2.contourArea(contour) > 60000):
                 # ignore this box due to its size
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,255, 0), 2)
+                continue
+            elif(sx < 5 and sy < 5):
+                #Final straw. The box has to have moved
+                cv2.rectangle(mimg,(x, y), (x + w, y + h), (125,125, 255), 2)
+                cv2.putText(mimg,txt, (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
                 continue
             else:
                 motion = True
@@ -153,7 +161,7 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
 
     #Pretend debug switch
 
-    cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 150),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 50),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     imagetemp = cv2.imencode(".jpg",mimg)[1]
 
    
@@ -238,7 +246,7 @@ def compBoxes(prev,nowBox):
 def smallestDif(prev,cur):
     sx = 99999
     sy = 99999
-    i = None
+  
     for item in prev:       
         difx = abs(cur[0] - item[0])
         dify = abs(cur[1] - item[1])
@@ -246,10 +254,8 @@ def smallestDif(prev,cur):
             sx = difx
             sy = dify
             i = item
-    cnt = -1
-    if(i != None):
-        cnt = i[4]+1
-    return [sx,sy,cnt]
+  
+    return [sx,sy]
 
 def rainCheck(prev,cur):
     for item in prev:
