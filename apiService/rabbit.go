@@ -53,6 +53,10 @@ func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.
 		false,   // no-wait
 		nil,     // arguments
 	)
+
+	args := make(amqp.Table)
+	args["x-max-length"] = 1
+
 	failOnError(err, "Failed to declare an exchange")
 	q, err := ch.QueueDeclare(
 		"",    // name
@@ -60,8 +64,9 @@ func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.
 		true,  // delete when usused
 		true,  // exclusive
 		false, // no-wait
-		nil,   // arguments
+		args,  // arguments
 	)
+
 	failOnError(err, "Failed to declare a queue")
 	err = ch.Qos(1, 0, true)
 	failOnError(err, "Setting QOS")

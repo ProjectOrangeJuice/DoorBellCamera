@@ -52,6 +52,8 @@ type Message struct {
 	Name  string
 }
 
+const duration = 20 * time.Second
+
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	msgs, ch := listenToExchange("videoStream", cam)
@@ -61,7 +63,7 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	//forever := make(chan bool)
 	p := make(chan bool)
 	go pingponger(ws, p, &lock)
-	const duration = 20 * time.Second
+
 	timer := time.NewTimer(duration)
 	alive := true
 	last := time.Now().UnixNano()
@@ -118,6 +120,8 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 
 		}
 	}
+	m = Message{}
+	close(p)
 	ch.Close()
 	ws.Close()
 }
