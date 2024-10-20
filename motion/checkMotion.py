@@ -24,6 +24,7 @@ def callback(ch, method, properties, body):
     motionCheck(y["image"],y["time"])
 
 def motionCheck(image,time):
+    global code
     global countOn,countOff
 
     testHold.counter += 1
