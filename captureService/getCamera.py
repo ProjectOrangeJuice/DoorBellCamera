@@ -47,9 +47,13 @@ def openConnection():
 
     rabbitError = False
 
+def minute_passed(oldepoch):
+    return time.time() - oldepoch >= 60
+
 prev = time.time()
+refresh = time.time()
 def readFrames():
-    global prev
+    global prev,refresh
     while(vcap.isOpened()):
         time_elapsed = time.time() - prev
         try:
@@ -82,9 +86,10 @@ def readFrames():
                 cf.checkFrame(b64, cameraName, frame,alertChannel)
           
             # cv2.imshow("frame2", frame)
-        
-        
-
+            if(minute_passed(refresh)):
+                print("Updating settings")
+                s.update()
+                refresh = time.time()
 readConfig()
 openCamera()
 openConnection()
