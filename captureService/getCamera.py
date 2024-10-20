@@ -27,6 +27,7 @@ def openCamera():
     global vcap
     try:
         if(not vcap.isOpened()):
+            #vcap = cv2.VideoCapture('rtspsrc location=rtsp://192.168.1.120:554 latency=100 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink',cv2.CAP_GSTREAMER)
             vcap = cv2.VideoCapture("rtsp://192.168.1.120", cv2.CAP_FFMPEG)
     except NameError:
         vcap = cv2.VideoCapture("rtsp://192.168.1.120", cv2.CAP_FFMPEG)
