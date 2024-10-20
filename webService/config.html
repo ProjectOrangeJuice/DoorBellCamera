@@ -128,12 +128,12 @@
           <input class="form-control" v-model.number="mincount[index]">
         </div>
         <div class="col">
-         <button class="w3-button w3-red" v-on:click="deleteZone(index)">Delete</button>
+          <button class="w3-button w3-red" v-on:click="deleteZone(index)">Delete</button>
         </div>
-        
+
 
       </div>
-     
+
       <div class="form-group">
         <label>Active</label>
         <input type="checkbox" v-model="active">
@@ -207,52 +207,42 @@
             this.threshold = response.data.Threshold;
             this.mincount = response.data.MinCount;
             this.active = response.data.Motion;
+            this.displayCamera();
           })
           .catch(response => {
             console.log("Error " + response);
           });
-
-
-        // 2
-        var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI("Hello"))
-
-        // Log errors
-        socket.onclose = function (error) {
-
-          vid = "";
-        };
-        let self = this;
-        socket.onmessage = function (event) {
-          decoded = atob(event.data)
-
-          self.vid = "data:image/jpg;base64, " + event.data;
-     
-          //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
-
-
-        }
-
-
-
       },
       methods: {
-        zone(e){
+        displayCamera() {
+          var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI(this.name))
+          // Log errors
+          socket.onclose = function (error) {
+            vid = "";
+          };
+          let self = this;
+          socket.onmessage = function (event) {
+            decoded = atob(event.data)
+            self.vid = "data:image/jpg;base64, " + event.data;
+          }
+        },
+        zone(e) {
           var x = this.$el.offsetWidth - e.pageX;
-          var y = this.$el.offsetHeight - e.pageY ;
-          if(this.newZone){
+          var y = this.$el.offsetHeight - e.pageY;
+          if (this.newZone) {
             this.amount.push(50);
             this.mincount.push(5);
             this.threshold.push(15);
-            this.area.push([x,0,y,0]);
+            this.area.push([x, 0, y, 0]);
             this.newZone = false;
-          }else{
-            v = this.area[this.area.length- 1]
+          } else {
+            v = this.area[this.area.length - 1]
             v[1] = x;
             v[3] = y;
             this.newZone = true;
           }
         },
-        deleteZone(index){
+        deleteZone(index) {
           this.area.splice(index, 1);
           this.threshold.splice(index, 1);
           this.mincount.splice(index, 1);
