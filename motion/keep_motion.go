@@ -26,15 +26,21 @@ type Message struct {
 	Time  string
 	Code  string
 	Count int
+	Name  string
 }
 
 type OutMessage struct {
 	Code string
+	name string
 }
 
-var prev string
-var notified string = "nothing"
-var ignoreTimer bool = true
+type cameraStructure struct {
+	prev        string
+	notified    string
+	ignoreTimer bool
+}
+
+var camera map[string]cameraStructure
 var timer time.Timer
 
 func main() {
@@ -95,12 +101,16 @@ func createTimer() {
 	go func() {
 		<-timer.C
 		log.Printf("Timer is over")
-		if prev != "" && prev != notified && !ignoreTimer {
-			notified = prev
-			notifyQueue(prev)
-			prev = ""
+		for k, v := range camera {
+
+			if v.prev != "" && v.prev != v.notified && !v.ignoreTimer {
+				v.notified = v.prev
+				notifyQueue(v.prev, k)
+				v.prev = ""
+			}
+			v.ignoreTimer = false
 		}
-		ignoreTimer = false
+
 		createTimer()
 	}()
 }
@@ -109,6 +119,10 @@ func decodeMessage(d []byte) {
 	var m Message
 	err := json.Unmarshal(d, &m)
 	failOnError(err, "Json decode error")
+	if _, ok := camera[m.Name]; !ok {
+		camera[m.Name] = cameraStructure{"", "Nothing", true}
+	}
+
 	storeImage(m)
 
 }
@@ -126,21 +140,22 @@ func recordDb(msg Message, loc string) {
 	_, err = stmt.Exec(msg.Code, loc, msg.Time)
 	failOnError(err, "Record could not insert")
 	tx.Commit()
-	if prev != "" && prev != msg.Code {
+	tc := camera[msg.Name]
+	if tc.prev != "" && tc.prev != msg.Code {
 		log.Printf("End of prev code")
-		notifyQueue(prev)
-		ignoreTimer = true
-		prev = msg.Code
-	} else if prev == "" {
-		prev = msg.Code
-		ignoreTimer = true
+		notifyQueue(tc.prev, msg.Name)
+		tc.ignoreTimer = true
+		tc.prev = msg.Code
+	} else if tc.prev == "" {
+		tc.prev = msg.Code
+		tc.ignoreTimer = true
 
 	}
 }
 
-func notifyQueue(code string) {
+func notifyQueue(code string, name string) {
 	log.Printf("NOTIFY")
-	body := OutMessage{code}
+	body := OutMessage{code, name}
 	b, err := json.Marshal(body)
 	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
 	failOnError(err, "Failed to connect to RabbitMQ")
