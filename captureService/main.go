@@ -36,7 +36,7 @@ func main() {
 	settingUpdate := time.Now().Add(time.Second * 30)
 	go checkMotion(in, liveStream, &setting)
 	//Open video
-	video, err := gocv.OpenVideoCapture("/home/oharris/t.mp4")
+	video, err := gocv.OpenVideoCapture(setting.Connection)
 	defer video.Close()
 	if err != nil {
 		log.Printf("Failed to open video: %s", err)
@@ -51,7 +51,7 @@ func main() {
 
 	fmt.Println("Reading the video now")
 	preTime := time.Now()
-	fps := 1. / 10
+	fps := 1. / setting.FPS
 	for {
 		// Check to see if we should update our settings
 		if time.Now().After(settingUpdate) {
@@ -62,7 +62,7 @@ func main() {
 
 		//Skip some frames
 		timeSince := time.Since(preTime)
-		if timeSince.Seconds() < fps {
+		if timeSince.Seconds() < float64(fps) {
 			//video.Grab(1)
 			continue
 		}
