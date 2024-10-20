@@ -11,14 +11,20 @@ import (
 )
 
 type cameraSettings struct {
-	Name       string
-	Connection string
-	FPS        int
-	Area       [][]int
-	Amount     []int
-	Threshold  []int
-	MinCount   []int
-	Motion     bool
+	Name               string
+	Connection         string
+	FPS                int
+	Area               [][]int
+	Amount             []int
+	Threshold          []int
+	MinCount           []int
+	Motion             bool
+	Blur               int
+	BoxJump            int
+	Debug              bool
+	BufferBefore       int
+	BufferAfter        int
+	NoMoveRefreshCount int
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
