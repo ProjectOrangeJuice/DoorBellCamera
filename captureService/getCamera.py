@@ -52,9 +52,9 @@ def minute_passed(oldepoch):
 
 prev = time.time()
 refresh = time.time()
-failedImage = 0 
+failedImage = 0
 def readFrames():
-    global prev,refresh
+    global prev,refresh,failedImage
     while(vcap.isOpened()):
         time_elapsed = time.time() - prev
         try:
@@ -78,6 +78,7 @@ def readFrames():
                 print("error here "+str(e))
                 failedImage += 1
                 if(failedImage > 3):
+                    print("Release camera!")
                     #Reset camera connection
                     vcap.release()
                 break
