@@ -7,11 +7,16 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var databaseClient *mongo.Client
+
+const server = "amqp://guest:guest@localhost:5672/"
+
+var connect *amqp.Connection
 
 func main() {
 	// Setup database
@@ -21,6 +26,10 @@ func main() {
 		log.Printf("Failed to connect to database: %s", err)
 		return
 	}
+
+	//rabbit
+	connect, err = amqp.Dial(server)
+	failOnError(err, "Failed to connect to RabbitMQ")
 
 	router := mux.NewRouter()
 	router.HandleFunc("/config", getConfig).Methods("GET")
