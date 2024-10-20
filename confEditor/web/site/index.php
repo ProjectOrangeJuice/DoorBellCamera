@@ -56,6 +56,7 @@ include("parts/side.php");
       function setup() {
         var jsonT;
         var xhttp = new XMLHttpRequest();
+        xhttp.withCredentials = true;
         xhttp.onreadystatechange = function () {
           if (this.readyState == 4 && this.status == 200) {
             jsont = JSON.parse(this.responseText)

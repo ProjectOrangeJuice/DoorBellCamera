@@ -29,7 +29,8 @@ type Claims struct {
 
 // Create the Signin handler
 func signin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.1.126:30016")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	var creds Credentials
 	// Get the JSON body and decode into credentials
@@ -119,8 +120,8 @@ func auth(h http.Handler) http.Handler {
 
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Origin", "http://192.168.1.126:30016")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			// We can obtain the session token from the requests cookies, which come with every request
 			c, err := r.Cookie("token")
 			if err != nil {
