@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"
@@ -14,6 +15,7 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
   integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
   crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <style>
 body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
 body {font-size:16px;}
@@ -57,6 +59,9 @@ body {font-size:16px;}
   
   <!-- Photo grid (modal) -->
   <div class="w3-row-padding" id="app">
+  <p>Date to: <input type="text" id="datepickerTo"></p>
+  <p>Date from: <input type="text" id="datepickerFrom"></p>
+  <button v-on:click="loadAlerts">Load</button>
       <li v-for="alert in alerts">
       <input type="checkbox" v-model="selected" :value="alert.Code" number>
          
@@ -111,6 +116,19 @@ function onClick(element) {
   var captionText = document.getElementById("caption");
   captionText.innerHTML = element.alt;
 }
+
+
+$( function() {
+    $( "#datepickerTo" ).datepicker();
+  } );
+
+
+  $( function() {
+    $( "#datepickerFrom" ).datepicker();
+  } );
+
+
+
 </script>
 
 
@@ -122,13 +140,30 @@ function onClick(element) {
       selected: [],
     alerts: []
     }, mounted() {
-     this.updateMotion();
+     //this.updateMotion();
     
     },
     methods: {
       dateChange(d){
         date = new Date(d*1000);
         return(date.toLocaleString());
+      },
+      loadAlerts(){
+        $('#datepickerTo').datepicker("option", "dateFormat", '@')
+        var start = $( "#datepickerTo" ).val()
+        $('#datepickerFrom').datepicker("option", "dateFormat", '@')
+        var end = $( "#datepickerFrom" ).val()
+        axios
+        .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion/"+start+"/"+end)
+        .then(response => {
+          this.alerts = response.data;
+ 
+        })
+        .catch(response => {
+          console.log("Error " + response);
+        });
+
+
       },
       deleteCode(code){
         axios
@@ -152,15 +187,16 @@ function onClick(element) {
       },
 
       updateMotion(){
-        axios
-        .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion")
-        .then(response => {
-          this.alerts = response.data;
+        this.loadAlerts();
+        // axios
+        // .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion")
+        // .then(response => {
+        //   this.alerts = response.data;
  
-        })
-        .catch(response => {
-          console.log("Error " + response);
-        });
+        // })
+        // .catch(response => {
+        //   console.log("Error " + response);
+        // });
       },
       showVideo(v){
         console.log("v is .. "+v)
