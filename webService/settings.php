@@ -471,8 +471,9 @@ include "include/head.php";
                     canvasDraw() {
                         var c = document.getElementById("canvasImage");
                         var ctx = c.getContext("2d");
-                        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+                        
                         this.zones.forEach(function(rect) {
+                            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
                             ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
                             drawHandles(rect);
                         });
