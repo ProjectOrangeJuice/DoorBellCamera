@@ -18,7 +18,6 @@ func main() {
 	sec.Use(auth)
 	sec.HandleFunc("/refresh", refresh).Methods("GET")
 	sec.HandleFunc("/motion", allMotion).Methods("GET")
-	sec.HandleFunc("/motion/{code}", getMotion).Methods("GET", "OPTIONS")
-	sec.HandleFunc("/motion/{code}", delMotion).Methods("DELETE", "OPTIONS")
+	sec.HandleFunc("/motion/{code}", getMotion).Methods("DELETE", "GET", "OPTIONS")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
