@@ -38,7 +38,7 @@ include "include/head.php";
 
                         <tr>
                             <td>Alerts in 24 hours</td>
-                            <td> {{ camera.Alerts24 }} </td>
+                            <td><a :href="'/p2/motion.php?cam='+camera.Name"> {{ camera.Alerts24 }} </a></td>
                         </tr>
 
                     </table>
