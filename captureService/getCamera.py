@@ -78,7 +78,7 @@ def readFrames():
 
             # encode frame
             try:
-                image = cv2.imencode(".jpg",frame)[1]
+                image = cv2.imencode(".jpg",sendFrame)[1]
             except Exception as e:
                 #can be caused by the cam going offline
                 print("error here "+str(e))
@@ -90,7 +90,7 @@ def readFrames():
                 break
             #reset error
             failedImage = 0
-            b64 = base64.b64encode(sendFrame)
+            b64 = base64.b64encode(image)
             sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
