@@ -42,6 +42,8 @@ def callback(ch, method, properties, body):
     #print(" [x] Received " )
     y = json.loads(body)
     motionCheck(y["cameraName"],y["image"],y["time"])
+    channel.basic_ack(method.delivery_tag)
+    
 
 def motionCheck(name,image,time):
     global cameras
@@ -99,7 +101,7 @@ def motionCheck(name,image,time):
                 if(tc[codeUsed]):
                     tc[code] = randomString(10)
         tc[prevImage] = cvimg
- 
+
             
 
 
@@ -116,7 +118,7 @@ def randomString(stringLength=10):
 channel2.queue_declare(queue='motionAlert')
 
 channel.basic_consume(queue='videoStream',
-                      auto_ack=True,
+                      auto_ack=False,
                       on_message_callback=callback)
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
