@@ -6,8 +6,8 @@ import sendFrame as sf
 import checkFrame as cf
 
 rabbitError = False
-
-
+import os
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 def readConfig():
     global cameraName
     ##Bypass the database
@@ -16,13 +16,15 @@ def readConfig():
     rotation = 0
     blur = 0
 
+
+
 def openCamera():
     global vcap
     try:
         if(not vcap.isOpened()):
-            vcap = cv2.VideoCapture("rtsp://192.168.1.120")
+            vcap = cv2.VideoCapture("rtsp://192.168.1.120", cv2.CAP_FFMPEG)
     except NameError:
-        vcap = cv2.VideoCapture("rtsp://192.168.1.120")
+        vcap = cv2.VideoCapture("rtsp://192.168.1.120", cv2.CAP_FFMPEG)
 
 
 def minute_passed(oldepoch):
@@ -65,7 +67,7 @@ def readFrames():
             #sf.sendFrame(b64,cameraName,broadcastChannel)
             ##Do this on a different thread
             cf.checkFrame("b64", cameraName, frame)
-            cv2.imshow("frame2", frame)
+            # cv2.imshow("frame2", frame)
         
         
 
