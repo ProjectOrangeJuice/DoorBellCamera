@@ -143,16 +143,22 @@ def motionCheck(name,image,camtime):
             tc[countOn] -= 1
             if(tc[countOn] < 0):
                 tc[countOn] = 0
+                tc[imgCount] = 0
+                if(tc[codeUsed]):
+                    sendFrames(tc)
+                else:
+                    tc[heldFrames].clear()
         if(tc[countOn] > int(vals[6])):
+            tc[codeUsed]=True
             print("I've seen motion!")
-            tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":"Motion"})
-            sendFrames(tc)
+            tc[codeUsed] = True
             if(tc[countOn] > int(vals[6])*2):
                 doNew = True
                 tc[countOn] = (int(vals[6])*2)-1
-        else:
-            tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":"Motion"})
-
+       
+        tc[imgCount] += 1
+        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":"Motion"})
+         
         count += 1
         if(doNew):
             tc[prevImage] = gray 
@@ -164,7 +170,9 @@ def sendFrames(tc):
             routing_key='motionAlert',
             body=json.dumps(data))
     tc[heldFrames].clear()
+    tc[codeUsed] = False
     tc[code] = randomString(10)
+    
 
 
 def randomString(stringLength=10):
