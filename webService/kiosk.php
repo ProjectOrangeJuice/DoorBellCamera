@@ -20,7 +20,7 @@ include "include/head.php";
     <script>
         var camName = "test";
         var audio = new Audio('doorbell-1.mp3');
-
+        var skip = false;
         //On page load, decide if the full stream should be selected
         var cip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"
         var fullRez = false;
@@ -84,8 +84,12 @@ include "include/head.php";
                     if (event.data == "PING") {
                         socket.send("PONG")
                     } else {
+                        //skip every other frame to help the pi
+                        if(!skip){
                         decoded = atob(event.data)
                         imgBox.src = "data:image/jpg;base64, " + event.data
+                        }
+                        skip = !skip;
                     }
                 }
             };
