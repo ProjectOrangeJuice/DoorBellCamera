@@ -66,7 +66,17 @@ body {font-size:16px;}
         <button v-on:click="deleteCode(alert.Code)">Delete</button>
         <hr>
       </div>
-  
+  <!-- The Modal -->
+<div id="id01" class="w3-modal">
+  <div class="w3-modal-content">
+    <div class="w3-container">
+      <span onclick="document.getElementById('id01').style.display='none'"
+      class="w3-button w3-display-topright">&times;</span>
+      <video controls :src="videoL" width="100%"></video>
+      <button onclick="document.getElementById('id01').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
 <!-- End page content -->
 </div>
 
