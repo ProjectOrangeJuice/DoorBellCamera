@@ -1,21 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/icza/mjpeg"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/streadway/amqp"
 )
 
 type OutMessage struct {
 	Code string
 }
+
+//DBName is the database file name
+const DBName string = "../motions.db"
 
 func main() {
 
@@ -64,36 +67,49 @@ func main() {
 
 func convert(msg []byte) {
 	var m OutMessage
+	var startTime string
+	var endTime string
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
 
-	aw, err := mjpeg.New(m.Code, 1280, 720, 5)
+	aw, err := mjpeg.New(fmt.Sprintf("videos/%s", m.Code), 1280, 720, 5)
 	failOnError(err, "Setting up video")
 
-	var files []string
-	root := "/home/oharris/Documents/cameraProject/motion/capture"
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		files = append(files, path)
-		return nil
-	})
-	failOnError(err, "Failed to read images")
-	// Create a movie from images: 1.jpg, 2.jpg, ..., 10.jpg
+	db, err := sql.Open("sqlite3", DBName)
+	failOnError(err, "Record failed because of DB error")
 
-	for _, file := range files {
-		if strings.Contains(file, m.Code) {
-			data, err := ioutil.ReadFile(fmt.Sprintf("%s", file))
-			failOnError(err, "Failed reading image")
-			err = aw.AddFrame(data)
-			failOnError(err, "failed to add frame")
-			err = os.Remove(file)
-			failOnError(err, "Failed to remove image")
-			log.Printf("Added.. %s", file)
+	rows, err := db.Query("select location,time from motion where motionCode = ?", m.Code)
+	failOnError(err, "prep failed")
+	defer rows.Close()
+	root := "/home/oharris/Documents/cameraProject/motion/"
+	for rows.Next() {
+		var location string
+		var time string
+		err = rows.Scan(&location, &time)
+		failOnError(err, "Failed to get")
+
+		if startTime == "" {
+			startTime = time
+		} else {
+			endTime = time
 		}
-		log.Printf("File we looked at.. %s", file)
-	}
 
+		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", root, location))
+		failOnError(err, "Failed reading image")
+		err = aw.AddFrame(data)
+		failOnError(err, "failed to add frame")
+		err = os.Remove(fmt.Sprintf("%s/%s", root, location))
+		failOnError(err, "Failed to remove image")
+		log.Printf("Added.. %s", fmt.Sprintf("%s/%s", root, location))
+
+	}
 	err = aw.Close()
 	failOnError(err, "Error closing")
+	log.Printf("Start time %s and end time %s", startTime, endTime)
+
+}
+
+func addToDatabase(code string, start string, end string) {
 
 }
 
