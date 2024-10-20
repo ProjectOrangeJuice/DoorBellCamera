@@ -104,7 +104,7 @@ include "include/head.php";
                         <td></td>
 
                     </tr>
-                    <tr v-for="zone in zoneInfo">
+                    <tr v-for="(zone,index) in zoneInfo">
                         <td> <input class="form-control" v-model.number="zone.x1"></td>
                         <td> <input class="form-control" v-model.number="zone.y1"></td>
                         <td> <input class="form-control" v-model.number="zone.x2"></td>
@@ -113,7 +113,7 @@ include "include/head.php";
                         <td> <input class="form-control" v-model.number="zone.minCount"></td>
                         <td> <input class="form-control" v-model.number="zone.boxJump"></td>
                         <td> <input class="form-control" v-model.number="zone.smallAmount"></td>
-                        <td><button class="w3-button w3-red">Delete</button></td>
+                        <td><button class="w3-button w3-red" v-on:click="deleteZone(index)">Delete</button></td>
                     </tr>
 
 
@@ -191,6 +191,10 @@ include "include/head.php";
                         } catch (err) {}
                         this.displayVideo();
                         this.getSettings();
+                    },
+                    deleteZone(index) {
+                        this.zones.splice(index, 1);
+                        this.zoneInfo.splice(index, 1);
                     },
 
 
@@ -271,13 +275,13 @@ include "include/head.php";
                                         self.zones.push({
                                             startX: z.X1,
                                             startY: z.Y1,
-                                            w: z.X2 - z.X1,
-                                            h: z.Y2 - z.Y1,
+                                            w: ((z.X2 - z.X1) / 2.56),
+                                            h: ((z.Y2 - z.Y1) / 2.4),
                                             dragTL: false,
                                             dragBL: false,
                                             dragTR: false,
                                             dragBR: false,
-                                        })
+                                        });
                                         self.zoneInfo.push({
                                             x1: z.X1,
                                             y1: z.Y1,
@@ -414,8 +418,9 @@ include "include/head.php";
 
                             self.zoneInfo[index].x1 = rect.startX;
                             self.zoneInfo[index].y1 = rect.startY;
-                            self.zoneInfo[index].x2 = rect.startX + rect.w;
-                            self.zoneInfo[index].y2 = rect.startY + rect.h;
+                            //2.56 and 2.4 is the scale factor
+                            self.zoneInfo[index].x2 = Math.round(rect.startX + (rect.w * 2.56));
+                            self.zoneInfo[index].y2 = Math.round(rect.startY + (rect.h * 2.4));
 
                         });
                     },

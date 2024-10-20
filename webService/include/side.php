@@ -6,7 +6,7 @@
   </div>
   <div class="w3-bar-block">
     <?php
-    $sides = [["Home", "/"], ["Motion", "/motion.php"], ["Settings", "/config.php"]];
+    $sides = [["Home", "/"], ["Motion", "/motion.php"], ["Settings", "/settings.php"]];
     $i = 0;
     foreach ($sides as $side) {
 
