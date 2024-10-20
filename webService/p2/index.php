@@ -20,7 +20,7 @@ include "include/head.php";
         <div class="w3-row-padding" id="app">
             <div v-for="camera in cameras">
                 <div class="w3-col" style="width:220px">
-                    <img width="200px" height="112px" v-bind:id="camera.Name+'CAMERA'">
+                    <a v-bind:href="'/live.php?camera='+camera.Name"> <img width="200px" height="112px" v-bind:id="camera.Name+'CAMERA'"></a>
                     <div v-bind:id="camera.Name+'ERROR'"></div>
                     <button class="w3-button w3-green">Settings</button>
                 </div>
