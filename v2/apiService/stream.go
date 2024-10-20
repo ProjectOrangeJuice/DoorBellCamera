@@ -58,7 +58,7 @@ func sendVideo(cam string, ws *websocket.Conn) {
 			image, _, err := image.Decode(bytes.NewReader(sDec))
 
 			buf := new(bytes.Buffer)
-			err = jpeg.Encode(buf, image, &jpeg.Options{10})
+			err = jpeg.Encode(buf, image, &jpeg.Options{15})
 			send_s3 := buf.Bytes()
 
 			sEnc := b64.StdEncoding.EncodeToString([]byte(send_s3))
