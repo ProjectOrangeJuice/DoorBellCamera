@@ -37,6 +37,22 @@ func getVideo(w http.ResponseWriter, r *http.Request) {
 	go sendVideo(cam, ws)
 }
 
+//Socket handler
+func getMotionWatch(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
+
+	go motionWatch("", ws)
+}
+
+//Socket handler
+func getDoor(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
+	// register client
+	go doorWatch("", ws)
+}
+
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn) {
 	log.Printf("Setting up connection for %s", cam)
