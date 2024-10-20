@@ -94,7 +94,7 @@ func getMotion(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		params := mux.Vars(r)
 		logger.Printf("Get video for %s, requested %s", r.RemoteAddr, params["code"])
-		http.ServeFile(w, r, fmt.Sprintf("/go/log/motion/videos/%s.mp4", params["code"]))
+		http.ServeFile(w, r, fmt.Sprintf("/go/log/motion/motion/videos/%s.mp4", params["code"]))
 	} else if r.Method == "DELETE" {
 		delMotion(w, r)
 	}

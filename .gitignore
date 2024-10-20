@@ -12,3 +12,4 @@ nginx-portable-master
 serviceAccountKey.json
 *.mp4
 *.restore
+/docker/api-data
