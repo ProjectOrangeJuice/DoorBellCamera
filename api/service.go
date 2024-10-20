@@ -4,16 +4,26 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
 )
 
 var connect *amqp.Connection
-const server =  "amqp://guest:guest@192.168.1.126:30188/"
+var client *redis.Client
+
+const server = "amqp://guest:guest@192.168.1.126:30188/"
+
 func main() {
 	var err error
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
+
+	client = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
 	router := mux.NewRouter()
 	router.HandleFunc("/login", signin).Methods("POST", "OPTIONS")
