@@ -34,7 +34,7 @@ type Message struct {
 	Code   string
 	Count  int
 	Name   string
-	Blocks [][]int
+	Blocks string
 }
 
 type outMessage struct {
