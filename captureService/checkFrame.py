@@ -143,6 +143,10 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
                 settings.codeUsed = True
                 if(settings.buffer != 999):
                     settings.buffer = 998
+            else:
+                settings.codeUsed = True
+                settings.buffer = 999 # Stop sending buffer frames (as it already is) and send the motions
+                settings.bufferUse = False
         if(settings.countOn[count] < 1):
             settings.countOn[count] = 0
             boxNoMove = 0
