@@ -20,6 +20,8 @@ def minute_passed(oldepoch):
 def m( event, x, y,flag,param):
     print("Mouse.. "+str(x)+" - "+str(y))
 
+roi = [[0,70,900,1200]]
+sm = [0]
 # Capturing video 
 video = cv2.VideoCapture("rtsp://admin:admin@192.168.1.120/11")
 timepass = time.time()
@@ -39,7 +41,7 @@ while True:
     # so that change can be find easily 
     gray = cv2.GaussianBlur(gray, (21, 21), 0) 
     if(minute_passed(timepass)):
-        static_back = None
+        #static_back = None
         timepass = time.time()
     # In first iteration we assign the value  
     # of static_back to our first frame 
@@ -47,35 +49,49 @@ while True:
         static_back = gray 
         continue
     
-
+    count = 0
+    for vals in roi:
+        
+        ##crop roi
+        static_backt = static_back[vals[0]:vals[1],vals[2]:vals[3]]
+        grayt = gray[vals[0]:vals[1],vals[2]:vals[3]]
+        # Difference between static background  
+        # and current frame(which is GaussianBlur) 
+        diff_frame = cv2.absdiff(static_backt, grayt) 
     
-    ##crop roi
-    static_backt = static_back[40:220,168:384]
-    grayt = gray[40:220,168:384]
-    # Difference between static background  
-    # and current frame(which is GaussianBlur) 
-    diff_frame = cv2.absdiff(static_backt, grayt) 
-  
-    # If change in between static background and 
-    # current frame is greater than 30 it will show white color(255) 
-    thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1] 
-    thresh_frame = cv2.dilate(thresh_frame, None, iterations = 2) 
-  
-    # Finding contour of moving object 
-    (_, cnts, _) = cv2.findContours(thresh_frame.copy(),  
-                       cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
-  
-    for contour in cnts: 
-        if cv2.contourArea(contour) < 500: 
-            continue
-        motion = 1
-  
-        (x, y, w, h) = cv2.boundingRect(contour) 
-        # making green rectangle arround the moving object 
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3) 
-  
-    # Appending status of motion 
-    motion_list.append(motion) 
+        # If change in between static background and 
+        # current frame is greater than 30 it will show white color(255) 
+        thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1] 
+        thresh_frame = cv2.dilate(thresh_frame, None, iterations = 2) 
+    
+        # Finding contour of moving object 
+        (_, cnts, _) = cv2.findContours(thresh_frame.copy(),  
+                        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+    
+        for contour in cnts: 
+            if cv2.contourArea(contour) < 500: 
+                continue
+            motion = 1
+        
+       
+            (x, y, w, h) = cv2.boundingRect(contour) 
+            # making green rectangle arround the moving object 
+            x = x + vals[2]
+            y = y + vals[0]
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3) 
+       
+        # Appending status of motion 
+        motion_list.append(motion) 
+        if(motion == 1):
+            sm[count] += 1
+        else:
+            sm[count] -= 1
+            if(sm[count] < 0):
+                sm[count] = 0
+        if(sm[count]>5):
+            print("I've seen motion!")
+            sm[count] = 5
+        count += 1
   
   
     # Displaying the black and white image in which if 
@@ -87,7 +103,7 @@ while True:
     
     # Displaying color frame with contour of motion of object 
     cv2.imshow("Color Frame", frame) 
-    cv2.setMouseCallback("Color Frame",m)
+    #cv2.setMouseCallback("Color Frame",m)
   
     key = cv2.waitKey(1) 
     # if q entered whole process will stop 
