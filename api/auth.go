@@ -191,7 +191,7 @@ func auth(h http.Handler) http.Handler {
 			if err != nil {
 				if err == http.ErrNoCookie {
 					// If the cookie is not set, return an unauthorized status
-					logger.Printf("Access unauthorised for %s", r.RemoteAddr)
+					//logger.Printf("Access unauthorised for %s", r.RemoteAddr)
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
