@@ -30,8 +30,8 @@ func getNextSet(w http.ResponseWriter, r *http.Request) {
 	collection := conn.Collection("video")
 	findOptions := options.Find()
 	// Sort by
-	findOptions.SetSort(bson.D{{"start", -1}})
-	findOptions.SetLimit(5)
+	findOptions.SetSort(bson.D{{"stamp", -1}})
+	findOptions.SetLimit(2)
 
 	// Skip the ones we've seen
 	last, ok := params["last"]
@@ -41,8 +41,18 @@ func getNextSet(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Failed to convert string(%s) to int64 - %v", last, err)
 		}
-		filter = bson.M{
-			"stamp": bson.M{"$gt": n},
+		vals := r.URL.Query()
+		_, ok := vals["rev"]
+		if ok {
+			fmt.Printf("Doing GTE than %v\n", n)
+			filter = bson.M{
+				"stamp": bson.M{"$gte": n},
+			}
+		} else {
+			fmt.Printf("Doing LTE than %v\n", n)
+			filter = bson.M{
+				"stamp": bson.M{"$lte": n},
+			}
 		}
 	}
 
