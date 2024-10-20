@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/streadway/amqp"
 )
 
@@ -38,7 +40,7 @@ func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 }
 
 func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.Channel) {
-
+	log.Printf("I'm going to listen to %s with %s", name, routing)
 	ch, err := connect.Channel()
 	failOnError(err, "Failed to open a channel")
 	err = ch.ExchangeDeclare(
