@@ -84,7 +84,7 @@ func readyAndListen() {
 }
 
 func createTimer() {
-	timer := time.NewTimer(10 * time.Second)
+	timer := time.NewTimer(30 * time.Second)
 	go func() {
 		<-timer.C
 		//log.Printf("Timer is over")
