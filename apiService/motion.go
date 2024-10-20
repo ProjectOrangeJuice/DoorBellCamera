@@ -133,6 +133,39 @@ func getMotion24(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func get24(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	log.Print("get motion")
+	camName := params["cam"]
+	t := time.Now()
+	t = t.Add(time.Duration(-24) * time.Hour)
+	stamp := t.Unix()
+	log.Printf("stamp used is %v", strconv.FormatInt(stamp, 10))
+	collection := conn.Collection("video")
+	filter := bson.M{
+		"start": bson.M{"$gt": strconv.FormatInt(stamp, 10)},
+		"name":  camName,
+	}
+
+	findOptions := options.Find()
+	// Sort by
+	findOptions.SetSort(bson.D{{"start", -1}})
+
+	cur, err := collection.Find(context.TODO(), filter, findOptions)
+	failOnError(err, "Failed to get video records")
+
+	var records []videoRecord
+	for cur.Next(context.TODO()) {
+		var record videoRecord
+		err := cur.Decode(&record)
+		failOnError(err, "Failed to decode record")
+		records = append(records, record)
+	}
+
+	json.NewEncoder(w).Encode(records)
+
+}
+
 const videoLoc = "/storeDrive/videos"
 
 func getMotion(w http.ResponseWriter, r *http.Request) {
