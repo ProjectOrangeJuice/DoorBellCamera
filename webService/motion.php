@@ -135,6 +135,9 @@ include "include/head.php";
             <div class="">
                 <button v-on:click="deleteSelected" class="w3-red w3-button">Delete selected</button>
                 <button v-on:click="deleteAll" class="w3-red w3-button">Delete All</button>
+            
+                <button v-on:click="cleanBacklog" class="w3-red w3-button">Clear all over 1 month</button>
+       
             </div>
         </div>
 
@@ -265,6 +268,22 @@ include "include/head.php";
                         .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/information")
                         .then(response => {
                             this.camNames = response.data;
+                        })
+                        .catch(response => {
+                            console.log("Error " + response);
+                        });
+
+                },
+
+                cleanBacklog() {
+                    axios
+                        .delete("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/clean")
+                        .then(response => {
+                            if (this.timeClick) {
+                                this.updateMotion()
+                            } else {
+                                this.display24();
+                            }
                         })
                         .catch(response => {
                             console.log("Error " + response);

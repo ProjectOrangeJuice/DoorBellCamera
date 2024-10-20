@@ -83,6 +83,7 @@ func readyAndListen() {
 
 	//log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
+	log.Printf("ReadyAndListen has stopped. I think my connection is over")
 }
 
 func createTimer() {
