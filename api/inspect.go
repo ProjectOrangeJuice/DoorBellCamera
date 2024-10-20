@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,8 +22,10 @@ type inspectS struct {
 func getImage(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	db, err := sql.Open("sqlite3", DBName)
+	location := "/mnt/shared/motion/capture/" + params["location"]
+	log.Printf("Location given is %s", location)
 	failOnError(err, "Record failed because of DB error")
-	cmd := fmt.Sprintf("select reason from motion WHERE location = %s", params["location"])
+	cmd := fmt.Sprintf("select reason from motion WHERE location = '%s'", location)
 	rows, err := db.Query(cmd)
 	failOnError(err, "prep failed")
 	defer rows.Close()
@@ -35,7 +38,7 @@ func getImage(w http.ResponseWriter, r *http.Request) {
 	err = rows.Scan(&reason)
 	failOnError(err, "Failed to get")
 
-	dat, err := ioutil.ReadFile(params["location"])
+	dat, err := ioutil.ReadFile(location)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logger.Printf("Inspect failed for %s with error %s", params["location"], err)

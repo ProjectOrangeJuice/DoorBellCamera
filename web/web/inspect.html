@@ -20,7 +20,7 @@
 
     <script>
       function loadThis() {
-        img = 0
+        imgnum = 1
         img = document.getElementById('curImg');
         var xhttp = new XMLHttpRequest();
         xhttp.withCredentials = true;
@@ -35,7 +35,7 @@
 
           }
         };
-        xhttp.open("GET", "http://localhost:8000/s/inspect/" + encodeURI("/mnt/shared/motion/capture/{{.Code}}-" + img + ".jpg"), true);
+        xhttp.open("GET", "http://localhost:8000/s/inspect/" + encodeURI("{{.Code}}-" + imgnum + ".jpg"), true);
         xhttp.send();
       }
 
