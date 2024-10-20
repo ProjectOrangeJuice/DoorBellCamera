@@ -2,6 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -11,12 +15,14 @@ import (
 
 //DBName is the database file name
 const DBName string = "./motions.db"
+const CaptureLocation string = "capture/"
 
 //Message is the JSON message format
 type Message struct {
 	Image string
 	Time  string
 	Code  string
+	Count int
 }
 
 func main() {
@@ -30,7 +36,7 @@ func main() {
 }
 
 func readyAndListen() {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -72,7 +78,37 @@ func readyAndListen() {
 }
 
 func decodeMessage(d []byte) {
+	var m Message
+	err := json.Unmarshal(d, &m)
+	failOnError(err, "Json decode error")
+	storeImage(m)
 
+}
+
+func recordDb(msg Message, loc string) {
+
+	db, err := sql.Open("sqlite3", DBName)
+	failOnError(err, "Record failed because of DB error")
+	tx, err := db.Begin()
+	failOnError(err, "Failed to begin on record")
+	stmt, err := tx.Prepare("insert into motion(motionCode, location,time) values(?,?,?)")
+	failOnError(err, "Record sql prep failed")
+	defer stmt.Close()
+	_, err = stmt.Exec(msg.Code, loc, msg.Time)
+	failOnError(err, "Record could not insert")
+	tx.Commit()
+	log.Printf("Saved to db")
+}
+
+func storeImage(msg Message) {
+	//convert base64
+	bImage, err := base64.StdEncoding.DecodeString(msg.Image)
+	failOnError(err, "Base64 error")
+	location := fmt.Sprintf("%s/%s-%b.jpg", CaptureLocation, msg.Code, msg.Count)
+	err2 := ioutil.WriteFile(location, bImage, 0644)
+	failOnError(err2, "Error writing image")
+	log.Printf("Stored image %s", location)
+	recordDb(msg, location)
 }
 
 func createDatabase() {
