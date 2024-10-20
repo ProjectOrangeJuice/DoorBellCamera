@@ -1,30 +1,101 @@
 {{ define "camConf" }}
 
+<div class="w3-row-padding w3-margin-bottom edit" id="cam" style="display:none">
+
+<p>Get cams config</p>
+<input type="text" class="w3-input" id="camName">
+<button class="w3-button w3-green" onclick="getCam()">Get</button>
+  <form id="setCam">
+    <p>
+      <label>Server address</label>
+      <input class="w3-input" type="text" name="serverAddress" id="csa"></p>
+    <p>
+      <label>Server port</label>
+      <input class="w3-input" type="number" name="serverPort" id="csp"></p>
+    <p>
+      <label>Camera address</label>
+      <input class="w3-input" type="number" name="serverPort" id="caddr"></p>
+    <p>
+      <label>FPS</label>
+      <input class="w3-input" type="number" name="serverPort" id="cfps"></p>
+    <p>
+      <label>Live Rotate</label>
+      <input class="w3-input" type="text" name="threshold" id="clrot"></p>
+    <p>
+      <label>Threshold</label>
+      <i> eg [80,70]</i>
+      <input class="w3-input" type="text" name="threshold" id="cth"></p>
+    <p>
+      <label>Min count</label>
+      <input class="w3-input" type="number" name="minCount" id="cmin"></p>
+
+    <p>
+      <p>
+        <label>Motion blur</label>
+        <input class="w3-input" type="text" name="threshold" id="cmblur"></p>
+
+      <p>
+        <label>Motion Rotate</label>
+        <input class="w3-input" type="text" name="threshold" id="cmrot"></p>
+      <h3>Helpful setup</h3>
+      <p>
+        <label>Blur amount</label>
+        <input class="w3-input" type="number" name="minCount" id="hcblur"></p>
+
+      <button class="w3-button w3-green" type="submit">Save</button>
+  </form>
+</div>
+
+<script>
+  function getCam() {
+    name = $("#camName").val()
+    var jsonT;
+    var xhttp = new XMLHttpRequest();
+    xhttp.withCredentials = true;
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        jsont = JSON.parse(this.responseText)
+        console.log(jsont)
+        $("#csa").val(jsont["serverAddress"])
+        $("#csp").val(jsont["serverPort"])
+        $("#caddr").val(jsont["camAddress"])
+        $("#cfps").val(jsont["fps"])
+        $("#clrot").val(jsont["liveRotation"])
+        $("#cmrot").val(jsont["motionRotation"])
+        $("#hcblur").val(jsont["helpBlur"])
+        $("#cmblur").val(jsont["motionBlur"])
+
+        $("#cth").val(jsont["threshold"])
+        $("#cmin").val(jsont["minCount"])
+
+      }
+    };
+    xhttp.open("GET", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+    xhttp.send();
+  }
 
 
-<div class="w3-row-padding w3-margin-bottom edit"  id ="cam" style="display:none">
-        <form id="set">
-          <p>
-            <label>Server address</label>
-            <input class="w3-input" type="text" name="serverAddress" id="sa"></p>
-          <p>
-            <label>Server port</label>
-            <input class="w3-input" type="number" name="serverPort" id="sp"></p>
-          <p>
-            <label>Rotate</label>
-            <i> eg [80,70]</i>
-            <input class="w3-input" type="text" name="threshold" id="th"></p>
-            <h3>Helpful setup</h3>
-            <p>
-                <label>Blur amount</label>
-                <input class="w3-input" type="number" name="minCount" id="min"></p>
-             
-                <button class="w3-button w3-green" type="submit">Save</button>
-        </form>
-      </div>
 
-      <script>
-       
-          </script>
+  $("#setCam").on("submit", function () {
+    event.preventDefault();
+    var dataJson = JSON.stringify({
+      "serverAddress": $("#csa").val(), "serverPort": $("#csp").val(),"camAddress": $("#caddr").val(),
+      "threshold": $("#cth").val(), "minCount": $("#cmin").val(),"fps": $("#cfps").val(),
+      "liveRotation": $("#clrot").val(),"motionRotation": $("#cmrot").val(),"helpBlur": $("#hcblur").val(),
+      "motionBlur": $("#cmblur").val()
+    })
+    var xhttp = new XMLHttpRequest();
+    xhttp.withCredentials = true;
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+
+      }
+    };
+    xhttp.open("POST", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+    xhttp.send(dataJson);
+
+  });
+
+</script>
 
 {{ end }}
