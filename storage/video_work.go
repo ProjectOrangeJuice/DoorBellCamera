@@ -73,7 +73,7 @@ func makeVideo(code string, name string) {
 		}
 		fr = append(fr, record.Location)
 	}
-	st := "images/" + code + "-%03d.jpg"
+	st := "images/" + code + "-%13d.jpg"
 	output, err := exec.Command("ffmpeg", "-framerate", fmt.Sprintf("%d", (settings.FPS)), "-i", st, fmt.Sprintf("%s/%s.mp4", videoFolder, code)).Output()
 	log.Println(output)
 	failOnError(err, "c")

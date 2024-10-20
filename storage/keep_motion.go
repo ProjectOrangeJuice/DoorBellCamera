@@ -181,7 +181,7 @@ func storeImage(msg Message) {
 	//convert base64
 	bImage, err := base64.StdEncoding.DecodeString(msg.Image)
 	failOnError(err, "Base64 error")
-	location := fmt.Sprintf("%s/%s-%03d.jpg", CaptureLocation, msg.Code, msg.Count)
+	location := fmt.Sprintf("%s/%s-%13d.jpg", CaptureLocation, msg.Code, msg.Count)
 	err = ioutil.WriteFile(location, bImage, 0644)
 	failOnError(err, "Error writing image")
 	//log.Printf("Stored image %s", location)
