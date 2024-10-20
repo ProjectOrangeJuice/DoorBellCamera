@@ -16,10 +16,12 @@ var templates *template.Template
 func main() {
 	//Initiate templates
 	var err error
-	templates, err = template.ParseFiles("web/index.html", "web/other.html")
+	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
+		"web/templates/side.html")
 	failOnError(err, "Failed to read templates")
 
 	router := mux.NewRouter()
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))))
 	router.HandleFunc("/", index).Methods("GET")
 	router.HandleFunc("/o", other).Methods("GET")
 
