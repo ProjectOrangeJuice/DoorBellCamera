@@ -1,6 +1,6 @@
 <?php
 $title = "Watching " . $_GET["camera"];
-$current = 1;
+$current = -1;
 
 include "include/head.php";
 ?>
