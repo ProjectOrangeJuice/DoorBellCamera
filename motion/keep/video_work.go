@@ -41,7 +41,6 @@ func makeVideo(code string, name string) {
 				spr := strings.Split(reasons, ",")
 				found := false
 				for _, v2 := range spr {
-					log.Printf("Checking if %s is %s", v2, v)
 					if v2 == v {
 						found = true
 					}
