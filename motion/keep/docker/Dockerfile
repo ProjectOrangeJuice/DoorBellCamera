@@ -13,7 +13,7 @@ RUN go build *.go
 
 FROM denismakogon/gocv-alpine:4.0.1-runtime
 
-COPY --from=build-stage /keep_motion /keep_motion
+COPY --from=build-stage /go/keep_motion /keep_motion
 
 
 CMD ["./keep_motion"]
