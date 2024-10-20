@@ -62,14 +62,20 @@ try:
                 readConfig()
             #For fps
             time_elapsed = time.time() - prev
-            try:
-                ret, frame = vcap.read()
-            except:
-                #Error with frame, try again.
-                print("Error with frame")
-                continue
             if(time_elapsed > 1./delay):
-                frame = rotateImage(frame,int(rotation))
+                try:
+                    ret, frame = vcap.read()
+                except:
+                    #Error with frame, try again.
+                    print("Error with frame")
+                    continue
+                
+                if(int(rotation) > 0):
+                    try:
+                        frame = rotateImage(frame,int(rotation))
+                    except AttributeError:
+                        print("An image failed")
+                        break
                 bval = int(blur)
                 if(bval > 0):
                     frame = cv2.blur(frame,(bval,bval))
@@ -92,7 +98,10 @@ try:
             
                 prev = time.time()
             else:
-                time.sleep((1./delay)-time_elapsed)
+                #Skip this frame
+                vcap.grab()
+            #else:
+             #   time.sleep((1./delay)-time_elapsed)
         #Delay reconnection attempt
         time.sleep(5)
         vcap = cv2.VideoCapture(streamLocation)
