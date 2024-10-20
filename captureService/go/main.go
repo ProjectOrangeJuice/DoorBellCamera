@@ -21,7 +21,7 @@ func main() {
 	go liveStreamPush()
 	go motionStreamPush()
 	in := make(chan inputImage)
-	s := settings{}
+	s := genTestSetting()
 	go checkMotion(in, liveStream, &s)
 	//Open video
 	video, err := gocv.OpenVideoCapture("/home/oharris/t.mp4")

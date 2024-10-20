@@ -23,3 +23,11 @@ type zone struct {
 	SmallIgnore int
 	Area        int
 }
+
+func genTestSetting() settings {
+	z := zone{10, 10, 500, 500, 20, 30, 2, 500}
+	zo := make([]zone, 1)
+	zo[0] = z
+	s := settings{"test", "", 5, 3, true, 21, true, 5, 5, 3, zo}
+	return s
+}
