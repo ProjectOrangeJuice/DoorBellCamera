@@ -71,7 +71,7 @@ body {font-size:16px;}
     <div class="w3-container">
       <span onclick="document.getElementById('id01').style.display='none'"
       class="w3-button w3-display-topright">&times;</span>
-      <video controls :src="videoL"></video>
+      <video controls :src="videoL" width="100%"></video>
       <button onclick="document.getElementById('id01').style.display='none'">Close</button>
     </div>
   </div>
