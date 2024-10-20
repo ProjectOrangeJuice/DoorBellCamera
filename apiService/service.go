@@ -44,6 +44,8 @@ func main() {
 	router.HandleFunc("/motion/{code}", getMotion).Methods("GET")
 	router.HandleFunc("/motion/{code}", deleteMotion).Methods("DELETE")
 
+	router.HandleFunc("/information", getInformation).Methods("GET")
+
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),
 		handlers.AllowedOrigins([]string{"*"}),
