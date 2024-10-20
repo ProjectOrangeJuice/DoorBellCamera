@@ -48,10 +48,12 @@ readConfig()
 def getCamera(name):
     l = "motion:camera:"+name
     if(r.exists(l)>0):
+        redisThres = r.hget(l,"threshold")
+        redisThres = redisThres.replace("`","\"")
         if name not in cameras:
-            cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
+            cameras[name] = [0, 0, [], json.loads(redisThres), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
         else:
-            cameras[name] = [cameras[name][0], cameras[name][1],cameras[name][2], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), cameras[name][5], cameras[name][6], cameras[name][7],cameras[name][8], r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
+            cameras[name] = [cameras[name][0], cameras[name][1],cameras[name][2], json.loads(redisThres), r.hget(l,"minCount"), cameras[name][5], cameras[name][6], cameras[name][7],cameras[name][8], r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
     
     else:
         cameras[name] = [0, 0, [], dt, dmin, "", False, None,0,0,0]
@@ -135,6 +137,7 @@ def motionCheck(name,image,camtime):
                 continue
             motion = True
         if(motion):
+            print("i saw something in section "+str(vals[7]))
             tc[countOn] += 1
         else:
             tc[countOn] -= 1

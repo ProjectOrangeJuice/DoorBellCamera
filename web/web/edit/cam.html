@@ -55,6 +55,7 @@
           <td>Threshold</td>
           <td>Area</td>
           <td>Min count</td>
+          <td>Block name</td>
           <td>Delete</td>
         </tr>
       </thead>
@@ -109,6 +110,7 @@
         var newCell3 = newRow.insertCell(3);
         var newCell4 = newRow.insertCell(4);
         var newCell5 = newRow.insertCell(5);
+        var newCell6 = newRow.insertCell(6);
 
         var ni = document.createElement("input")
         ni.value =  firstClick[1] + "," + Math.round(Y) 
@@ -128,13 +130,16 @@
         var ni = document.createElement("input")
         newCell4.appendChild(ni)
 
+        var ni = document.createElement("input")
+        newCell5.appendChild(ni)
+
         var a = document.createElement("button")
         a.innerHTML = "Delete"
         a.addEventListener("click", function () {
           newRow.remove()
         });
 
-        newCell5.appendChild(a)
+        newCell6.appendChild(a)
         firstClick = []
       }
 
@@ -155,7 +160,8 @@
       t = cols[2].getElementsByTagName("input")[0].value
       are = cols[3].getElementsByTagName("input")[0].value
       min = cols[4].getElementsByTagName("input")[0].value
-      temp.push(x, y, t, are, min)
+      block = "`"+cols[5].getElementsByTagName("input")[0].value+"`"
+      temp.push(x, y, t, are, min,block)
       console.log("Temp is "+temp)
       per.push(temp)
       console.log("Per after push is "+per)
@@ -202,6 +208,9 @@
 
 
         te = jsont["threshold"]
+        te = jsont["threshold"].replace(/\`/g, "\"")
+     
+        console.log(te)
         tj = JSON.parse(te)
         var tableRef = document.getElementById('tvals').getElementsByTagName('tbody')[0];
         tj.forEach(element => {
@@ -215,6 +224,7 @@
           var newCell3 = newRow.insertCell(3);
           var newCell4 = newRow.insertCell(4);
           var newCell5 = newRow.insertCell(5);
+          var newCell6 = newRow.insertCell(6);
 
           var ni = document.createElement("input")
           ni.value = element[0]+","+element[1]
@@ -235,6 +245,10 @@
           var ni = document.createElement("input")
           ni.value = element[6]
           newCell4.appendChild(ni)
+
+          var ni = document.createElement("input")
+          ni.value = element[7]
+          newCell5.appendChild(ni)
 
           var a = document.createElement("button")
           a.innerHTML = "Delete"
