@@ -1,6 +1,6 @@
 {{ define "camConf" }}
 
-<div class="w3-row-padding w3-margin-bottom edit" id="cam" style="display:none">
+<div class="w3-row-padding w3-margin-bottom edit" id="accounts" style="display:none">
 
  
   <form id="makeUser">
@@ -23,7 +23,7 @@
 <script>
 
 
-  $("#setCam").on("submit", function () {
+  $("#makeUser").on("submit", function () {
     event.preventDefault();
     var dataJson = JSON.stringify({
       "user": $("#cuser").val(), "password": $("#cpass").val()
@@ -33,7 +33,7 @@
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
         showNote("Saved!")
-      }else{
+      }else if (this.status == 409){
         alert("The username is already used")
       }
     };

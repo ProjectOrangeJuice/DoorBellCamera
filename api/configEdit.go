@@ -67,7 +67,7 @@ func makeUser(w http.ResponseWriter, r *http.Request) {
 	failOnError(err, "Database opening error")
 	defer db.Close()
 	sqlStatement := `INSERT INTO public.accounts ("user", password)
-	SELECT $1,$1
+	SELECT $1,$2
 	WHERE
 	NOT EXISTS ( SELECT user FROM public.accounts WHERE "user"=$1);
 	`
