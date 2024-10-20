@@ -8,6 +8,10 @@ import random
 import string
 import threading
 
+import redis
+import time
+r = redis.Redis(decode_responses=True)
+
 cameras = {}
 countOn = 0
 heldFrames = 2
@@ -19,26 +23,32 @@ codeUsed = 6
 prevImage = 7
 imgCount = 8
 
+timeupdate = time.time()
+
 def readConfig():
     global serverAddress,serverPort,dt,dmin
-    namesUpdated = []
-    with open("config/cConfig.json") as jf:
-        data = json.load(jf)
-        serverAddress = data["serverAddress"]
-        serverPort = data["serverPort"]
-        dt = data["threshold"]
-        dmin = data["minCount"]
-        for cam in data["cameras"]:
-            cameras[cam["name"]] = [0, 0, [], cam["threshold"], cam["minCount"], "", False, None, 0]
-            namesUpdated.append(cam["name"])
-        for cam in cameras:
-            if not(cam in namesUpdated):
-                print("Camera using defaults, updating..")
-                cameras[cam] = [cameras[cam][0], cameras[cam][1], cameras[cam][2], dt, dmin, cameras[cam][5], cameras[cam][6], cameras[cam][7], cameras[cam][8]]
-
-
+    serverAddress = str(r.hget("config:motion","serverAddress"))
+    print("Address "+serverAddress)
+    serverPort = r.hget("config:motion","serverPort")
+    dt = json.loads(r.hget("config:motion","threshold"))
+    dmin = r.hget("config:motion","minCount")
+    for cam in cameras:
+        getCamera(cam["name"])
+  
 readConfig()
 
+def minute_passed(oldepoch):
+    print("Value of passed "+str(time.time() - oldepoch))
+    return time.time() - oldepoch >= 60
+ 
+def getCamera(name):
+    l = "motion:camera:"+name
+    if(r.exists(l)>0):
+        if name not in cameras:
+            cameras[name] = [0, 0, [], json.loads(r.hget(l,"threshold")), r.hget(l,"minCount"), "", False, None,0]
+    else:
+        cameras[name] = [0, 0, [], dt, dmin, "", False, None,0]
+    return cameras[name]
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
 channel = connection.channel()
@@ -53,16 +63,18 @@ def callback(ch, method, properties, body):
     channel.basic_ack(method.delivery_tag)
     
 
-def motionCheck(name,image,time):
-    global cameras
-
+def motionCheck(name,image,camtime):
+    global cameras,timeupdate
+    if(minute_passed(timeupdate)):
+        print("Rereading config")
+        timeupdate = time.time()
+        readConfig()
     if name in cameras:
         tc = cameras.get(name)
     else:
         #countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage
-        cameras[name] = [0, 0, [], dt, dmin, "", False, None,0]
-        tc = cameras.get(name)
-
+        #cameras[name] = [0, 0, [], dt, dmin, "", False, None,0]
+        tc = getCamera(name)
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
     cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
     kernel = np.ones((2,2),np.float32)/25
@@ -132,51 +144,12 @@ def motionCheck(name,image,time):
             #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
            # tc[countOn] -= 1
 
-        tc[heldFrames].append({"time":time,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":totals})
+        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":totals})
 
        
 
 
     tc[prevImage] = newImage
-
-
-def checkUpdateCallback(ch, method, properties, body):
-    print("I got.. "+str(body))
-    j = json.loads(body)
-    if(j["Task"] == "update"):
-        writeConfig(j["Inner"])
-        readConfig()
-    if(j["Task"] == "read"):
-        returnConfig(j["Inner"])
-
-def returnConfig(inner):
-    f=  open("config/cConfig.json", "r")
-    v={"Task":"readResponse","Inner":f.read()}
-    channel3.basic_publish(exchange="config",routing_key="config."+inner,
-    body=json.dumps(v))
-
-def writeConfig(inner):
-    f = open("config/cConfig.json", "w+")
-    f.write(str(inner))
-    f.close()
-
-def checkUpdates():
-    global channel3
-    connection2 = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
-
-    channel3 = connection2.channel()
-    channel3.exchange_declare(exchange='config',exchange_type="topic",durable=False)
-    result = channel3.queue_declare('', exclusive=True)
-    queue_name = result.method.queue
-
-    channel3.queue_bind(
-        exchange='config', queue=queue_name, routing_key="motion.check")
-
-    channel3.basic_consume(queue=queue_name,
-                      auto_ack=True,
-                      on_message_callback=checkUpdateCallback)
-    channel3.start_consuming()
-    print("Finished")
 
 
 
@@ -205,8 +178,7 @@ channel.basic_consume(queue=queue_name,
                       auto_ack=False,
                       on_message_callback=callback)
 
-x = threading.Thread(target=checkUpdates)
-x.start()
+
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()
