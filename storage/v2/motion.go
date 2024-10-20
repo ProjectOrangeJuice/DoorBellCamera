@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 	"io/ioutil"
 	"log"
+	"os/exec"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -47,18 +48,58 @@ func recvMotionImg(buf chan *Buffer) {
 	var s settings
 	doc.Decode(&s)
 
-	db = conn.Collection("motion")
-	for msg := range buf {
-		fmt.Printf("About to write image %s\n", msg.Code)
-		// Store the image
-		location := fmt.Sprintf("%s/%s-%d.jpg", imageLocation, msg.Code, msg.Count)
-		err := ioutil.WriteFile(location, msg.Image, 0644)
-		if err != nil {
-			log.Fatalf("Failed to write image %s", err)
-		}
-		fmt.Println("Written image")
-	}
+	vidStream := make(chan string)
+	go makeVideo(vidStream)
 
+	db = conn.Collection("motion")
+	timer := time.NewTimer(5 * time.Second)
+	codeUsed := ""
+	for {
+		select {
+		case msg := <-buf:
+
+			if codeUsed == "" {
+				codeUsed = msg.Code
+			} else if codeUsed != msg.Code {
+				log.Println("Make video due to new code")
+				vidStream <- codeUsed
+				codeUsed = msg.Code
+			}
+
+			timer.Reset(5 * time.Second)
+			fmt.Printf("About to write image %s\n", msg.Code)
+			// Store the image
+			location := fmt.Sprintf("%s/%s-%d.jpg", imageLocation, msg.Code, msg.Count)
+			err := ioutil.WriteFile(location, msg.Image, 0644)
+			if err != nil {
+				log.Fatalf("Failed to write image %s", err)
+			}
+			fmt.Println("Written image")
+
+		case <-timer.C:
+			// end to last code
+			if codeUsed != "" {
+				vidStream <- codeUsed
+				log.Println("Make video due to timeout")
+				codeUsed = ""
+			}
+			timer.Reset(5 * time.Second)
+		}
+	}
+}
+
+func makeVideo(code chan string) {
+	for vid := range code {
+
+		saveToFull := fmt.Sprintf("%s/%s.mp4", fullVideoLocation, vid)
+		//saveToSmall := fmt.Sprintf("%s/%s.mp4", smallVideoLocation, code)
+		imgs := fmt.Sprintf("%s/%s-*.jpg", imageLocation, vid)
+		fmt.Printf("code: %s imgs: %s\n", vid, imgs)
+		output, err := exec.Command("ffmpeg", "-framerate", "5", "-pattern_type", "glob", "-i", imgs, saveToFull).Output()
+		log.Println(output)
+		failOnError(err, "c")
+
+	}
 }
 
 //ffmpeg images to video
