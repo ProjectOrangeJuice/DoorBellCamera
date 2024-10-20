@@ -14,7 +14,7 @@ countOn = 0
 countOff = 0
 threshold = 50
 minCount = 5
-code = randomString(10)
+code = ""
 codeUsed = False
 
 channel.queue_declare(queue='videoStream')
@@ -24,7 +24,7 @@ def callback(ch, method, properties, body):
     motionCheck(y["image"],y["time"])
 
 def motionCheck(image,time):
-    global code
+    global code, codeUsed
     global countOn,countOff
 
     testHold.counter += 1
@@ -46,10 +46,10 @@ def motionCheck(image,time):
             countOn += 1
             if(countOn > minCount):
                 print("Motion!!!")
-                bodyText = {"time":time,"image":image,"code":code}
+                bodyText = {"time":time,"image":image,"code":code,"count":countOn}
                 channel.basic_publish(exchange='',
                       routing_key='motionAlert',
-                      body=bodyText)
+                      body=json.dumps(bodyText))
                 countOff = 0
                 codeUsed = True
             else:
@@ -58,7 +58,7 @@ def motionCheck(image,time):
             countOff += 1
             if(countOff > minCount):
                 countOn = 0
-                if(codeUSed):
+                if(codeUsed):
                     code = randomString(10)
             print("Nothing")
             
@@ -74,6 +74,7 @@ def randomString(stringLength=10):
     return ''.join(random.choice(letters) for i in range(stringLength))
 
 
+code = randomString(10)
 channel2.queue_declare(queue='motionAlert')
 
 channel.basic_consume(queue='videoStream',
