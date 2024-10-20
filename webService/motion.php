@@ -26,7 +26,7 @@ include "include/head.php";
         display: none;
         position: fixed;
         margin-right: 15px;
-        top: 15%;
+        top: 10%;
         border: 2px solid #FFF;
         background: #FFF;
         z-index: 1002;
@@ -126,6 +126,7 @@ include "include/head.php";
                 <video id="videoPlayer" :src="videoL" width="100%" controls>
                     <!--Browser does not support <video> tag -->
                 </video>
+                <a v-bind:href="videoL">Download video</a>
             </div>
 
 
