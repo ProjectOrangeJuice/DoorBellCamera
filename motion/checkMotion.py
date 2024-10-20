@@ -6,6 +6,7 @@ import testHold
 import base64
 import random
 import string
+import threading
 
 cameras = {}
 countOn = 0
@@ -110,9 +111,20 @@ def motionCheck(name,image,time):
 
     tc[prevImage] = cvimg
 
-            
 
+def checkUpdateCallback(ch, method, properties, body):
+    print(" [x] Received " )
 
+def checkUpdates():
+    connection2 = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
+
+    channel3 = connection2.channel()
+    channel3.queue_declare(queue='config')
+    channel3.basic_consume(queue='config',
+                      auto_ack=True,
+                      on_message_callback=checkUpdateCallback)
+    channel3.start_consuming()
+    print("Finished")
 
 
 
@@ -128,6 +140,9 @@ channel2.queue_declare(queue='motionAlert')
 channel.basic_consume(queue='videoStream',
                       auto_ack=False,
                       on_message_callback=callback)
+
+x = threading.Thread(target=checkUpdates)
+x.start()
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()
