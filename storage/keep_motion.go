@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"time"
@@ -91,6 +92,7 @@ func createTimer() {
 		//log.Printf("Timer is over")
 		for k, v := range camera {
 			if v.prev != "" && v.prev != v.notified && !v.ignoreTimer {
+				log.Println("I've ended due to timeout")
 				v.notified = v.prev
 				notifyQueue(v.prev, k)
 				v.prev = ""
@@ -114,10 +116,11 @@ func decodeMessage(d []byte) {
 	}
 	if m.End {
 		//end of motion, create video
+		log.Println("I've ended as I was sent END")
 		tc := camera[m.Name]
 		go notifyQueue(tc.prev, m.Name)
 		tc.ignoreTimer = true
-		tc.prev = ""
+		tc.notified = m.Code
 		m.End = false
 
 	} else {
