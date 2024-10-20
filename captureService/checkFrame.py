@@ -81,13 +81,17 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
             (x, y, w, h) = cv2.boundingRect(contour)
             x = x + current[2]
             y = y + current[0]
-            newPrev.append([x,y,w,h])
-            (sx,sy) = smallestDif(prevBox,[x,y])
+            (sx,sy,xSeen) = smallestDif(prevBox,[x,y])
+            if(sx < settings.boxJump and sy < settings.boxJump):
+                newPrev.append([x,y,w,h,xSeen])
+            else:
+                newPrev.append([x,y,w,h,0])
+                xSeen = 0
+            txt = "X:"+str(sx)+" Y:"+str(sy)+" Seen "+str(xSeen)
             if (sx > settings.boxJump or sy > settings.boxJump):
                 # ignore this box as it's rain
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,0, 255), 2)
-                (sx,sy) = smallestDif(prevBox,[x,y])
-                cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+                cv2.putText(mimg,txt, (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
                 continue
             elif(cv2.contourArea(contour) > 60000):
                 # ignore this box due to its size
@@ -97,14 +101,13 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
                 motion = True
                 M = cv2.moments(contour)
                 locations.append(M)
-                #pretend debug switch
-                
+                #pretend debug switch              
 
                 
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
                 
-                cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
-
+                cv2.putText(mimg,txt, (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+     
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
 
@@ -227,23 +230,26 @@ def compBoxes(prev,nowBox):
         for item2 in nowBox:
             difx = abs(item2[0] - item[0])
             dify = abs(item2[1] - item[1])
-            difh = abs(item2[2] - item[2])
-            difw = abs(item2[3] - item[3])
-            if(difx < 25 and dify < 25):
+            if(difx < 50 and dify < 50):
                 return True
     return False
+
 
 def smallestDif(prev,cur):
     sx = 99999
     sy = 99999
+    i = None
     for item in prev:       
         difx = abs(cur[0] - item[0])
         dify = abs(cur[1] - item[1])
         if(difx < sx and dify < sy):
             sx = difx
             sy = dify
-           
-    return [sx,sy]
+            i = item
+    cnt = -1
+    if(i != None):
+        cnt = i[4]+2
+    return [sx,sy,cnt]
 
 def rainCheck(prev,cur):
     for item in prev:
