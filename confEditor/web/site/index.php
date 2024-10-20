@@ -24,11 +24,19 @@ include("parts/side.php");
     </header>
 
     <div class="w3-row-padding w3-margin-bottom">
+
+      <div class="w3-panel w3-red" id="alertBox">
+        <h3>Alert!</h3>
+        <p id="alertText"></p>
+      </div>
+
+
+
       <div id="motionBox">
         <table id="motionTable">
           <tbody>
             <tr>
-            <td>Camera</td>
+              <td>Camera</td>
               <td>Code</td>
               <td>Reason</td>
               <td>View</td>
@@ -41,11 +49,11 @@ include("parts/side.php");
         </table>
       </div>
     </div>
-<div id="videoBox">
-  Video will display here.
-</div>
+    <div id="videoBox">
+      Video will display here.
+    </div>
     <script>
-      function setup(){
+      function setup() {
         var jsonT;
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -60,36 +68,36 @@ include("parts/side.php");
               // Insert a cell in the row at index 0
               var newCell0 = newRow.insertCell(0);
 
- // Append a text node to the cell
- var newText = document.createTextNode(entry.Name);
+              // Append a text node to the cell
+              var newText = document.createTextNode(entry.Name);
               newCell0.appendChild(newText);
 
               var newCell = newRow.insertCell(1);
               var newCell2 = newRow.insertCell(2);
               var newCell3 = newRow.insertCell(3);
               var newCell4 = newRow.insertCell(4);
-  
+
 
               // Append a text node to the cell
               var newText = document.createTextNode(entry.Code);
               newCell.appendChild(newText);
               var newText2 = document.createTextNode(entry.Reason);
               newCell2.appendChild(newText2);
-    
+
               var a = document.createElement("button")
               a.innerHTML = "View"
-              a.addEventListener("click", function() {
-                document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/motion/"+entry.Code+"'></video>"
+              a.addEventListener("click", function () {
+                document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/motion/" + entry.Code + "'></video>"
               });
-             
+
               newCell3.appendChild(a)
-              
+
               var b = document.createElement("button")
               b.innerHTML = "Delete"
-              b.addEventListener("click", function() {
+              b.addEventListener("click", function () {
                 deleteMotion(entry.Code)
               });
-             
+
               newCell4.appendChild(b)
 
 
@@ -106,19 +114,58 @@ include("parts/side.php");
       }
 
 
-      function deleteMotion(code){
+      function deleteMotion(code) {
 
         var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (xhttp.readyState == 4 && xhttp.status == 200) {
-          location.reload();
+        xhttp.onreadystatechange = function () {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+            location.reload();
+          }
         }
-    }
-    xhttp.open("DELETE", "http://localhost:8000/delete/"+code, true);
-    xhttp.send();
+        xhttp.open("DELETE", "http://localhost:8000/delete/" + code, true);
+        xhttp.send();
       }
 
       setup()
+
+
+
+      function alertMotion() {
+        var box = document.getElementById("alertBox");
+
+        var txt = document.getElementById("alertText");
+
+        // 2
+        var socket = new WebSocket("ws://localhost:8000/streamMotion")
+
+        // 3
+        var update = function () {
+
+          // Log errors
+          socket.onclose = function (error) {
+            txt.innerHTML = "Socket has been closed. Motion is not being watched"
+            showAlert()
+          };
+
+          socket.onmessage = function (event) {
+            console.log("Motion detected")
+           txt.innerHTML = "Motion!"
+           showAlert()
+           setTimeout(hideAlert,5000)
+
+
+          }
+        };
+        window.setTimeout(update);
+      }
+      function showAlert() {
+            document.getElementById("alertBox").style.display = "block";
+        }
+        function hideAlert() {
+            document.getElementById("alertBox").style.display = "none";
+        }
+        hideAlert()
+        alertMotion()
     </script>
 
 
