@@ -16,25 +16,8 @@ func main() {
 	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
-	jsonS :=
-		`{
-		"serverAddress" : "192.168.99.100",
-		"serverPort" : "31693",
-		"threshold":80,
-		"minCount":5,
-		"cameras":[
-			{
-				"name":"Test Camera@Dontuse",
-				"threshold":10,
-				"minCount":1
-			}
-		]
-	
-		
-	
-	}
-	`
-	body := OutMessage{"update", jsonS}
+
+	body := OutMessage{"read", ""}
 	b, err := json.Marshal(body)
 
 	ch, err := conn.Channel()
