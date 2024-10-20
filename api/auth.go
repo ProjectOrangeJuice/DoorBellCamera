@@ -29,9 +29,16 @@ type Claims struct {
 
 // Create the Signin handler
 func signin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.1.126:30016")
+
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	var creds Credentials
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
@@ -121,10 +128,11 @@ func auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 
-			w.Header().Set("Access-Control-Allow-Origin", "http://192.168.1.126:30016")
-			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Access-Control-Allow-Origin, access-control-allow-headers")
+			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers")
+
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(http.StatusOK)
 				return

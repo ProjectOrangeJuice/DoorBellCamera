@@ -12,7 +12,7 @@ var connect amqp.Connection
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/login", signin).Methods("POST")
+	router.HandleFunc("/login", signin).Methods("POST", "OPTIONS")
 	//Everything with /s/.. requires you to login
 	sec := router.PathPrefix("/s").Subrouter()
 	sec.Use(auth)
