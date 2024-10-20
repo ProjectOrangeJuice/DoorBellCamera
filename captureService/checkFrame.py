@@ -90,6 +90,8 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                 continue
             totalArea += cv2.contourArea(contour)
             (x, y, w, h) = cv2.boundingRect(contour)
+            x = x + current[2]
+            y = y + current[0]
             newPrev.append([x,y,w,h])
             if rainCheck(prevBox,[x,y]):
                 # ignore this box as it's rain
@@ -104,8 +106,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                 #pretend debug switch
                 
 
-                x = x + current[2]
-                y = y + current[0]
+                
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
                 (sx,sy) = smallestDif(prevBox,[x,y])
                 cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
@@ -154,7 +155,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
     #Pretend debug switch
 
-    tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>516000)
+    tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>201000)
     cv2.putText(mimg,str(tempText), (40, 100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 150),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     imagetemp = cv2.imencode(".jpg",mimg)[1]
