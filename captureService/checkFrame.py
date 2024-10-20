@@ -126,7 +126,7 @@ def checkFrame(image,name, frame,channel,stamp):
                     if item >= 0:
                         allEmpty = True
                 if(allEmpty and not settings.bufferUse):
-                    settings.buffer = 15
+                    settings.buffer = 25
                     settings.bufferUse = True
         
         count += 1
@@ -139,7 +139,7 @@ def checkFrame(image,name, frame,channel,stamp):
     b64 = base64.b64encode(imagetemp)
     
     #Fill the buffer list continously
-    if(len(settings.buffered) != 14):
+    if(len(settings.buffered) != 24):
         settings.buffered.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":frameNum,"blocks":",".join(seen),"locations":str(locations)})
     else:
@@ -147,7 +147,7 @@ def checkFrame(image,name, frame,channel,stamp):
         settings.buffered[bufferOrder] = {"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":frameNum,"blocks":",".join(seen),"locations":str(locations)}
         bufferOrder += 1
-        if(bufferOrder > 13):
+        if(bufferOrder > 23):
             bufferOrder = 0
 
 
