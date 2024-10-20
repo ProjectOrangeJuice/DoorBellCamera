@@ -14,7 +14,7 @@ def readConfig():
         cameraName = data["cameraName"]
         serverAddress = data["serverAddress"]
         serverPort = data["serverPort"]
-        delay = 1/int(data["FPS"])
+        delay = data["FPS"]
 
 
 
@@ -27,34 +27,30 @@ def openConnection():
     
 
 readConfig()
-
+prev = 0
 vcap = cv2.VideoCapture(streamLocation)
 openConnection()
 while(1):
     while(vcap.isOpened()):
-        start = time.time()
+        time_elapsed = time.time() - prev
         try:
             ret, frame = vcap.read()
         except:
             #Error with frame, try again.
             print("Error with frame")
             continue
-        image = cv2.imencode(".jpg",frame)[1]
-        b64 = base64.b64encode(image)
-        print("size of b64: "+str((len(b64)/1024)/1024))
+        if(time_elapsed > 1./delay):
+            image = cv2.imencode(".jpg",frame)[1]
+            b64 = base64.b64encode(image)
+            print("size of b64: "+str((len(b64)/1024)/1024))
+            
+            bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
+            channel.basic_publish(exchange='',
+                        routing_key='videoStream',
+                        body=json.dumps(bodyText))
         
-        bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
-        channel.basic_publish(exchange='',
-                    routing_key='videoStream',
-                    body=json.dumps(bodyText))
-    
-       
-        end = time.time()
-        total = (end-start)
-
-        makeDelay = delay - total
-        if(makeDelay > 0):
-            time.sleep(makeDelay)
+        
+            prev = time.time()
 
 
     vcap = cv2.VideoCapture(streamLocation)
