@@ -116,6 +116,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("Refresh error from %s with %s", r.RemoteAddr, err)
 		return
 	}
 
@@ -126,6 +127,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
+	logger.Printf("Refresh token for %s", r.RemoteAddr)
 }
 
 func auth(h http.Handler) http.Handler {
@@ -148,10 +150,12 @@ func auth(h http.Handler) http.Handler {
 			if err != nil {
 				if err == http.ErrNoCookie {
 					// If the cookie is not set, return an unauthorized status
+					logger.Printf("Access unauthorised for %s", r.RemoteAddr)
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
 				// For any other type of error, return a bad request status
+				logger.Printf("Access bad request for %s", r.RemoteAddr)
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -172,13 +176,16 @@ func auth(h http.Handler) http.Handler {
 			if err != nil {
 				if err == jwt.ErrSignatureInvalid {
 					w.WriteHeader(http.StatusUnauthorized)
+					logger.Printf("Access unauthorised for %s", r.RemoteAddr)
 					return
 				}
 				w.WriteHeader(http.StatusBadRequest)
+				logger.Printf("Access bad request for %s", r.RemoteAddr)
 				return
 			}
 			if !tkn.Valid {
 				w.WriteHeader(http.StatusUnauthorized)
+				logger.Printf("Access unauthorised for %s", r.RemoteAddr)
 				return
 			}
 			h.ServeHTTP(w, r)

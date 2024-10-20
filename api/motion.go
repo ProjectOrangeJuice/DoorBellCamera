@@ -64,6 +64,7 @@ func allMotion(w http.ResponseWriter, r *http.Request) {
 	}
 	b, err := json.Marshal(full)
 	fmt.Printf("Json bytes are %s\n", b)
+	logger.Printf("Get motion for %s. With the range of %s and %s", r.RemoteAddr, to, from)
 	w.Write(b)
 
 }
@@ -84,12 +85,14 @@ func delMotion(w http.ResponseWriter, r *http.Request) {
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	w.Write([]byte("Okay"))
+	logger.Printf("Deleted motion for %s which matched %s", r.RemoteAddr, params["code"])
 }
 
 //Get the single data
 func getMotion(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		params := mux.Vars(r)
+		logger.Printf("Get video for %s, requested %s", r.RemoteAddr, params["code"])
 		http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s.mp4", params["code"]))
 	} else if r.Method == "DELETE" {
 		delMotion(w, r)

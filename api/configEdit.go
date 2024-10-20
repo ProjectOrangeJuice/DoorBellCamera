@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
@@ -21,6 +20,7 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 	output := client.HGetAll(params["service"])
 	o2, _ := output.Result()
 	jsonout, err := json.Marshal(o2)
+	logger.Printf("Getting config for %s. Asked by %s and returned %s", params["service"], r.RemoteAddr, jsonout)
 	failOnError(err, "Json error")
 	w.Write([]byte(jsonout))
 
@@ -28,7 +28,6 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 
 //POST for setconfig
 func setConfig(w http.ResponseWriter, r *http.Request) {
-	log.Print("On set")
 	params := mux.Vars(r)
 	body, err := ioutil.ReadAll(r.Body)
 	failOnError(err, "failed to read body")
@@ -41,5 +40,5 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 		client.HSet(params["service"], index, new)
 	}
 
-	//setCommand(params["service"], string(body))
+	logger.Printf("Set config for %s. Set by %s with %s", params["service"], r.RemoteAddr, objmap)
 }
