@@ -102,7 +102,8 @@ def checkFrame(name,image,camtime):
         gray = cv2.GaussianBlur(gray, (bval,bval), 0) 
     # In first iteration we assign the value  
     # of static_back to our first frame 
-    if tc[prevImage] is None: 
+    if tc[prevImage] is None:
+        print("image is none, return") 
         tc[prevImage] = gray 
         tc[code] = randomString(10)
         return
@@ -125,9 +126,14 @@ def checkFrame(name,image,camtime):
         # current frame is greater than 30 it will show white color(255) 
         thresh_frame = cv2.threshold(diff_frame, vals[4], 255, cv2.THRESH_BINARY)[1] 
         thresh_frame = cv2.dilate(thresh_frame, None, iterations = 2)
-        # Finding contour of moving object 
-        (_, cnts, _) = cv2.findContours(thresh_frame.copy(),  
-                        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+        # Finding contour of moving object
+        try: 
+            #( _, cnts , _) -- version issue.
+            (cnts, _) = cv2.findContours(thresh_frame.copy(),  
+                            cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+        except ValueError:
+            print("Not enough values...")
+            return
 
         for contour in cnts: 
             if cv2.contourArea(contour) < vals[5]: 
