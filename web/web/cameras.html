@@ -38,7 +38,8 @@
     <script>
       function save(){
         name = $("#cname").val()
-        $.get("http://localhost:8001/add/"+encodeURI(name));
+        $.get("http://192.168.1.135:8001/add/"+encodeURI(name));
+        location.reload();
       }
       function processForm(e) {
         if (e.preventDefault) e.preventDefault();
@@ -49,7 +50,7 @@
         var long = document.getElementById("imageArea");
         var urlParams = new URLSearchParams(window.location.search);
         // 2
-        var socket = new WebSocket("ws://localhost:8000/s/stream/" + encodeURI(document.getElementById("camName").value))
+        var socket = new WebSocket("ws://192.168.1.135:8000/s/stream/" + encodeURI(document.getElementById("camName").value))
         const img = document.getElementById('videoI');
         // 3
         var update = function () {

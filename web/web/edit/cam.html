@@ -77,7 +77,7 @@
     $("#tbox").show()
     var tableRef = document.getElementById('tvals').getElementsByTagName('tbody')[0];
     // 2
-    var socket = new WebSocket("ws://localhost:8000/s/stream/" + encodeURI($("#camName").val()))
+    var socket = new WebSocket("ws://192.168.1.135:8000/s/stream/" + encodeURI($("#camName").val()))
     const img = document.getElementById('camView');
     // 3
     var update = function () {
@@ -178,7 +178,7 @@
         showNote("Saved!")
       }
     };
-    xhttp.open("POST", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+    xhttp.open("POST", "http://192.168.1.135:8000/s/config/motion:camera:" + encodeURI(name), true);
     xhttp.send(dataJson);
     console.log(per)
   }
@@ -264,7 +264,7 @@
 
     }
   };
-  xhttp.open("GET", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+  xhttp.open("GET", "http://192.168.1.135:8000/s/config/motion:camera:" + encodeURI(name), true);
   xhttp.send();
   }
 
@@ -285,7 +285,7 @@
         showNote("Saved!")
       }
     };
-    xhttp.open("POST", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+    xhttp.open("POST", "http://192.168.1.135:8000/s/config/motion:camera:" + encodeURI(name), true);
     xhttp.send(dataJson);
 
   });
@@ -294,7 +294,7 @@
 
   function newCam(){
     name = $("#cname").val()
-        $.get("http://localhost:8001/add/"+encodeURI(name));
+        $.get("http://192.168.1.135:8001/add/"+encodeURI(name));
     location.reload();
   }
 

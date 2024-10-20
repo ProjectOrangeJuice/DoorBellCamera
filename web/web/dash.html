@@ -127,7 +127,7 @@
               var a = document.createElement("button")
               a.innerHTML = "View"
               a.addEventListener("click", function () {
-                document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/s/motion/" + entry.Code + "'></video>"
+                document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://192.168.1.135:8000/s/motion/" + entry.Code + "'></video>"
                 document.getElementById('id01').style.display = 'block'
                 inspe = entry.Code
               });
@@ -147,9 +147,9 @@
           }
         };
         if (today) {
-          xhttp.open("GET", "http://localhost:8000/s/motion", true);
+          xhttp.open("GET", "http://192.168.1.135:8000/s/motion", true);
         } else {
-          url = "http://localhost:8000/s/motion?to=" + (document.getElementById("to").value).replace(/\//g, "-") + "&from=" + (document.getElementById("from").value).replace(/\//g, "-");
+          url = "http://192.168.1.135:8000/s/motion?to=" + (document.getElementById("to").value).replace(/\//g, "-") + "&from=" + (document.getElementById("from").value).replace(/\//g, "-");
           xhttp.open("GET", encodeURI(url), true);
         }
         xhttp.send();
@@ -165,7 +165,7 @@
               setupTable()
             }
           }
-          xhttp.open("DELETE", "http://localhost:8000/s/motion/" + code, true);
+          xhttp.open("DELETE", "http://192.168.1.135:8000/s/motion/" + code, true);
           xhttp.send();
         }
 
