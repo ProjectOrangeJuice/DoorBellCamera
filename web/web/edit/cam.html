@@ -111,11 +111,12 @@
         var newCell5 = newRow.insertCell(5);
 
         var ni = document.createElement("input")
-        ni.value =  firstClick[0] + "," + Math.round(X)
+        ni.value =  firstClick[1] + "," + Math.round(Y) 
         newCell0.appendChild(ni)
 
         var ni = document.createElement("input")
-        ni.value =  firstClick[1] + "," + Math.round(Y) 
+      
+        ni.value =    firstClick[0] + "," + Math.round(X)
         newCell1.appendChild(ni)
 
         var ni = document.createElement("input")
