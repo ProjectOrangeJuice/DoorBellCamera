@@ -1,0 +1,32 @@
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    command: ["redis-server","--appendonly","yes"]
+    networks:
+      - internalNetwork
+  rabbit:
+    image: rabbitmq:latest
+    networks:
+      - internalNetwork
+  api:
+    image: api:latest
+    volumes:
+      - ./api-data:/go/log
+    ports:
+      - "8000:8000"
+    command: >
+      /bin/bash -c "
+        sleep 10;
+        ./auth;
+      "
+    networks:
+      - internalNetwork
+      - externalNetwork
+
+
+networks:
+  internalNetwork:
+    internal: true
+  externalNetwork:
+    internal: false
