@@ -5,7 +5,12 @@
 
   <!-- !PAGE CONTENT! -->
   <div class="w3-main">
-
+      <div class="w3-panel w3-red w3-display-container" id="error" style="display:none;">
+          <span onclick="this.parentElement.style.display='none'"
+          class="w3-button w3-large w3-display-topright">&times;</span>
+          <h3>Login error!</h3>
+          <p>Username or password is incorrect</p>
+        </div>
     <form class="w3-container" id="loginform">
       <div class="w3-section">
         <label><b>Username</b></label>
@@ -31,11 +36,10 @@
           },
           statusCode: {
             200: function (response) {
-              alert('1');
-
+              location.reload();
             },
             401: function (response) {
-              alert('2');
+              $("#error").show()
 
             }
           },
