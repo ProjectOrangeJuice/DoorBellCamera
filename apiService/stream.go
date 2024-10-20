@@ -176,6 +176,5 @@ func pingponger(ws *websocket.Conn, c chan bool, lock *sync.Mutex) {
 		}
 	}
 	c <- false
-	lock.Unlock()
 
 }
