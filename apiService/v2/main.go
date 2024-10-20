@@ -49,6 +49,7 @@ func main() {
 
 	// Live
 	router.HandleFunc("/stream", getVideoShared).Methods("GET", "OPTIONS")
+	router.HandleFunc("/frame", grabFrame).Methods("GET", "OPTIONS")
 
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),

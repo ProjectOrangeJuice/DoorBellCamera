@@ -39,7 +39,7 @@ func getVideoShared(w http.ResponseWriter, r *http.Request) {
 	add := addListener{stream}
 	remove := removeListener{stream}
 	streamEngineChan <- add
-	t := time.NewTimer(5 * time.Second)
+	t := time.NewTimer(50 * time.Second)
 	var m interface{}
 	alert := false
 	ready := true
@@ -67,13 +67,13 @@ func getVideoShared(w http.ResponseWriter, r *http.Request) {
 
 			err := json.Unmarshal(msg, &m)
 			if err != nil {
-				log.Printf("error with unmarsh stream message. Must be image?")
 				if !ready {
 					// Skip this message, client not ready
 					continue
 				}
 				o := outMessage{msg, alert}
 				err := ws.WriteJSON(o)
+				ready = false
 				alert = false
 				if err != nil {
 					log.Printf("Failed to write json %v", err)
@@ -83,6 +83,36 @@ func getVideoShared(w http.ResponseWriter, r *http.Request) {
 			} else {
 				alert = true
 			}
+		}
+		t.Reset(time.Second * 50)
+	}
+
+}
+
+func grabFrame(w http.ResponseWriter, r *http.Request) {
+	stream := make(chan []byte, 10)
+	add := addListener{stream}
+	remove := removeListener{stream}
+	streamEngineChan <- add
+	t := time.NewTimer(50 * time.Second)
+	var m interface{}
+	for {
+		select {
+		case msg := <-stream:
+			err := json.Unmarshal(msg, &m)
+			if err == nil {
+				continue
+			}
+			// We got a frame
+			streamEngineChan <- remove
+			w.Write(msg)
+			return
+
+		case <-t.C:
+			// Timeout
+			w.WriteHeader(http.StatusInternalServerError)
+			streamEngineChan <- remove
+			return
 		}
 	}
 
@@ -125,24 +155,31 @@ func streamEngine() {
 
 			// Check to see if we need to start / stop streamer
 			if len(clients) > 0 && !streaming {
-				log.Printf("Start streaming")
 				// Start stream
-				frames, framesCh = listenToExchange("camera", "camera")
-				alerts, alertsCh = listenToExchange("motion", "camera")
+				frames, framesCh = listenToFanout("camera")
+				alerts, alertsCh = listenToFanout("motion")
+				streaming = true
 			}
 			if len(clients) == 0 && streaming {
-				log.Printf("Stop streaming")
 				// stop streaming
 				framesCh.Close()
 				alertsCh.Close()
+				streaming = false
 			}
-			log.Printf("Clients: %v", len(clients))
 
-		case frame := <-frames:
+		case frame, ok := <-frames:
+			if !ok {
+				frames = make(<-chan amqp.Delivery)
+				break
+			}
 			for _, client := range clients {
 				client <- frame.Body
 			}
-		case alert := <-alerts:
+		case alert, ok := <-alerts:
+			if !ok {
+				alerts = make(<-chan amqp.Delivery)
+				break
+			}
 			for _, client := range clients {
 				client <- alert.Body
 			}
