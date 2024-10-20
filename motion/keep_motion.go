@@ -117,6 +117,7 @@ func recordDb(msg Message, loc string) {
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
+	defer db.Close()
 	tx, err := db.Begin()
 	failOnError(err, "Failed to begin on record")
 	stmt, err := tx.Prepare("insert into motion(motionCode, location,time) values(?,?,?)")
