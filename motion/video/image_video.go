@@ -15,7 +15,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type OutMessage struct {
+type outMessage struct {
 	Code string
 }
 
@@ -123,7 +123,7 @@ func readyListen() {
 }
 
 func convert(msg []byte) {
-	var m OutMessage
+	var m outMessage
 	var startTime string
 	var endTime string
 	err := json.Unmarshal(msg, &m)
