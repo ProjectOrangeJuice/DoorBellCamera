@@ -95,7 +95,7 @@
       </div>
       <h3>Zones</h3>
 
-      <img v-bind:src="vid" width="500px" v-on:click="zone"></img>
+      <img v-bind:src="vid" width="500px" v-on:click="zone" id="zo"></img>
 
 
       <div v-for="(a,index) in area" class="row">
@@ -236,8 +236,14 @@
           }
         },
         zone(e) {
-          var x = this.$el.offsetWidth - e.pageX;
-          var y = this.$el.offsetHeight - e.pageY;
+          var  b = this.$el.getBoundingClientRect()
+          var i = document.getElementById("zo");
+          var x = e.clientX - b.left;
+          //Get ratio, then find real x value.
+          x = Math.round(x *(i.naturalWidth/i.width))
+          var y = e.clientY - b.top;
+          y = Math.round(y *(i.naturalHeight/i.height))
+          console.log("x "+x+ "y "+y)
           if (this.newZone) {
             this.amount.push(50);
             this.mincount.push(5);
