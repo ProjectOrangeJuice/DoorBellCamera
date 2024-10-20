@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"time"
@@ -113,14 +112,14 @@ func decodeMessage(d []byte) {
 		c := cameraStructure{"", "Nothing", true}
 		camera[m.Name] = &c
 	}
-
 	if m.End {
 		//end of motion, create video
 		tc := camera[m.Name]
-		notifyQueue(tc.prev, m.Name)
+		go notifyQueue(tc.prev, m.Name)
 		tc.ignoreTimer = true
 		tc.prev = m.Code
-		log.Println("I got an END.")
+		m.End = false
+
 	} else {
 		storeImage(m)
 	}
