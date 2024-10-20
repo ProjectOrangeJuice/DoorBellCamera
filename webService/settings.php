@@ -95,8 +95,8 @@ include "include/head.php";
 
                         <td>Top left X</td>
                         <td>Top left Y</td>
-                        <td>Bottom right X</td>
-                        <td>Bottom right Y</td>
+                        <td>Width</td>
+                        <td>Height</td>
                         <td>Threshold</td>
                         <td>Area</td>
                         <td>Min count</td>
@@ -105,11 +105,11 @@ include "include/head.php";
                         <td></td>
 
                     </tr>
-                    <tr v-for="(zone,index) in zoneInfo">
-                        <td> <input class="form-control" v-model.number="zone.x1"></td>
-                        <td> <input class="form-control" v-model.number="zone.y1"></td>
-                        <td> <input class="form-control" v-model.number="zone.x2"></td>
-                        <td> <input class="form-control" v-model.number="zone.y2"></td>
+                    <tr v-for="(zone,index) in zones">
+                        <td> <input class="form-control" v-model.number="zone.translatedX"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedY"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedW"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedH"></td>
                         <td> <input class="form-control" v-model.number="zone.threshold"></td>
                         <td> <input class="form-control" v-model.number="zone.area"></td>
                         <td> <input class="form-control" v-model.number="zone.minCount"></td>
@@ -176,10 +176,8 @@ include "include/head.php";
                     bufferAfter: 10,
                     refreshCount: 5,
                     zones: [],
-                    zoneInfo: [],
+                    drawInfo: {},
                     unknownProfile: "",
-                    imgW: 1280,
-                    imgH: 720,
                 },
                 mounted() {
                     //this.updateMotion();
@@ -191,10 +189,10 @@ include "include/head.php";
                     canvas.addEventListener('mousemove', this.mouseMove, false);
                 },
                 methods: {
-                    createProfile(){
+                    createProfile() {
                         axios
                             .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
-                              
+
                             })
                             .then(response => {
                                 alert("Created");
@@ -204,10 +202,10 @@ include "include/head.php";
                                 alert("Failed to create");
                             });
                     },
-                    deleteProfile(){
+                    deleteProfile() {
                         axios
                             .delete("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
-                              
+
                             })
                             .then(response => {
                                 alert("Deleted");
@@ -226,11 +224,12 @@ include "include/head.php";
                     },
                     deleteZone(index) {
                         this.zones.splice(index, 1);
-                        this.zoneInfo.splice(index, 1);
                     },
 
 
                     addZone() {
+                        if("xRatio" in this.drawInfo){
+                        let self = this;
                         this.zones.push({
                             startX: 40,
                             startY: 20,
@@ -240,27 +239,30 @@ include "include/head.php";
                             dragBL: false,
                             dragTR: false,
                             dragBR: false,
-                        })
-                        this.zoneInfo.push({
-                            x1: 40,
-                            y1: 20,
-                            x2: 70,
-                            y2: 40,
+                            translatedX: Math.round(40 * self.drawInfo["xRatio"]),
+                            translatedY: Math.round(20 * self.drawInfo["yRatio"]),
+                            translatedW: Math.round(30 * self.drawInfo["xRatio"]),
+                            translatedH: Math.round(20 * self.drawInfo["yRatio"]),
                             threshold: 20,
                             area: 1220,
                             minCount: 7,
                             boxJump: 5,
                             smallAmount: 5,
                         })
+                        }else{
+                            alert("Ratio can't be calculated");
+                            //Should just add the real values, not the viewable ones
+                        }
+
                     },
                     setSettings() {
                         var formattedZones = []
-                        this.zoneInfo.forEach(function(entry) {
+                        this.zones.forEach(function(entry) {
                             formattedZones.push({
-                                x1: entry.x1,
-                                y1: entry.y1,
-                                x2: entry.x2,
-                                y2: entry.y2,
+                                x1: entry.translatedX,
+                                y1: entry.translatedY,
+                                x2: entry.translatedX + entry.translatedW,
+                                y2: entry.translatedY + entry.translatedH,
                                 threshold: entry.threshold,
                                 area: entry.area,
                                 minCount: entry.minCount,
@@ -307,34 +309,28 @@ include "include/head.php";
                                     let self = this;
                                     var c = document.getElementById("canvasImage");
                                     response.data.Zones.forEach(function(z, index) {
-                                     
+
                                         self.zones.push({
-                                            // startX: z.X1 /(self.imageW/c.width),
-                                            // startY: z.Y1 /(self.imageH/c.height),
-                                            // w: ((z.X2 - z.X1) / (self.imageW/c.width)),
-                                            // h: ((z.Y2 - z.Y1) /(self.imageH/c.height)),
-                                            startX:  Math.round(z.X1 /(1280/c.width)),
-                                            startY:  Math.round(z.Y1 /(720/c.height)),
-                                            w:  Math.round((z.X2 - z.X1) / (1280/c.width)),
-                                            h:  Math.round((z.Y2 - z.Y1) /(720/c.height)),
+                                            //We don't set the "startX.."because the ratio has not been worked out
                                             dragTL: false,
                                             dragBL: false,
                                             dragTR: false,
                                             dragBR: false,
-                                        });
-                                        self.zoneInfo.push({
-                                            x1: z.X1,
-                                            y1: z.Y1,
-                                            x2: z.X2,
-                                            y2: z.Y2,
+                                            translatedX: z.X1,
+                                            translatedY: z.Y1,
+                                            translatedW: z.X2 - z.X1,
+                                            translatedH: z.Y2 - z.Y1,
                                             threshold: z.Threshold,
                                             area: z.Area,
                                             minCount: z.MinCount,
                                             boxJump: z.BoxJump,
                                             smallAmount: z.SmallIgnore,
-                                        })
+                                        });
+
                                     });
                                 }
+                                console.log("******* zones ******");
+                                console.log(this.zones)
 
                             })
                             .catch(response => {
@@ -347,16 +343,16 @@ include "include/head.php";
                             .then(response => {
                                 this.camNames = response.data;
                                 console.log(this.camNames.length)
-                            if(this.camNames.length > 0){
-                                //Set default value
-                                this.selectedCam = this.camNames[0]["Name"];
-                                this.updateDisplay()
-                            }
+                                if (this.camNames.length > 0) {
+                                    //Set default value
+                                    this.selectedCam = this.camNames[0]["Name"];
+                                    this.updateDisplay()
+                                }
                             })
                             .catch(response => {
                                 console.log("Error " + response);
                             });
-                           
+
                     },
                     displayVideo() {
                         console.log(this.selectedCam);
@@ -378,15 +374,20 @@ include "include/head.php";
                                 var ctx = c.getContext("2d");
                                 var image = new Image();
                                 image.onload = function() {
-                                    ctx.drawImage(image, 0, 0, c.width, c.height);
+                                    self.drawInfo["image"] = image;
+                                    //Do ratio calcs
+                                    self.drawInfo["xRatio"] = image.width / c.width;
+                                    self.drawInfo["yRatio"] = image.height / c.height;
+
+                                    // ctx.drawImage(image, 0, 0, c.width, c.height);
                                     self.canvasDraw();
-                                    self.imageW = image.width;
-                                    self.imageH = image.height;
+                                    // self.imageW = image.width;
+                                    // self.imageH = image.height;
 
                                 };
 
                                 image.src = "data:image/jpg;base64, " + event.data;
-               
+
                                 // imgBox.src = "data:image/jpg;base64, " + event.data
                             }
 
@@ -449,30 +450,33 @@ include "include/head.php";
                         mouseY = e.pageY - c.offsetTop;
                         let self = this;
                         this.zones.forEach(function(rect, index) {
+                            change = false;
                             if (rect.dragTL) {
                                 rect.w += rect.startX - mouseX;
                                 rect.h += rect.startY - mouseY;
                                 rect.startX = mouseX;
                                 rect.startY = mouseY;
+                                change = true;
                             } else if (rect.dragTR) {
                                 rect.w = Math.abs(rect.startX - mouseX);
                                 rect.h += rect.startY - mouseY;
                                 rect.startY = mouseY;
+                                change = true;
                             } else if (rect.dragBL) {
                                 rect.w += rect.startX - mouseX;
                                 rect.h = Math.abs(rect.startY - mouseY);
                                 rect.startX = mouseX;
+                                change = true;
                             } else if (rect.dragBR) {
                                 rect.w = Math.abs(rect.startX - mouseX);
                                 rect.h = Math.abs(rect.startY - mouseY);
+                                change = true;
                             }
-
-                            self.zoneInfo[index].x1 = rect.startX;
-                            self.zoneInfo[index].y1 = rect.startY;
-                            //2.56 and 2.4 is the scale factor
-                            //console.log("width "+(self.imageW/c.width) + " height "+(self.imageH/c.height));
-                            self.zoneInfo[index].x2 = Math.round(rect.startX + (rect.w * (self.imageW/c.width)));
-                            self.zoneInfo[index].y2 = Math.round(rect.startY + (rect.h * (self.imageH/c.height)));
+                            if(change){
+                            rect.translatedX = Math.round(rect.startX * self.drawInfo["xRatio"])
+                            rect.translatedY = Math.round(rect.startY * self.drawInfo["yRatio"])
+                            rect.translatedW = Math.round(( rect.w) * self.drawInfo["xRatio"])
+                            rect.translatedH = Math.round(( rect.h) * self.drawInfo["yRatio"])                            }
 
                         });
                     },
@@ -491,8 +495,23 @@ include "include/head.php";
                     canvasDraw() {
                         var c = document.getElementById("canvasImage");
                         var ctx = c.getContext("2d");
-                        
+                        let self = this;
+
+                        //Draw image
+                        ctx.drawImage(this.drawInfo["image"], 0, 0, c.width, c.height);
                         this.zones.forEach(function(rect) {
+
+                            //Do ratio calcs on missing items
+                            if(rect.startX == undefined ){
+                                console.log("Startx is undefined. our xratio is "+self.drawInfo["xRatio"])
+        
+                                rect.startX = rect.translatedX / self.drawInfo["xRatio"];
+                                rect.startY = rect.translatedY / self.drawInfo["yRatio"];
+                                rect.w = (rect.translatedW) / self.drawInfo["xRatio"];
+                                rect.h = (rect.translatedH) / self.drawInfo["yRatio"];
+                            }
+                          
+
                             ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
                             ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
                             drawHandles(rect);
