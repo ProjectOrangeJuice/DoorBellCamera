@@ -13,7 +13,7 @@ import (
 )
 
 //DBName string = "/shared/motions.db"
-const DBName string = "/mnt/shared/motion/motions.db"
+const DBName string = "/go/log/motion/motions.db"
 
 //MotionJSON is the output for a motion
 type MotionJSON struct {
@@ -94,7 +94,7 @@ func getMotion(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		params := mux.Vars(r)
 		logger.Printf("Get video for %s, requested %s", r.RemoteAddr, params["code"])
-		http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s.mp4", params["code"]))
+		http.ServeFile(w, r, fmt.Sprintf("/go/log/motion/videos/%s.mp4", params["code"]))
 	} else if r.Method == "DELETE" {
 		delMotion(w, r)
 	}
