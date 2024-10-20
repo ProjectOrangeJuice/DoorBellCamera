@@ -122,7 +122,7 @@ def checkFrame(image,name, frame,channel,stamp):
                     settings.heldFrames.clear()
                     settings.imgCount = 0
                     if(settings.codeUsed):
-                        sendEnd(settings.name,channel,settings.code)
+                        sendEnd(settings.name,channel)
                         settings.code = randomString(5)
                         settings.codeUsed = False
                         
