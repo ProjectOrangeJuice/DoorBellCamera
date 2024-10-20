@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,6 +19,8 @@ var connect *amqp.Connection
 var logger *log.Logger
 
 const server = "amqp://guest:guest@localhost:5672/"
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func main() {
 	var err error
