@@ -188,6 +188,7 @@ func auth(h http.Handler) http.Handler {
 				logger.Printf("Access unauthorised for %s", r.RemoteAddr)
 				return
 			}
+			//logger.Printf("IP %s has token %s", r.RemoteAddr, tknStr)
 			h.ServeHTTP(w, r)
 
 		})
