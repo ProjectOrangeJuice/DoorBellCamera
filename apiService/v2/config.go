@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,10 +40,13 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 	conn := databaseClient.Database("doorbell")
 	db := conn.Collection("setting")
 	filter := bson.M{"_id": 0}
-	doc := db.FindOne(context.TODO(), filter)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	doc := db.FindOne(ctx, filter)
+	cancel()
 	var s settings
 	doc.Decode(&s)
 	json.NewEncoder(w).Encode(s)
+	log.Printf("getConfig >> served")
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +60,9 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	}
 	conn := databaseClient.Database("doorbell")
 	db := conn.Collection("setting")
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	filter := bson.M{"_id": 0}
-	db.FindOneAndReplace(context.TODO(), filter, s, options.FindOneAndReplace().SetUpsert(true))
+	db.FindOneAndReplace(ctx, filter, s, options.FindOneAndReplace().SetUpsert(true))
+	cancel()
+	log.Printf("setConfig >> served")
 }

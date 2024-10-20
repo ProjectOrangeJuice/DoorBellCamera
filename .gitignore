@@ -25,3 +25,5 @@ webService/doorbell-1.mp3
 kiosk/doorbell-1.mp3
 kiosk/img.jpg
 kiosk/img2.jpg
+
+docker-local/data/*
