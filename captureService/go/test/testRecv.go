@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 
-	"gocv.io/x/gocv"
-
 	"github.com/streadway/amqp"
+	"gocv.io/x/gocv"
 )
 
 func failOnError(err error, msg string) {
@@ -15,6 +14,7 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
+
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -59,11 +59,13 @@ func main() {
 			log.Printf("Received a message")
 			v, err := gocv.IMDecode(d.Body, gocv.IMReadAnyColor)
 			failOnError(err, "Reading image")
+
 			window.IMShow(v)
 			if window.WaitKey(1) == 27 {
 				break
 			}
 			d.Ack(true)
+			v.Close()
 		}
 	}()
 
