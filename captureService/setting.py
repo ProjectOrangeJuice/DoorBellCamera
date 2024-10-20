@@ -42,12 +42,12 @@ def update():
     setting.active = x["motion"]
 
     setting.blur = x["blur"]
-    setting.boxJump = x["boxJump"]
+    setting.boxJump = x["boxjump"]
     setting.debug = x["debug"]
-    setting.bufferBefore = x["bufferBefore"]
-    setting.bufferAfter = x["bufferAfter"]
-    setting.noMoveRefreshCount = x["noMoveRefreshCount"]
-    setting.smallMove = x["smallMove"]
+    setting.bufferbefore = x["bufferbefore"]
+    setting.bufferafter = x["bufferafter"]
+    setting.nomoverefreshcount = x["nomoverefreshcount"]
+    setting.smallmove = x["smallmove"]
 
 
 def connect():
