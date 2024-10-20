@@ -117,7 +117,7 @@ func decodeMessage(d []byte) {
 		tc := camera[m.Name]
 		go notifyQueue(tc.prev, m.Name)
 		tc.ignoreTimer = true
-		tc.prev = m.Code
+		tc.prev = ""
 		m.End = false
 
 	} else {
