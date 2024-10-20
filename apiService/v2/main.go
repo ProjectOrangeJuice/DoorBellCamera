@@ -30,6 +30,9 @@ func main() {
 	router.HandleFunc("/motion/hq/{code}", getHQVideo).Methods("GET")
 	router.HandleFunc("/motion/lq/{code}", getLQVideo).Methods("GET")
 
+	// Delete video
+	router.HandleFunc("/motion/{code}", deleteMotion).Methods("DELETE")
+
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),
 		handlers.AllowedOrigins([]string{"*"}),
