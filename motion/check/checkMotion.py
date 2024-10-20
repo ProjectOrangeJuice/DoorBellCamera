@@ -71,7 +71,7 @@ def rotateImage(image, angle):
   rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
   result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
   return result
-  
+
 def motionCheck(name,image,camtime):
     global cameras,timeupdate
     if(minute_passed(timeupdate)):
@@ -86,9 +86,11 @@ def motionCheck(name,image,camtime):
         tc = getCamera(name)
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
     cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
+    #Blur the image
     bval = int(tc[blur])
     newImage = cv2.blur(cvimg,(bval,bval))
-  
+    #rotate the image
+    newImage = rotateImage(newImage,int(tc[rot]))
 
     if(tc[prevImage] is None ):
        tc[prevImage] = newImage 
