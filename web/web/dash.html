@@ -157,14 +157,14 @@
           xhttp.withCredentials = true;
           xhttp.onreadystatechange = function () {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
-              location.reload();
+              setupTable()
             }
           }
           xhttp.open("DELETE", "http://localhost:8000/s/motion/" + code, true);
           xhttp.send();
         }
 
-        setupTable()
+        
       }
 
       function alertMotion() {
