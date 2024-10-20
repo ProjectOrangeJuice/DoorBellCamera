@@ -1,4 +1,10 @@
 <?php 
+header('Access-Control-Allow-Origin: http://localhost:8000');
+
+header('Access-Control-Allow-Methods: GET, POST, DELETE');
+
+header("Access-Control-Allow-Headers: X-Requested-With");
+
 $title = "Hello world";
 include("parts/header.php");
 ?>
@@ -38,7 +44,7 @@ include("parts/side.php");
   Video will display here.
 </div>
     <script>
-      
+      function setup(){
         var jsonT;
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -55,6 +61,7 @@ include("parts/side.php");
               var newCell2 = newRow.insertCell(1);
               var newCell3 = newRow.insertCell(2);
               var newCell4 = newRow.insertCell(3);
+  
 
               // Append a text node to the cell
               var newText = document.createTextNode(entry.Code);
@@ -69,6 +76,16 @@ include("parts/side.php");
               });
              
               newCell3.appendChild(a)
+              
+              var b = document.createElement("button")
+              b.innerHTML = "Delete"
+              b.addEventListener("click", function() {
+                deleteMotion(entry.Code)
+              });
+             
+              newCell4.appendChild(b)
+
+
 
             });
 
@@ -79,7 +96,22 @@ include("parts/side.php");
         };
         xhttp.open("GET", "http://localhost:8000/motion", true);
         xhttp.send();
-      
+      }
+
+
+      function deleteMotion(code){
+
+        var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+          location.reload();
+        }
+    }
+    xhttp.open("DELETE", "http://localhost:8000/delete/"+code, true);
+    xhttp.send();
+      }
+
+      setup()
     </script>
 
 
