@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
@@ -33,8 +34,20 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	data := pageContent{Title: "Hello"}
-	templates.ExecuteTemplate(w, "index", data)
+	c, err := r.Cookie("token")
+	if err != nil {
+
+	} else {
+		if c.Expires.After(time.Now()) {
+			data := pageContent{Title: "Login"}
+			templates.ExecuteTemplate(w, "index", data)
+		} else {
+			data := pageContent{Title: "Dash"}
+			templates.ExecuteTemplate(w, "dash", data)
+		}
+
+	}
+
 }
 func other(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "other", nil)
