@@ -1,40 +1,51 @@
 package main
 
 import (
-	"io"
+	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/streadway/amqp"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var connect *amqp.Connection
+var conn *mongo.Database
 
 var logger *log.Logger
 
 const server = "amqp://guest:guest@192.168.1.126:5672/"
 
 func main() {
-	setupLogging()
-
 	var err error
-	connect, err = amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ")
+	//Create a database connection
+	conn, err = configDB(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	router := mux.NewRouter()
-	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
-	logger.Fatal(http.ListenAndServe(":8000", router))
-	logger.Print("ended")
+	router.HandleFunc("/config", getConfig).Methods("GET")
+	log.Fatal(http.ListenAndServe(":8000", router))
+	log.Print("ended")
 }
 
-func setupLogging() {
-	f, err := os.OpenFile("log/api.log",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func failOnError(err error, msg string) {
 	if err != nil {
-		log.Println(err)
+		logger.Fatalf("%s: %s", msg, err)
 	}
-	logger = log.New(f, "api-1 ", log.LstdFlags)
-	mw := io.MultiWriter(os.Stdout, f)
-	logger.SetOutput(mw)
+}
+
+func configDB(ctx context.Context) (*mongo.Database, error) {
+	uri := fmt.Sprintf("mongodb://%s", "localhost")
+	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, fmt.Errorf("couldn't connect to mongo: %v", err)
+	}
+	err = client.Connect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("mongo client couldn't connect with background context: %v", err)
+	}
+	todoDB := client.Database("camera")
+	return todoDB, nil
 }
