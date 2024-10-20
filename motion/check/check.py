@@ -284,16 +284,16 @@ def randomString(stringLength=10):
 
 
 channel2.exchange_declare(exchange='motion',
-                         exchange_type='fanout')
+                         exchange_type='fanout', auto_delete=True)
 
 
 
 
 
 
-channel.exchange_declare(exchange='videoStream', exchange_type='topic')
+channel.exchange_declare(exchange='videoStream', exchange_type='topic', auto_delete=True)
 
-result = channel.queue_declare('', exclusive=True)
+result = channel.queue_declare('', exclusive=True,auto_delete=True)
 queue_name = result.method.queue
 
 channel.queue_bind(

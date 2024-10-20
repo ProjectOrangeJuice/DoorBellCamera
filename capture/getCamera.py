@@ -36,7 +36,7 @@ def openConnection():
     global connection,channel
     connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,int(serverPort)))
     channel = connection.channel()
-    channel.exchange_declare(exchange='videoStream', exchange_type="topic")
+    channel.exchange_declare(exchange='videoStream', exchange_type="topic", auto_delete=True)
 
 
 def rotateImage(image, angle):

@@ -92,12 +92,13 @@ func motionWatch(cam string, ws *websocket.Conn) {
 	defer ch.Close()
 	prev := ""
 	forever := make(chan bool)
-
+	const duration = 5 * time.Second
+	timer := time.NewTimer(duration)
 	alive := true
 	for alive {
 		select {
 		case d := <-msgs:
-
+			timer.Reset(duration)
 			m := decodeMessage(d.Body)
 			if prev != m.Code {
 				err := ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
@@ -109,6 +110,16 @@ func motionWatch(cam string, ws *websocket.Conn) {
 					break
 				}
 			}
+		case <-timer.C:
+			timer.Reset(duration)
+			err := ws.WriteControl(websocket.PingMessage, []byte("Hello"), time.Now().Add(5*time.Second))
+			if err != nil {
+				ch.Close()
+				ws.Close()
+				alive = false
+				break
+			}
+
 		}
 
 	}
@@ -122,7 +133,8 @@ func doorWatch(cam string, ws *websocket.Conn) {
 	defer ch.Close()
 	prev := ""
 	forever := make(chan bool)
-
+	const duration = 5 * time.Second
+	timer := time.NewTimer(duration)
 	alive := true
 	for alive {
 		select {
@@ -139,6 +151,16 @@ func doorWatch(cam string, ws *websocket.Conn) {
 					break
 				}
 			}
+		case <-timer.C:
+			timer.Reset(duration)
+			err := ws.WriteControl(websocket.PingMessage, []byte("Hello"), time.Now().Add(5*time.Second))
+			if err != nil {
+				ch.Close()
+				ws.Close()
+				alive = false
+				break
+			}
+
 		}
 
 	}
