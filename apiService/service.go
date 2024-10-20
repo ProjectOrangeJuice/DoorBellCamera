@@ -33,6 +33,7 @@ func main() {
 	router.HandleFunc("/config", getConfig).Methods("GET")
 	router.HandleFunc("/config", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
+	router.HandleFunc("/motion", getMotions).Methods("GET")
 
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),
