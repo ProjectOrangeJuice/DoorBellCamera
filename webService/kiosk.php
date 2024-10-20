@@ -13,7 +13,7 @@ include "include/head.php";
 
        <div style="height:100vh">
             <img id="video" width="100%" height="100%"></img>
-            <p id="imageArea" class="w3-text-red"></p>
+            <p id="imageArea" class="w3-text-red">If this text is still displayed after 10s. It is unable to connect, a reset of API is required.</p>
 </div>
 
 
@@ -55,11 +55,9 @@ include "include/head.php";
             //Reset image err
             imgErr.innerHTML = ""
             //Set socket
-            if (fullRez) {
+          
                 socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/stream/" + encodeURI(camName))
-            } else {
-                socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/mobilestream/" + encodeURI(camName))
-            }
+           
 
             //Connect to socket
             var update = function() {
@@ -67,8 +65,9 @@ include "include/head.php";
                 // Log errors
                 socket.onclose = function(error) {
                     if (!askClose) {
-                        imgErr.innerHTML = "Socket has been closed. Connection to camera has failed"
+                        imgErr.innerHTML = "Socket has been closed.  Trying again"
                         imgBox.src = "";
+                        loadVideo();
                     }
                     askClose = false;
                 };
