@@ -6,6 +6,7 @@ import sendFrame as sf
 import checkFrame as cf
 import setting as s
 from threading import Thread
+import datetime
 rabbitError = False
 import os
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
@@ -60,6 +61,9 @@ def readFrames():
         try:
             ret, frame = vcap.read()
             frame = cv2.flip(frame,1)
+            st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            cv2.putText(frame, st, (10, 25),
+		    cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
         except:
             #Error with frame, try again.
             print("Error with frame (debug, close)")
