@@ -248,7 +248,7 @@ def smallestDif(prev,cur):
             i = item
     cnt = -1
     if(i != None):
-        cnt = i[4]+2
+        cnt = i[4]+1
     return [sx,sy,cnt]
 
 def rainCheck(prev,cur):
