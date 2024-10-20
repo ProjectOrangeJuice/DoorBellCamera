@@ -105,7 +105,8 @@ def motionCheck(name,image,camtime):
         split = np.split(res,divBy)
         alert = True
         firstDivCount = 0
-        totals = [] 
+        totals = []
+        overTot = 0 
         for x in split:
             secondDivCount = 0
             temptotals = []
@@ -114,13 +115,16 @@ def motionCheck(name,image,camtime):
                 tot = int((np.count_nonzero(y) *100)/y.size)
                 if(tot < tc[threshold][firstDivCount][secondDivCount]):
                     alert = False
+                overTot += tot
                 secondDivCount += 1
                 temptotals.append(tot)
             totals.append(temptotals)
             firstDivCount += 1
         print("Calculated "+str(totals) +" Requires "+str(tc[threshold]))
         tc[imgCount] += 1
-        if(alert):
+        overTot = overTot / (divByOther*divBy)
+        print("Over tot is .. "+str(overTot))
+        if(alert and overTot < 50):
             tc[countOn] += 1
             tc[countOff] = 0
 
