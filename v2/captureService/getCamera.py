@@ -54,7 +54,9 @@ def readFrames():
         b64 = base64.b64encode(image)
         #sf.sendFrame(b64,cameraName,broadcastChannel)
         ##Do this on a different thread
-        cf.checkFrame(b64, cameraName, frame)
+        cf.checkFrame("b64", cameraName, frame)
+       
+       
 
 readConfig()
 openCamera()
