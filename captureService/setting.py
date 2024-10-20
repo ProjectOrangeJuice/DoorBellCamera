@@ -24,6 +24,7 @@ class Setting:
     bufferBefore = 25
     bufferAfter = 15
     noMoveRefreshCount = 5
+    smallMove = 20
 
 setting = Setting()
 
@@ -46,6 +47,7 @@ def update():
     setting.bufferBefore = x["bufferBefore"]
     setting.bufferAfter = x["bufferAfter"]
     setting.noMoveRefreshCount = x["noMoveRefreshCount"]
+    setting.smallMove = x["smallMove"]
 
 
 def connect():

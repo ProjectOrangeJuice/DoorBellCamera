@@ -25,6 +25,7 @@ type cameraSettings struct {
 	BufferBefore       int
 	BufferAfter        int
 	NoMoveRefreshCount int
+	SmallMove          int
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
