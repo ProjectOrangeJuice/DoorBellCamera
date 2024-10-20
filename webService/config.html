@@ -187,12 +187,12 @@
       data: {
         name: '',
         connection: '',
-        fps: '',
-        area: '',
-        amount: '',
-        threshold: '',
+        fps: 5,
+        area: [],
+        amount: [],
+        threshold: [],
         active: true,
-        mincount: 0,
+        mincount: [],
         vid: "",
         newZone: true
       }, mounted() {
@@ -202,10 +202,19 @@
             this.name = response.data.Name;
             this.connection = response.data.Connection;
             this.fps = response.data.FPS;
-            this.area = response.data.Area;
-            this.amount = response.data.Amount;
-            this.threshold = response.data.Threshold;
-            this.mincount = response.data.MinCount;
+            
+            if(response.data.Area != null){
+              this.area = response.data.Area;
+            }
+            if(response.data.Amount != null){
+              this.amount = response.data.Amount;
+            }
+            if(response.data.Threshold != null){
+              this.threshold = response.data.Threshold;
+            }
+            if(response.data.MinCount != null){
+              this.mincount =response.data.MinCount;
+            }
             this.active = response.data.Motion;
             this.displayCamera();
           })
