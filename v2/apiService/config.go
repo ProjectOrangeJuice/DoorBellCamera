@@ -30,6 +30,7 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 		//Content not found
 	}
 	log.Printf("%s", settings)
+	json.NewEncoder(w).Encode(settings)
 
 }
 
