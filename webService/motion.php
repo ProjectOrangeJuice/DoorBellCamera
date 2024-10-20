@@ -30,9 +30,10 @@ body {font-size:16px;}
   </div>
   <div class="w3-bar-block">
     <a href="/" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Home</a> 
-    <a href="/live.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a> 
-    <a href="/motion.html" onclick="w3_close()" class="w3-bar-item w3-white  w3-button w3-hover-white">Motion</a> 
-    <a href="/config.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Settings</a> 
+    <a href="/live.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a> 
+    <a href="/com.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Mobile</a> 
+    <a href="/motion.php" onclick="w3_close()" class="w3-bar-item w3-white  w3-button w3-hover-white">Motion</a> 
+    <a href="/config.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Settings</a> 
   </div>
 </nav>
 
@@ -127,7 +128,7 @@ function onClick(element) {
       },
       deleteCode(code){
         axios
-        .delete("http://localhost:8000/motion/"+code)
+        .delete("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion/"+code)
         .then(response => {
           this.updateMotion()
  
@@ -138,7 +139,7 @@ function onClick(element) {
       },
       updateMotion(){
         axios
-        .get("http://localhost:8000/motion")
+        .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion")
         .then(response => {
           this.alerts = response.data;
  
@@ -149,7 +150,7 @@ function onClick(element) {
       },
       showVideo(v){
         console.log("v is .. "+v)
-        this.videoL = "http://localhost:8000/motion/"+v;
+        this.videoL = "http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion/"+v;
         console.log("video is "+this.videoL)
         document.getElementById('id01').style.display='block'
       }

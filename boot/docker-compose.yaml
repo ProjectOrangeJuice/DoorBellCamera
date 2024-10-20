@@ -17,3 +17,17 @@ services:
         ports:
           - 5672:5672
           - 15672:15672
+    
+    nginx:
+        image: nginx:latest
+        ports:
+          - 80:80
+        volumes:
+          - ../webService:/code
+          - ./site.conf:/etc/nginx/conf.d/default.conf
+        links:
+          - php
+    php:
+       image: php:7-fpm
+       volumes:
+         - ../webService:/code
