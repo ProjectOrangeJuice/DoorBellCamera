@@ -66,6 +66,7 @@ func sendSharedVideo(cam string) {
 	for len(socketList[cam]) != 0 {
 		select {
 		case d := <-msgs:
+			//log.Printf("Length %v", len(socketList[cam]))
 
 			var err error
 			timer.Reset(duration)
