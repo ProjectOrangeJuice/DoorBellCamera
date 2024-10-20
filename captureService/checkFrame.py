@@ -80,15 +80,15 @@ def checkFrame(b64,name, frame,channel,stamp,debugpub):
                 continue
             (x, y, w, h) = cv2.boundingRect(contour)
             M = cv2.moments(contour)
-            cX = int(M["m10"] / M["m00"]) + current[2]
-            cY = int(M["m01"] / M["m00"])+ current[0]
-            # x = x + current[2]
-            # y = y + current[0]
-            x = cX
-            y = cY
-            (sx,sy) = smallestDif(prevBox,[x,y])
+            cX = int(M["m10"]  / M["m00"]) 
+            cY = int(M["m01"] / M["m00"])
+            x = x + current[2]
+            y = y + current[0]
+            # x = cX + current[2]
+            # y = cY + (current[0])
+            (sx,sy) = smallestDif(prevBox,[cX,cY])
 
-            newPrev.append([x,y,w,h])
+            newPrev.append([cX,cY,w,h])
 
             txt = "X:"+str(sx)+" Y:"+str(sy)
             if (sx > settings.boxJump or sy > settings.boxJump):
