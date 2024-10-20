@@ -4,17 +4,7 @@ import imutils,json
 import setting as s
 import sendFrame as sf
 import base64
-class SettingOld:
-    areas = [[0, 128, 0, 120,"Test zone"]]
-    threshold = [[20]]
-    amount = [10]
-    minCount = [10]
-    countOn = [0]
-    code = ""
-    codeUsed = False
-    prev = None
-    imgCount = 0
-    heldFrames = []
+
 
 settings = s.setting
 frameCount = 0
