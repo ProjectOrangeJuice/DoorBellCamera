@@ -1,0 +1,38 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+    name: check-motion
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: check-motion
+  template:
+    metadata:
+      labels:
+        app: check-motion
+
+  
+
+ 
+
+    spec:
+      # Add the ConfigMap as a volume to the Pod
+      volumes:
+        # `name` here must match the name
+        # specified in the volume mount
+        - name: config
+        # Populate the volume with config map data
+          configMap:
+            # `name` here must match the name 
+            # specified in the ConfigMap's YAML 
+            name: check-motion-config
+      containers:
+      - name: check-motion
+        image: localhost:32000/check-motion
+      # Mount the volume that contains the configuration data 
+      # into your container filesystem
+        volumeMounts:
+        - name: config
+          mountPath: /config
