@@ -40,6 +40,7 @@ func main() {
 	router.HandleFunc("/motionAlert", getMotionAlert).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion", getMotions).Methods("GET")
 	router.HandleFunc("/motion/{start}/{end}", getMotionBetweenDates).Methods("GET")
+	router.HandleFunc("/motion/{cam}/{start}/{end}", searchMotion).Methods("GET")
 	router.HandleFunc("/from24", getMotion24).Methods("GET")
 	router.HandleFunc("/motion/{code}", getMotion).Methods("GET")
 	router.HandleFunc("/motion/{code}", deleteMotion).Methods("DELETE")
