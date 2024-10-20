@@ -147,3 +147,43 @@ func getAlertsInfo(name string) (last string, alerts int) {
 	}
 	return lastStamp, total
 }
+
+//Create camera profile
+func createProfile(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	camName := params["cam"]
+	collection := conn.Collection("settings")
+
+	profile := newSettings{
+		Name: camName,
+		// "",
+		FPS: 13,
+		// [[]],
+		// [],
+		// [],
+		// [],
+		// false,
+		// 21,
+		// 5,
+		// true,
+		// 10,
+		// 10,
+		// 3,
+		// 5,
+		// []
+	}
+
+	filter := bson.M{"_id": camName}
+	collection.FindOneAndReplace(context.TODO(), filter, profile, options.FindOneAndReplace().SetUpsert(true))
+}
+
+//delete camera profile
+//Doesn't remove videos from this profile!!
+func deleteProfile(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	camName := params["cam"]
+	collection := conn.Collection("settings")
+
+	filter := bson.M{"_id": camName}
+	collection.DeleteMany(context.TODO(), filter)
+}
