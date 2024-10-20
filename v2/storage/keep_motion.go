@@ -1,26 +1,23 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/streadway/amqp"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//DBName is the database file name
-const DBName string = "shared/motions.db"
-
-const videoFolder string = "shared/motion/videos"
+const videoFolder string = "videos"
 
 //CaptureLocation is the location of the capture folder
-const CaptureLocation string = "shared/motion/capture"
+const CaptureLocation string = "images"
 
 var server = ""
 var connect *amqp.Connection
@@ -49,21 +46,21 @@ type cameraStructure struct {
 var camera = make(map[string]*cameraStructure)
 var timer time.Timer
 
+var conn *mongo.Database
+
 func main() {
 
 	var err error
-
-	server = "amqp://guest:guest@rabbit:5672/"
-	failOnError(err, "Failed to read config")
+	conn, err = configDB(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	server = "amqp://guest:guest@localhost:5672/"
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer connect.Close()
-	if dbExists(DBName) {
-		readyAndListen()
-	} else {
-		log.Print("database doesn't exist")
-		createDatabase()
-	}
+
+	readyAndListen()
 
 }
 
@@ -115,19 +112,37 @@ func decodeMessage(d []byte) {
 
 }
 
-func recordDb(msg Message, loc string) {
+func configDB(ctx context.Context) (*mongo.Database, error) {
+	uri := fmt.Sprintf("mongodb://%s", "localhost")
+	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, fmt.Errorf("couldn't connect to mongo: %v", err)
+	}
+	err = client.Connect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("mongo client couldn't connect with background context: %v", err)
+	}
+	todoDB := client.Database("camera")
+	return todoDB, nil
+}
 
-	db, err := sql.Open("sqlite3", DBName)
-	failOnError(err, "Record failed because of DB error")
-	defer db.Close()
-	tx, err := db.Begin()
-	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("insert into motion(motionCode, location,time,reason) values(?,?,?,?)")
-	failOnError(err, "Record sql prep failed")
-	defer stmt.Close()
-	_, err = stmt.Exec(msg.Code, loc, msg.Time, msg.Blocks)
-	failOnError(err, "Record could not insert")
-	tx.Commit()
+type dbRecord struct {
+	Code     string
+	Location string
+	Time     string
+	Reason   string
+}
+
+func recordDb(msg Message, loc string) {
+	var record dbRecord
+	record.Code = msg.Code
+	record.Location = loc
+	record.Reason = msg.Blocks
+	record.Time = msg.Time
+
+	collection := conn.Collection("capture")
+	collection.InsertOne(context.TODO(), record)
+
 	tc := camera[msg.Name]
 	if tc.prev != "" && tc.prev != msg.Code {
 		log.Printf("End of prev code")
@@ -139,7 +154,7 @@ func recordDb(msg Message, loc string) {
 		tc.ignoreTimer = true
 
 	}
-	db.Close()
+
 }
 
 func notifyQueue(code string, name string) {
@@ -158,47 +173,8 @@ func storeImage(msg Message) {
 	recordDb(msg, location)
 }
 
-func createDatabase() {
-	db, err := sql.Open("sqlite3", DBName)
-	failOnError(err, "Error on database creation")
-	defer db.Close()
-
-	sqlStmt := `CREATE TABLE 'motion' (
-		'motionId'	INTEGER PRIMARY KEY AUTOINCREMENT,
-		'motionCode'	TEXT,
-		'location'	TEXT,
-		'time'	TEXT,
-		'reason' TEXT
-	);`
-
-	_, err = db.Exec(sqlStmt)
-
-	sqlStmt = `CREATE TABLE 'video' (
-		'id'	INTEGER PRIMARY KEY AUTOINCREMENT,
-		'code'	TEXT,
-		'startTime'	TEXT,
-		'endTime'	TEXT,
-		'name' TEXT,
-		'reason' TEXT
-	);`
-
-	_, err = db.Exec(sqlStmt)
-	failOnError(err, "Error creating table")
-	readyAndListen()
-}
-
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
 	}
-}
-
-func dbExists(name string) bool {
-
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
 }

@@ -25,7 +25,6 @@ def randomString(stringLength=10):
 
 
 def checkFrame(image,name, frame,channel):
-    print(len(image))
     global settings,frameCount
     # if(frameCount % 2 == 0):
     #     #skip frame
@@ -129,11 +128,11 @@ def checkFrame(image,name, frame,channel):
                 sendFrames(settings.name,channel)
         
         count += 1
-    settings.heldFrames.append({"time":str(time.time()),"name":name,"image":image,"code":settings.code,
+    settings.heldFrames.append({"time":str(time.time()),"name":name,"image":image.decode('utf-8'),"code":settings.code,
     "count":settings.imgCount,"blocks":",".join(seen),"locations":str(locations)})
     settings.imgCount += 1
     ##Update the background every x frames.
-    if(frameCount > 20):
+    if(frameCount > 10):
         settings.prev = gray
         frameCount = -1
     frameCount += 1
