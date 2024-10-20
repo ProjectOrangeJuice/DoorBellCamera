@@ -1,13 +1,8 @@
-<?php 
-$title = "Hello world";
-include("parts/header.php");
-?>
+{{ define "live" }}
 
+{{ template "header" . }}
 <body class="w3-light-grey">
-<?php 
-$sideBar = [["Overview",0,"index.php"],["Cameras",1,"cameras.php"],["Config editor",0,"edit.php"]];
-include("parts/side.php");
- ?>
+{{ template "side" . }}
 
 <!-- !PAGE CONTENT! -->
 <div class="w3-main" style="margin-left:300px;margin-top:43px;">
@@ -80,8 +75,7 @@ if (form.attachEvent) {
 </script>
 
 
-
- <?php include("parts/footer.php") ?>
+{{ template "footer" . }}
 
   <!-- End page content -->
 </div>
@@ -89,3 +83,5 @@ if (form.attachEvent) {
 
 </body>
 </html>
+
+{{ end }}
