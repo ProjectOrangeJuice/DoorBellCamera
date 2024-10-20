@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,10 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/appleboy/go-fcm"
-	"github.com/go-redis/redis"
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/messaging"
 	_ "github.com/lib/pq"
 	"github.com/streadway/amqp"
+	"google.golang.org/api/option"
 )
 
 type config struct {
@@ -59,17 +61,7 @@ var connect *amqp.Connection
 
 const server = "amqp://guest:guest@192.168.1.126:30188/"
 
-var apiKey string
-
 func main() {
-	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-
-	apiKey = client.Get("cloudKey").String()
-	log.Print("Api key " + apiKey)
 
 	var err error
 	connect, err = amqp.Dial(server)
@@ -179,14 +171,6 @@ func decideFate(msg Message, held *hold) {
 }
 
 func sendNotification() {
-	// Create the message to be sent.
-
-	// Create a FCM client to send the message.
-	client, err := fcm.NewClient(apiKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, passdb, dbname)
@@ -198,26 +182,45 @@ func sendNotification() {
 	row, err := db.Query(sqlStatement)
 	failOnError(err, "Query error")
 	defer row.Close()
-
+	var keys []string
 	for row.Next() {
 		var key string
 		err = row.Scan(&key)
 		failOnError(err, "Failed to scan")
-
-		msg := &fcm.Message{
-			To: key,
-			Data: map[string]interface{}{
-				"Door": "Alarm",
-			},
-		}
-
-		// Send the message and receive the response without retries.
-		response, err := client.Send(msg)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		log.Printf("%#v\n", response)
+		keys = append(keys, key)
 	}
+	log.Printf("Keys! %s", keys)
+
+	opt := option.WithCredentialsFile("serviceAccountKey.json")
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Fatalf("There was an error on the first step. %s", err)
+	}
+
+	// Obtain a messaging.Client from the App.
+	ctx := context.Background()
+	client, err := app.Messaging(ctx)
+	if err != nil {
+		log.Fatalf("error getting Messaging client: %v\n", err)
+	}
+
+	// See documentation on defining a message payload.
+	message := &messaging.MulticastMessage{
+		Notification: &messaging.Notification{
+			Title: "Door service",
+			Body:  "I think someone is there!",
+		},
+
+		Tokens: keys,
+	}
+
+	// Send a message to the device corresponding to the provided
+	// registration token.
+	response, err := client.SendMulticast(ctx, message)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Response is a message ID string.
+	fmt.Println("Successfully sent message:", response)
 
 }
