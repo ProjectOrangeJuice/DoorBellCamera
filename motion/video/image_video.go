@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/icza/mjpeg"
 	_ "github.com/mattn/go-sqlite3"
@@ -18,9 +20,10 @@ type OutMessage struct {
 }
 
 //DBName is the database file name
-const DBName string = "shared/motions.db"
-const captureFolder string = "shared/capture"
-const configLocation string = "shared/config.txt"
+const DBName string = "/shared/motions.db"
+const captureFolder string = "/shared/capture"
+const videoFolder string = "/shared/videos"
+const configLocation string = "/shared/config.txt"
 
 var server = ""
 
@@ -70,8 +73,12 @@ func makeDatabase() {
 }
 
 func readyListen() {
-	serverb, err := ioutil.ReadFile(configLocation)
-	server = string(serverb)
+	file, err := os.Open(configLocation)
+	failOnError(err, "Couldn't open config")
+	defer file.Close()
+	serverb, _ := ioutil.ReadAll(file)
+	server = strings.TrimSpace(string(serverb))
+	failOnError(err, "Failed to read config")
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -122,24 +129,34 @@ func convert(msg []byte) {
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
 
-	aw, err := mjpeg.New(fmt.Sprintf("videos/%s", m.Code), 1280, 720, 10)
+	aw, err := mjpeg.New(fmt.Sprintf("%s/%s", videoFolder, m.Code), 1280, 720, 10)
 	failOnError(err, "Setting up video")
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 
-	rows, err := db.Query("select location,time from motion where motionCode = ?", m.Code)
+	rows, err := db.Query("select location,time,reason from motion where motionCode = ?", m.Code)
 	failOnError(err, "prep failed")
 	defer rows.Close()
 	root := "/home/oharris/Documents/cameraProject/motion"
 
 	var fr []string
+	var high = 0
 	for rows.Next() {
 		var location string
 		var time string
-		err = rows.Scan(&location, &time)
+		var reason string
+		err = rows.Scan(&location, &time, &reason)
 		failOnError(err, "Failed to get")
-
+		s := strings.Split(reason, "-")
+		total := 0
+		for _, val := range s {
+			t, _ := strconv.Atoi(val)
+			total += t
+		}
+		if total > high {
+			total = high
+		}
 		if startTime == "" {
 			startTime = time
 		} else {
@@ -162,19 +179,19 @@ func convert(msg []byte) {
 	}
 
 	log.Printf("Start time %s and end time %s", startTime, endTime)
-	addToDatabase(m.Code, startTime, endTime)
+	addToDatabase(m.Code, startTime, endTime, high)
 }
 
-func addToDatabase(code string, start string, end string) {
+func addToDatabase(code string, start string, end string, high int) {
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 	defer db.Close()
 	tx, err := db.Begin()
 	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("insert into video(code, startTime,endTime) values(?,?,?)")
+	stmt, err := tx.Prepare("insert into video(code, startTime,endTime , reason) values(?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(code, start, end)
+	_, err = stmt.Exec(code, start, end, string(high))
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	log.Printf("Saved to db")
