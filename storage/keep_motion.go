@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"time"
@@ -119,6 +120,7 @@ func decodeMessage(d []byte) {
 		notifyQueue(tc.prev, m.Name)
 		tc.ignoreTimer = true
 		tc.prev = m.Code
+		log.Println("I got an END.")
 	} else {
 		storeImage(m)
 	}
