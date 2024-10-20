@@ -139,6 +139,7 @@ def motionCheck(name,image,camtime):
         if(motion):
             print("i saw something in section "+str(vals[7]))
             tc[countOn] += 1
+            sendFrames(tc)
         else:
             tc[countOn] -= 1
             if(tc[countOn] < 0):
@@ -146,6 +147,9 @@ def motionCheck(name,image,camtime):
                 tc[imgCount] = 0
                 if(tc[codeUsed]):
                     sendFrames(tc)
+                    tc[codeUsed] = False
+                    tc[code] = randomString(10)
+                    
                 else:
                     tc[heldFrames].clear()
         if(tc[countOn] > int(vals[6])):
@@ -170,8 +174,7 @@ def sendFrames(tc):
             routing_key='motionAlert',
             body=json.dumps(data))
     tc[heldFrames].clear()
-    tc[codeUsed] = False
-    tc[code] = randomString(10)
+    
     
 
 
