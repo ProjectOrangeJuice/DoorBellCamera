@@ -21,10 +21,24 @@
     <script>
       $("#loginform").on("submit", function () {
         event.preventDefault();
-        var dataJson = JSON.stringify({ "username": $("#user").val(), "password": $("#pass").val()})
-        $.post("http://localhost:8000/login", dataJson, function (data) {
-          console.log(data);
+        var dataJson = JSON.stringify({ "username": $("#user").val(), "password": $("#pass").val() })
+
+        $.ajax("http://localhost:8000/login", {
+          type: "POST",
+          data: dataJson,
+          statusCode: {
+            200: function (response) {
+              alert('1');
+
+            },
+            401: function (response) {
+              alert('2');
+
+            }
+          },
         });
+
+     
 
       });
     </script>
