@@ -24,18 +24,13 @@ include "include/head.php";
 
     #light {
         display: none;
-        position: absolute;
-        top: 50%;
+        position: fixed;
         margin-right: 15px;
-        /* left: 50%; */
-        /* max-width: 600px;
-        max-height: 360px; */
-        /* margin-left: -300px;
-        margin-top: -180px; */
+        top: 50%;
         border: 2px solid #FFF;
         background: #FFF;
         z-index: 1002;
-        overflow: visible;
+
     }
 
     #boxclose {
@@ -207,7 +202,7 @@ include "include/head.php";
 
         function lightbox_open() {
             var lightBoxVideo = document.getElementById("videoPlayer");
-            window.scrollTo(0, 0);
+            //window.scrollTo(0, 0);
             document.getElementById('light').style.display = 'block';
             document.getElementById('fade').style.display = 'block';
             lightBoxVideo.play();
