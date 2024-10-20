@@ -40,7 +40,6 @@ func main() {
 	router.HandleFunc("/config/{service}", getConfig).Methods("GET")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
 	router.HandleFunc("/stream", wsHandler)
-	router.PathPrefix("/pages/").Handler(http.StripPrefix("/pages/", http.FileServer(http.Dir("pages/"))))
 
 	go doStream()
 	log.Fatal(http.ListenAndServe(":8000", router))
