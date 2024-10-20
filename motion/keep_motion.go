@@ -126,7 +126,6 @@ func recordDb(msg Message, loc string) {
 	_, err = stmt.Exec(msg.Code, loc, msg.Time)
 	failOnError(err, "Record could not insert")
 	tx.Commit()
-	log.Printf("Saved to db")
 	if prev != "" && prev != msg.Code {
 		log.Printf("End of prev code")
 		notifyQueue(prev)
@@ -178,7 +177,7 @@ func storeImage(msg Message) {
 	//convert base64
 	bImage, err := base64.StdEncoding.DecodeString(msg.Image)
 	failOnError(err, "Base64 error")
-	location := fmt.Sprintf("%s/%s-%b.jpg", CaptureLocation, msg.Code, msg.Count)
+	location := fmt.Sprintf("%s/%s-%v.jpg", CaptureLocation, msg.Code, msg.Count)
 	err2 := ioutil.WriteFile(location, bImage, 0644)
 	failOnError(err2, "Error writing image")
 	log.Printf("Stored image %s", location)
