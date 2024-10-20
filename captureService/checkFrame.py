@@ -93,7 +93,8 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
             x = x + current[2]
             y = y + current[0]
             newPrev.append([x,y,w,h])
-            if rainCheck(prevBox,[x,y]):
+            (sx,sy) = smallestDif(prevBox,[x,y])
+            if (sx > 150 or sy > 150):
                 # ignore this box as it's rain
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,0, 255), 2)
                 (sx,sy) = smallestDif(prevBox,[x,y])
@@ -108,7 +109,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
                 
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
-                (sx,sy) = smallestDif(prevBox,[x,y])
+                
                 cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
 
         if compBoxes(prevBox,newPrev):
