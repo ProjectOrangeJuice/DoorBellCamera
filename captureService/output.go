@@ -68,7 +68,7 @@ func motionStreamPush() {
 	for data := range motionStream {
 		fmt.Println("Push frame")
 		//Convert the image to jpg
-		rabbitChannel.Publish("", "camera", false, false, amqp.Publishing{
+		rabbitChannel.Publish("camera", "", false, false, amqp.Publishing{
 			DeliveryMode: amqp.Transient,
 			ContentType:  "bytes",
 			Body:         data,
