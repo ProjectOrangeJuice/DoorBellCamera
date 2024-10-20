@@ -88,7 +88,7 @@ include("parts/side.php");
               var a = document.createElement("button")
               a.innerHTML = "View"
               a.addEventListener("click", function () {
-                document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/motion/" + entry.Code + "'></video>"
+                document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/s/motion/" + entry.Code + "'></video>"
               });
 
               newCell3.appendChild(a)
@@ -118,6 +118,7 @@ include("parts/side.php");
       function deleteMotion(code) {
 
         var xhttp = new XMLHttpRequest();
+        xhttp.withCredentials = true;
         xhttp.onreadystatechange = function () {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             location.reload();
