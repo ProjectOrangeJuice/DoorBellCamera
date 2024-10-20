@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -118,20 +119,22 @@ func deleteMotion(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get motion
-const videoLoc = "../storage/videos"
+const videoLoc = "../../storage/videos"
 
 func getHQVideo(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	log.Printf("Get video for %s, requested %s", r.RemoteAddr, params["code"])
-	http.ServeFile(w, r, fmt.Sprintf("%s/%s.mp4", videoLoc, params["code"]))
+	code := strings.ReplaceAll(params["code"], "+", " ")
+	log.Printf("Get video for %s, requested %s", r.RemoteAddr, fmt.Sprintf("%s/%s.mp4", videoLoc, code))
+	http.ServeFile(w, r, fmt.Sprintf("%s/%s.mp4", videoLoc, code))
 
 }
 
 func getLQVideo(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	log.Printf("Get video for %s, requested %s", r.RemoteAddr, params["code"])
-	http.ServeFile(w, r, fmt.Sprintf("%s/s/%s.mp4", videoLoc, params["code"]))
+	code := strings.ReplaceAll(params["code"], "+", " ")
+	log.Printf("Get video for %s, requested %s", r.RemoteAddr, fmt.Sprintf("%s/s/%s.mp4", videoLoc, code))
+	http.ServeFile(w, r, fmt.Sprintf("%s/s/%s.mp4", videoLoc, code))
 
 }
