@@ -134,12 +134,16 @@ def checkUpdateCallback(ch, method, properties, body):
         writeConfig(j["Inner"])
         readConfig()
     if(j["Task"] == "read"):
-        returnConfig()
+        returnConfig(j["Inner"])
 
-def returnConfig():
+def returnConfig(inner):
     f=  open("cConfig.json", "r")
     v={"Task":"readResponse","Inner":f.read()}
-    channel3.basic_publish(exchange="config",routing_key="motion.check",
+    print("Sending to config."+inner)
+
+
+
+    channel3.basic_publish(exchange="config",routing_key="config."+inner,
     body=json.dumps(v))
 
 def writeConfig(inner):
