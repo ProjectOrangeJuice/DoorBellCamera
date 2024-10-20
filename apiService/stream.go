@@ -107,7 +107,6 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	}
 	ch.Close()
 	ws.Close()
-	lock.Unlock()
 }
 
 //Socket handler
@@ -155,7 +154,6 @@ func getMotionAlerts(ws *websocket.Conn) {
 	}
 	ch.Close()
 	ws.Close()
-	lock.Unlock()
 
 }
 
