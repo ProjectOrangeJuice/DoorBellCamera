@@ -43,6 +43,7 @@
             <div id="videoBox">
               Video will display here.
             </div>
+            <button onclick="inspect()">Inspect</button>
           </p>
         </div>
 
@@ -81,6 +82,12 @@
 
     </script>
     <script>
+      inspe = ""
+
+      function inspect(){
+        location.href="/inspect/"+encodeURI(inspe)
+      }
+
       function setup() {
         var jsonT;
         var xhttp = new XMLHttpRequest();
@@ -117,6 +124,7 @@
               a.addEventListener("click", function () {
                 document.getElementById("videoBox").innerHTML = "<video controls autoplay height='360'><source src='http://localhost:8000/s/motion/" + entry.Code + "'></video>"
                 document.getElementById('id01').style.display = 'block'
+                inspe = entry.Code
               });
 
               newCell3.appendChild(a)
