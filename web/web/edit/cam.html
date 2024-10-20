@@ -2,9 +2,9 @@
 
 <div class="w3-row-padding w3-margin-bottom edit" id="cam" style="display:none">
 
-<p>Get cams config</p>
-<input type="text" class="w3-input" id="camName">
-<button class="w3-button w3-green" onclick="getCam()">Get</button>
+  <p>Get cams config</p>
+  <input type="text" class="w3-input" id="camName">
+  <button class="w3-button w3-green" onclick="getCam()">Get</button>
   <form id="setCam">
     <p>
       <label>Server address</label>
@@ -23,30 +23,158 @@
       <input class="w3-input" type="text" name="threshold" id="clrot"></p>
     <p>
       <label>Threshold</label>
-      <i> eg [80,70]</i>
-      <input class="w3-input" type="text" name="threshold" id="cth"></p>
-    <p>
-      <label>Min count</label>
-      <input class="w3-input" type="number" name="minCount" id="cmin"></p>
-
-    <p>
+      <button onclick="openThres()">Edit</button>
       <p>
-        <label>Motion blur</label>
-        <input class="w3-input" type="text" name="threshold" id="cmblur"></p>
+        <label>Min count</label>
+        <input class="w3-input" type="number" name="minCount" id="cmin"></p>
 
       <p>
-        <label>Motion Rotate</label>
-        <input class="w3-input" type="text" name="threshold" id="cmrot"></p>
-      <h3>Helpful setup</h3>
-      <p>
-        <label>Blur amount</label>
-        <input class="w3-input" type="number" name="minCount" id="hcblur"></p>
+        <p>
+          <label>Motion blur</label>
+          <input class="w3-input" type="text" name="threshold" id="cmblur"></p>
 
-      <button class="w3-button w3-green" type="submit">Save</button>
+        <p>
+          <label>Motion Rotate</label>
+          <input class="w3-input" type="text" name="threshold" id="cmrot"></p>
+        <h3>Helpful setup</h3>
+        <p>
+          <label>Blur amount</label>
+          <input class="w3-input" type="number" name="minCount" id="hcblur"></p>
+
+        <button class="w3-button w3-green" type="submit">Save</button>
   </form>
+
+  <div id="tbox">
+    <p>Click twice to add a new location</p>
+    <img id="camView">
+    <table id="tvals">
+      <thead>
+        <tr>
+          <td>X</td>
+          <td>Y</td>
+          <td>Threshold</td>
+          <td>Area</td>
+          <td>Min count</td>
+          <td>Delete</td>
+        </tr>
+      </thead>
+      <tbody>
+
+      </tbody>
+
+    </table>
+    <button onclick="saveThres()">Save Threshold changes</button>
+  </div>
+
 </div>
 
+
+
 <script>
+  firstClick = []
+  function openThres() {
+    var tableRef = document.getElementById('tvals').getElementsByTagName('tbody')[0];
+    // 2
+    var socket = new WebSocket("ws://localhost:8000/s/stream/" + encodeURI($("#camName").val()))
+    const img = document.getElementById('camView');
+    // 3
+    var update = function () {
+      // Log errors
+      socket.onclose = function (error) {
+        long.innerHTML = "Socket has been closed. Connection to camera has failed"
+      };
+      socket.onmessage = function (event) {
+        img.src = "data:image/jpg;base64, " + event.data
+      }
+    };
+    window.setTimeout(update);
+
+    //image now streams
+    $('#camView').click(function (e) {
+      var offset = $(this).offset();
+
+      var X = (e.pageX - offset.left);
+      var Y = (e.pageY - offset.top);
+      if (firstClick.length == 0) {
+        firstClick = [Math.round(X), Math.round(Y)]
+      } else {
+
+        // Insert a row in the table at the last row
+        var newRow = tableRef.insertRow();
+
+        // Insert a cell in the row at index 0
+        var newCell0 = newRow.insertCell(0);
+        var newCell1 = newRow.insertCell(1);
+        var newCell2 = newRow.insertCell(2);
+        var newCell3 = newRow.insertCell(3);
+        var newCell4 = newRow.insertCell(4);
+        var newCell5 = newRow.insertCell(5);
+
+        var ni = document.createElement("input")
+        ni.value = "[" + firstClick[0] + "," + Math.round(X) + "]"
+        newCell0.appendChild(ni)
+
+        var ni = document.createElement("input")
+        ni.value = "[" + firstClick[1] + "," + Math.round(Y) + "]"
+        newCell1.appendChild(ni)
+
+        var ni = document.createElement("input")
+        newCell2.appendChild(ni)
+
+        var ni = document.createElement("input")
+        newCell3.appendChild(ni)
+
+        var ni = document.createElement("input")
+        newCell4.appendChild(ni)
+
+        var a = document.createElement("button")
+        a.innerHTML = "Delete"
+        a.addEventListener("click", function () {
+          newRow.remove()
+        });
+
+        newCell5.appendChild(a)
+        firstClick = []
+      }
+
+
+    });
+
+  }
+
+  function saveThres() {
+    var tableRef = document.getElementById('tvals').getElementsByTagName('tbody')[0];
+    var rows = tableRef.getElementsByTagName('tr');
+    per = []
+    for (i = 0; i < rows.length; i++) {
+      temp = []
+      cols = rows[i].getElementsByTagName("td")
+      x = cols[0].getElementsByTagName("input")[0].value
+      y = cols[1].getElementsByTagName("input")[0].value
+      t = cols[2].getElementsByTagName("input")[0].value
+      are = cols[3].getElementsByTagName("input")[0].value
+      min = cols[4].getElementsByTagName("input")[0].value
+      temp.push(x, y, t, are, min)
+      per.push(temp)
+    }
+
+    var dataJson = JSON.stringify({
+      "threshold": per
+    })
+    var xhttp = new XMLHttpRequest();
+    xhttp.withCredentials = true;
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+
+      }
+    };
+    xhttp.open("POST", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+    xhttp.send(dataJson);
+    console.log(per)
+  }
+
+
+
   function getCam() {
     name = $("#camName").val()
     var jsonT;
@@ -65,13 +193,62 @@
         $("#hcblur").val(jsont["helpBlur"])
         $("#cmblur").val(jsont["motionBlur"])
 
-        $("#cth").val(jsont["threshold"])
+
         $("#cmin").val(jsont["minCount"])
 
-      }
-    };
-    xhttp.open("GET", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
-    xhttp.send();
+
+
+        te = jsont["threshold"]
+        tj = JSON.parse(te)
+        var tableRef = document.getElementById('tvals').getElementsByTagName('tbody')[0];
+        tj.forEach(element => {
+          // Insert a row in the table at the last row
+          var newRow = tableRef.insertRow();
+
+          // Insert a cell in the row at index 0
+          var newCell0 = newRow.insertCell(0);
+          var newCell1 = newRow.insertCell(1);
+          var newCell2 = newRow.insertCell(2);
+          var newCell3 = newRow.insertCell(3);
+          var newCell4 = newRow.insertCell(4);
+          var newCell5 = newRow.insertCell(5);
+
+          var ni = document.createElement("input")
+          ni.value = "["+element[0]+"]"
+          newCell0.appendChild(ni)
+
+          var ni = document.createElement("input")
+          ni.value = "["+element[1]+"]"
+          newCell1.appendChild(ni)
+
+          var ni = document.createElement("input")
+          ni.value = element[2]
+          newCell2.appendChild(ni)
+
+          var ni = document.createElement("input")
+          ni.value = element[3]
+          newCell3.appendChild(ni)
+
+          var ni = document.createElement("input")
+          ni.value = element[4]
+          newCell4.appendChild(ni)
+
+          var a = document.createElement("button")
+          a.innerHTML = "Delete"
+          a.addEventListener("click", function () {
+            newRow.remove()
+          });
+
+          newCell5.appendChild(a)
+          firstClick = []
+        
+
+        });
+
+    }
+  };
+  xhttp.open("GET", "http://localhost:8000/s/config/motion:camera:" + encodeURI(name), true);
+  xhttp.send();
   }
 
 
@@ -79,9 +256,9 @@
   $("#setCam").on("submit", function () {
     event.preventDefault();
     var dataJson = JSON.stringify({
-      "serverAddress": $("#csa").val(), "serverPort": $("#csp").val(),"camAddress": $("#caddr").val(),
-      "threshold": $("#cth").val(), "minCount": $("#cmin").val(),"fps": $("#cfps").val(),
-      "liveRotation": $("#clrot").val(),"motionRotation": $("#cmrot").val(),"helpBlur": $("#hcblur").val(),
+      "serverAddress": $("#csa").val(), "serverPort": $("#csp").val(), "camAddress": $("#caddr").val(),
+      "threshold": $("#cth").val(), "minCount": $("#cmin").val(), "fps": $("#cfps").val(),
+      "liveRotation": $("#clrot").val(), "motionRotation": $("#cmrot").val(), "helpBlur": $("#hcblur").val(),
       "motionBlur": $("#cmblur").val()
     })
     var xhttp = new XMLHttpRequest();
