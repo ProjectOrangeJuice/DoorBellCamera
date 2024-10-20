@@ -75,6 +75,7 @@
     <div class="w3-row-padding">
 
       <img id="video" width="100%"></img>
+      <p>Load full version? <input type="checkbox" id="fullres"></p>
       <button class="w3-button w3-blue" onclick="loadVideo()">Load</button>
 
     </div>
@@ -123,7 +124,12 @@
         long.innerHTML = ""
         var urlParams = new URLSearchParams(window.location.search);
         // 2
-        var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/stream/" + encodeURI(config.Name))
+        var socket = "";
+        if(document.getElementById("fullres").checked){
+         socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/stream/" + encodeURI(config.Name))
+        }else{
+          socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/mobilestream/" + encodeURI(config.Name))
+        }
         const img = document.getElementById('video');
         // 3
         var update = function () {
