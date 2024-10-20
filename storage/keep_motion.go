@@ -16,10 +16,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const videoFolder string = "videos"
+const videoFolder string = "/storeDrive/videos"
 
 //CaptureLocation is the location of the capture folder
-const CaptureLocation string = "images"
+const CaptureLocation string = "/storeDrive/images"
 
 var server = ""
 var connect *amqp.Connection
