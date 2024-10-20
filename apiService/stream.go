@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -54,10 +55,11 @@ type Message struct {
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	msgs, ch := listenToExchange("videoStream", cam)
+	var lock sync.Mutex
 	var m Message
 	//forever := make(chan bool)
 	p := make(chan bool)
-	go pingponger(ws, p)
+	go pingponger(ws, p, &lock)
 	const duration = 13 * time.Second
 	timer := time.NewTimer(duration)
 	alive := true
@@ -77,10 +79,14 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 				sends3 := buf.Bytes()
 
 				sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
+				lock.Lock()
 				err = ws.WriteMessage(websocket.TextMessage, []byte(sEnc))
+
 			} else {
+				lock.Lock()
 				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 			}
+			lock.Unlock()
 			if err != nil {
 
 				alive = false
@@ -101,6 +107,7 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	}
 	ch.Close()
 	ws.Close()
+	lock.Unlock()
 }
 
 //Socket handler
@@ -120,10 +127,11 @@ type alert struct {
 
 //For the connection, get the stream and send it to the socket
 func getMotionAlerts(ws *websocket.Conn) {
+	var lock sync.Mutex
 	msgs, ch := listenToExchange("motion", "#")
 	var m alert
 	p := make(chan bool)
-	go pingponger(ws, p)
+	go pingponger(ws, p, &lock)
 	alive := true
 	for alive {
 		select {
@@ -131,7 +139,9 @@ func getMotionAlerts(ws *websocket.Conn) {
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
 			b, _ := json.Marshal(m)
+			lock.Lock()
 			err = ws.WriteMessage(websocket.TextMessage, b)
+			lock.Unlock()
 			if err != nil {
 				alive = false
 				break
@@ -145,23 +155,29 @@ func getMotionAlerts(ws *websocket.Conn) {
 	}
 	ch.Close()
 	ws.Close()
+	lock.Unlock()
 
 }
 
-func pingponger(ws *websocket.Conn, c chan bool) {
+func pingponger(ws *websocket.Conn, c chan bool, lock *sync.Mutex) {
+	lock.Lock()
 	ws.WriteMessage(websocket.TextMessage, []byte("PING"))
+	lock.Unlock()
 	for {
 		_, bytes, err := ws.ReadMessage()
 		if err != nil || string(bytes) != "PONG" {
 			break
 		}
 		time.Sleep(5 * time.Second)
+		lock.Lock()
 		err = ws.WriteMessage(websocket.TextMessage, []byte("PING"))
+		lock.Unlock()
 		if err != nil {
 			log.Println("Write Error: ", err)
 			break
 		}
 	}
 	c <- false
+	lock.Unlock()
 
 }
