@@ -146,7 +146,7 @@ def checkFrame(image,name, frame,channel,stamp):
     "count":settings.imgCount,"blocks":",".join(seen),"locations":str(locations)})
     settings.imgCount += 1
     ##Update the background every x frames.
-    if(frameCount > 3):
+    if(frameCount > 2):
         settings.prev = gray
         frameCount = -1
     frameCount += 1
