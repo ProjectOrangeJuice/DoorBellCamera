@@ -1,33 +1,104 @@
 <head>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
 </head>
+
 <body>
 
 
-<div id="app">
+  <div id="app">
+    <div class="form-group">
+      <label for="exampleInputEmail1">Connection</label>
+      <input class="form-control" v-model="connection">
+    </div>
+    <div class="form-group">
+      <label for="exampleInputEmail1">FPS</label>
+      <input class="form-control" v-model="fps">
+    </div>
+    <div class="form-group">
+      <label for="exampleInputEmail1">Area</label>
+      <input class="form-control" v-model="area">
+    </div>
+    <div class="form-group">
+      <label for="exampleInputEmail1">Amount</label>
+      <input class="form-control" v-model="amount">
+    </div>
+    <div class="form-group">
+      <label for="exampleInputEmail1">Threshold</label>
+      <input class="form-control" v-model="threshold">
+    </div>
+    <div class="form-group">
+      <label for="exampleInputEmail1">Min count</label>
+      <input class="form-control" v-model="mincount">
+    </div>
+    <div class="form-group">
+      <label for="exampleInputEmail1">Active</label>
+      <input type="checkbox" v-model="active">
+    </div>
+   
+      <input class="btn btn-primary" type="submit" value="Update" v-on:click="save">
 
-    <input v-model="name">
-
-</div>
+    </div>
 
 </body>
 
 <script>
-var app = new Vue({
-  el: '#app',
-  data: {
-    name: 'Hello Vue!'
-  }, mounted() {
-    axios
-      .get("http://localhost:8000/config")
-      .then(response => {
-        this.name = response.data.Name;
-      })
-      .catch(response => {
-        console.log("Error " + response);
-      });
-  },
-})
+  var app = new Vue({
+    el: '#app',
+    data: {
+      name: '',
+      connection: '',
+      fps: '',
+      area: '',
+      amount: '',
+      threshold: '',
+      active: true,
+      mincount: 0
+    }, mounted() {
+      axios
+        .get("http://localhost:8000/config")
+        .then(response => {
+          this.name = response.data.Name;
+          this.connection = response.data.Connection;
+          this.fps = response.data.FPS;
+          this.area = response.data.Area;
+          this.amount = response.data.Amount;
+          this.threshold = response.data.Threshold;
+          this.mincount = response.data.MinCount;
+          this.active = response.data.Active;
+        })
+        .catch(response => {
+          console.log("Error " + response);
+        });
+    },
+    methods: {
+      save: function () {
+        axios
+          .post("http://localhost:8000/config", {
+            Name: this.commentBox,
+            Connection: this.connection,
+            FPS: this.fps,
+            Area: this.area,
+            Amount: this.amount,
+            Threshold: this.threshold,
+            MinCount: this.mincount,
+            Active: this.active,
+          })
+          .then(response => {
+            alert("Saved");
+          })
+          .catch(response => {
+            alert("Failed to save");
+          });
+      },
+    }
+  })
 </script>

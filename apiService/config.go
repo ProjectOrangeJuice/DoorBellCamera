@@ -18,6 +18,7 @@ type cameraSettings struct {
 	Amount     []int
 	Threshold  []int
 	MinCount   []int
+	Motion     bool
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
@@ -36,12 +37,12 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
-	log.Print("Set config")
+
 	decoder := json.NewDecoder(r.Body)
 	var settings cameraSettings
 	err := decoder.Decode(&settings)
 	failOnError(err, "decode new settings")
-
+	log.Printf("Set config %v", settings)
 	collection := conn.Collection("settings")
 	filter := bson.M{"_id": 0}
 	collection.FindOneAndReplace(context.TODO(), filter, settings, options.FindOneAndReplace().SetUpsert(true))
