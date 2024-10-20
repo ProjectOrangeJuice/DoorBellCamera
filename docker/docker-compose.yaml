@@ -15,14 +15,14 @@ services:
       driver: "none"
   
   postgres:
-    image: post:latest
+    image: 192.168.1.135:5000/post:latest
     networks:
       - internalNetwork
     logging:
       driver: "none"
 
   capture:
-    image: capture:latest
+    image: 192.168.1.135:5000/capture:latest
     networks:
       - internalNetwork
       - externalNetwork
@@ -32,7 +32,7 @@ services:
         python3 getCamera.py;"
 
   check:
-    image: check:latest
+    image: 192.168.1.135:5000/check:latest
     networks:
       - internalNetwork
     command: >
@@ -41,7 +41,7 @@ services:
         python3 check.py"
 
   keep:
-    image: keep:latest
+    image: 192.168.1.135:5000/keep:latest
     volumes:
       - ./api-data/motion:/shared
     networks:
@@ -52,7 +52,7 @@ services:
         ./keep_motion;"
 
   web:
-    image: web:latest
+    image: 192.168.1.135:5000/web:latest
     ports:
       - "8001:8001"
     networks:
@@ -61,7 +61,7 @@ services:
 
 
   api:
-    image: api:latest
+    image: 192.168.1.135:5000/api:latest
     volumes:
       - ./api-data:/go/log
     ports:
