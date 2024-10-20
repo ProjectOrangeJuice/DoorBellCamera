@@ -99,10 +99,10 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
             cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
-        prevBox = newPrev
+        
         ##Maths is done. Check if this is an alert
 
-        if(motion):
+        if(motion and rainBox(prevBox,newPrev)):
             
             ##Add the zone to seen
             if(str(count) not in seen):
@@ -114,7 +114,8 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
         else:
             settings.countOn[count] -= 1
 
-            
+        #update boxes
+        prevBox = newPrev
 
         #Has the number of motion frames gone above the min required?
         if(settings.countOn[count] > settings.minCount[count]):
@@ -216,12 +217,26 @@ def compBoxes(prev,nowBox):
             dify = abs(item2[1] - item[1])
             difh = abs(item2[2] - item[2])
             difw = abs(item2[3] - item[3])
-            if(difx < 10 and dify < 10 and difh < 10 and difw < 10):
+            if(difx < 15 and dify < 15 and difh < 15 and difw < 15):
                 print("BOx has only had small movement")
                 return True
-       
-            
     return False
+
+def rainBox(prev,nowBox):
+    for item in prev:
+        for item2 in nowBox:
+            difx = abs(item2[0] - item[0])
+            dify = abs(item2[1] - item[1])
+            difh = abs(item2[2] - item[2])
+            difw = abs(item2[3] - item[3])
+            if(difx < 40 and dify < 40 and difh < 40 and difw < 40):
+                print("Box sees movement")
+                return False
+            else:
+                print("Box doesn't see anything move nearby")
+    return True
+
+
 
 def sendEnd(name,channel):
     channel.basic_publish(exchange='motion',
