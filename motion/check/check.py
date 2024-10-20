@@ -51,12 +51,12 @@ def getCamera(name):
         redisThres = r.hget(l,"threshold")
         redisThres = redisThres.replace("`","\"")
         if name not in cameras:
-            cameras[name] = [0, 0, [], json.loads(redisThres), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
+            cameras[name] = [[], 0, [], json.loads(redisThres), r.hget(l,"minCount"), "", False, None,0, r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
         else:
             cameras[name] = [cameras[name][0], cameras[name][1],cameras[name][2], json.loads(redisThres), r.hget(l,"minCount"), cameras[name][5], cameras[name][6], cameras[name][7],cameras[name][8], r.hget(l,"motionBlur"),r.hget(l,"motionRotation")]
     
     else:
-        cameras[name] = [0, 0, [], dt, dmin, "", False, None,0,0,0]
+        cameras[name] = [[], 0, [], dt, dmin, "", False, None,0,0,0]
     return cameras[name]
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,serverPort))
@@ -110,6 +110,8 @@ def checkFrame(name,image,camtime):
     seen = [] #What section did we see it in
     locations = []
     while count < len(roi):
+        if(len(tc[countOn]) < len(roi)):
+            tc[countOn] = [0]*(len(roi)+1)
         vals = roi[count]
         ##crop roi
         static_backt = tc[prevImage][vals[0]:vals[1],vals[2]:vals[3]]
@@ -140,17 +142,17 @@ def checkFrame(name,image,camtime):
             if(vals[7] not in seen):
                 seen.append(vals[7])
             #Inc the number of frames that have seen motion
-            tc[countOn] += 1
-            if(tc[countOn] > int(vals[6])*2):
-                tc[countOn] = int(vals[6]*2)
+            tc[countOn][count] += 1
+            if(tc[countOn][count] > int(vals[6])*2):
+                tc[countOn][count] = int(vals[6]*2)
             #Replace the background every 4 frames of motion
-            if(tc[countOn]%4 == 0):
+            if(tc[countOn][count]%4 == 0):
                 doNew = True
         else:
             #No motion
-            tc[countOn] -= 1
-            if(tc[countOn] < 0):
-                tc[countOn] = 0
+            tc[countOn][count] -= 1
+            if(tc[countOn][count] < 0):
+                tc[countOn][count] = 0
                 tc[heldFrames].clear()
                 tc[imgCount] = 0
                 if(tc[codeUsed]):
@@ -159,7 +161,7 @@ def checkFrame(name,image,camtime):
                     
         
         #Has the number of motion frames gone above the min required?
-        if(tc[countOn]>int(vals[6])):
+        if(tc[countOn][count]>int(vals[6])):
             sendFrames(tc)
             tc[codeUsed] = True
         else:
