@@ -20,7 +20,7 @@ func main() {
 	connectRabbit()
 	go liveStreamPush()
 	//Open video
-	video, err := gocv.OpenVideoCapture("test.mp4")
+	video, err := gocv.OpenVideoCapture("/home/oharris/t.mp4")
 	defer video.Close()
 	if err != nil {
 		log.Printf("Failed to open video: %s", err)
