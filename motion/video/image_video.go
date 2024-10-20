@@ -118,7 +118,7 @@ func readyListen() {
 		}
 	}()
 
-	log.Printf(" [*] This is version2 ")
+	log.Printf(" [*] This is version4 ")
 	<-forever
 
 }
@@ -154,8 +154,9 @@ func convert(msg []byte) {
 			t, _ := strconv.Atoi(val)
 			total += t
 		}
+
 		if total > high {
-			total = high
+			high = total
 		}
 		if startTime == "" {
 			startTime = time
@@ -178,12 +179,13 @@ func convert(msg []byte) {
 }
 
 func addToDatabase(code string, start string, end string, high int) {
+
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 	defer db.Close()
 	tx, err := db.Begin()
 	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("insert into video(code, startTime,endTime , reason) values(?,?,?,?)")
+	stmt, err := tx.Prepare("insert into video(code, startTime,endTime ,reason) values(?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
 	_, err = stmt.Exec(code, start, end, strconv.Itoa(high))
