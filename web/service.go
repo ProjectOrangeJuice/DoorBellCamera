@@ -22,7 +22,7 @@ type pageContent struct {
 type side struct {
 	Title    string
 	Location string
-	current  bool
+	Current  bool
 }
 
 func main() {
