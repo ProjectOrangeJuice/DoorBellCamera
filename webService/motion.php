@@ -58,7 +58,7 @@ body {font-size:16px;}
   <!-- Photo grid (modal) -->
   <div class="w3-row-padding" id="app">
       <li v-for="alert in alerts">
-        <button v-on:click="showVideo(alert.Code)">{{ alert.Code }}</button> Occured at {{ dateChange(alert.Start) }}
+        <img v-bind:src="alert.Thumbnail" v-on:click="showVideo(alert.Code)"/>{{ alert.Code }} Occured at {{ dateChange(alert.Start) }}
         <button v-on:click="deleteCode(alert.Code)">Delete</button>
       </li>
 

@@ -1,13 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	b64 "encoding/base64"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/nfnt/resize"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -77,23 +82,49 @@ func makeVideo(code string, name string) {
 	output, err := exec.Command("ffmpeg", "-framerate", fmt.Sprintf("%d", (settings.FPS)), "-pattern_type", "glob", "-i", st, fmt.Sprintf("%s/%s.mp4", videoFolder, code)).Output()
 	log.Println(output)
 	failOnError(err, "c")
+
+	thumbnail := getThumb(fr[counter/2])
+
 	for _, elem := range fr {
 		err := os.Remove(elem)
 		failOnError(err, "Failed to remove image")
 	}
-	addToDatabase(code, name, startTime, endTime, reasons)
+	addToDatabase(code, name, startTime, endTime, reasons, thumbnail)
+}
+
+func getThumb(loc string) string {
+
+	log.Printf("The addr value is %s", loc)
+	existingImageFile, err := os.Open(loc)
+	defer existingImageFile.Close()
+	failOnError(err, "Failed to get image")
+
+	image, _, err := image.Decode(existingImageFile)
+	failOnError(err, "Failed to read image to compress")
+
+	imageres := resize.Resize(160, 0, image, resize.Lanczos3)
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, imageres, &jpeg.Options{25})
+	failOnError(err, "Failed to encode")
+	sends3 := buf.Bytes()
+
+	sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
+
+	return sEnc
+
 }
 
 type videoRecord struct {
-	Code   string
-	Name   string
-	Start  string
-	End    string
-	Reason string
+	Code      string
+	Name      string
+	Start     string
+	End       string
+	Reason    string
+	Thumbnail string
 }
 
-func addToDatabase(code string, name string, start string, end string, reason string) {
-	r := videoRecord{code, name, start, end, reason}
+func addToDatabase(code string, name string, start string, end string, reason string, th string) {
+	r := videoRecord{code, name, start, end, reason, fmt.Sprintf("data:image/jpg;base64, %s", th)}
 	collection := conn.Collection("video")
 	collection.InsertOne(context.TODO(), r)
 
