@@ -1,5 +1,12 @@
 package main
 
+import (
+	"context"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+)
+
 type settings struct {
 	Name               string
 	Connection         string
@@ -22,6 +29,18 @@ type zone struct {
 	BoxJump     int
 	SmallIgnore int
 	Area        int
+}
+
+func getSetting() settings {
+	conn := databaseClient.Database("doorbell")
+	db := conn.Collection("setting")
+	filter := bson.M{"_id": 0}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	doc := db.FindOne(ctx, filter)
+	cancel()
+	var s settings
+	doc.Decode(&s)
+	return s
 }
 
 func genTestSetting() settings {
