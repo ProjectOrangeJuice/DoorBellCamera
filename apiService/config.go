@@ -7,12 +7,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type cameraSettings struct {
-	Name               string
+	Name               string `bson:"_id"`
 	Connection         string
 	FPS                int
 	Area               [][]int
@@ -27,12 +28,26 @@ type cameraSettings struct {
 	BufferAfter        int
 	NoMoveRefreshCount int
 	SmallMove          int
+	Zones              []zone
+}
+
+type zone struct {
+	X1          int
+	Y1          int
+	X2          int
+	Y2          int
+	Threshold   int
+	MinCount    int
+	BoxJump     int
+	SmallIgnore int
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	camName := params["cam"]
 	log.Print("get config")
 	collection := conn.Collection("settings")
-	filter := bson.M{"_id": 0}
+	filter := bson.M{"_id": camName}
 	doc := collection.FindOne(context.TODO(), filter)
 	var settings cameraSettings
 	err := doc.Decode(&settings)
@@ -45,14 +60,16 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
-
+	params := mux.Vars(r)
+	camName := params["cam"]
 	decoder := json.NewDecoder(r.Body)
 	var settings cameraSettings
 	err := decoder.Decode(&settings)
 	failOnError(err, "decode new settings")
+	settings.Name = camName
 	log.Printf("Set config %v", settings)
 	collection := conn.Collection("settings")
-	filter := bson.M{"_id": 0}
+	filter := bson.M{"_id": camName}
 	collection.FindOneAndReplace(context.TODO(), filter, settings, options.FindOneAndReplace().SetUpsert(true))
 }
 
