@@ -99,3 +99,26 @@ func getMotion(w http.ResponseWriter, r *http.Request) {
 		delMotion(w, r)
 	}
 }
+
+type keySt struct {
+	Code string
+}
+
+func addDoorKey(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var m keySt
+	err := decoder.Decode(&m)
+	failOnError(err, "Couldn't decode doorkey message")
+	username := getUser(r)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, passdb, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	failOnError(err, "Database opening error")
+	defer db.Close()
+	sqlStatement := `INSERT INTO keys(user,key) VALUES($1,$2)`
+	_, err = db.Exec(sqlStatement, username, m.Code)
+	failOnError(err, "Query error")
+
+}
