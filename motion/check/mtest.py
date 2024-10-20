@@ -20,7 +20,7 @@ def minute_passed(oldepoch):
 def m( event, x, y,flag,param):
     print("Mouse.. "+str(x)+" - "+str(y))
 
-roi = [[0,70,900,1200]]
+roi = [[37,220,209,400]]
 sm = [0]
 # Capturing video 
 video = cv2.VideoCapture("rtsp://admin:admin@192.168.1.120/11")
