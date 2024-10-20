@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -71,7 +70,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 
 	for f := range in {
 		//Set vars for this frame
-		fameNum := time.Now().Unix()
+		fameNum := time.Now().UnixNano()
 		motion := false
 		var boxesLocations []*Point
 		gocv.CvtColor(f.frame, &grayMap, gocv.ColorBGRToGray)
@@ -83,7 +82,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 
 		//We require a prev frame to work
 		if preMap.Empty() {
-			code = string(time.Now().Unix())
+			code = time.Now().Format("2006-01-02 15:04:05")
 			blurMap.CopyTo(&preMap)
 			continue
 		}
@@ -123,7 +122,6 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 				blocks[i] = newBox
 
 				if len(blocks) == 0 || len(blocks[i]) == 0 {
-					fmt.Printf("No blocks")
 					// No prev boxes
 					//Draw box in ORANGE
 					if setting.Debug {
@@ -135,7 +133,6 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 				x, y := findClosestBox(midX, midY, i)
 
 				if x > zone.BoxJump || y > zone.BoxJump {
-					fmt.Printf("Too far (%v,%v) vs (%v,%v)\n", x, y, zone.BoxJump, zone.BoxJump)
 					// Box is too far (large gap)
 					// RED
 					if setting.Debug {
@@ -144,7 +141,6 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 					continue
 				}
 				if x < zone.SmallIgnore || y < zone.SmallIgnore {
-					fmt.Printf("Too little (%v,%v) vs %v\n", x, y, zone.SmallIgnore)
 					// Box moved too little
 					noMove = true
 					// PURPLE
@@ -158,7 +154,6 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 				if setting.Debug {
 					gocv.Rectangle(&f.image, rect, green, 2)
 				}
-				fmt.Println("Motion hit true")
 				motion = true
 
 				// Add boundary boxes to locations
@@ -183,7 +178,7 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 		} else {
 			counter--
 			if counter < 0 {
-				code = string(time.Now().Unix())
+				code = time.Now().Format("2006-01-02 15:04:05")
 				counter = 0
 				if sentBuffer {
 					//send END
