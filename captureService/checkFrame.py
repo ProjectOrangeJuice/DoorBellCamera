@@ -2,6 +2,7 @@ import cv2
 import random,string,time
 import imutils,json
 import setting as s
+import sendFrame as sf
 import base64
 class SettingOld:
     areas = [[0, 128, 0, 120,"Test zone"]]
@@ -26,7 +27,7 @@ def randomString(stringLength=10):
 
 boxNoMove = 0
 prevBox = []
-def checkFrame(image,name, frame,channel,stamp):
+def checkFrame(image,name, frame,channel,stamp,debugpub):
     global settings,frameCount,boxNoMove,prevBox
     # if(frameCount % 2 == 0):
     #     #skip frame
@@ -86,7 +87,6 @@ def checkFrame(image,name, frame,channel,stamp):
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         newPrev = []
-        areaMax = False
         totalArea = 0
         # Check if it is over the threshold
         for contour in cnts:
@@ -106,7 +106,8 @@ def checkFrame(image,name, frame,channel,stamp):
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
         prevBox = newPrev
-        if totalArea > areaMax:
+        if totalArea > perArea:
+            print("Total area is larger")
             boxNoMove += 1
         ##Maths is done. Check if this is an alert
 
@@ -200,6 +201,7 @@ def checkFrame(image,name, frame,channel,stamp):
         print("New frame")
     frameCount += 1
     print(settings.countOn)
+    sf.sendFrame(b64,settings.name,debugpub)
     # cv2.imshow("frame", mimg)
     # cv2.waitKey(1)
 
@@ -218,10 +220,15 @@ def sendBuffer(name,code,channel):
 def compBoxes(prev,nowBox):
     for item in prev:
         for item2 in nowBox:
-            if(item == item2):
-                print("A box is the same")
+            difx = abs(item2[0] - item[0])
+            dify = abs(item2[1] - item[1])
+            difh = abs(item2[2] - item[2])
+            difw = abs(item2[3] - item[3])
+            print("x %d y %d h %d w %d" % (difx, dify, difh, difw))
+            if(difx < 10 and dify < 10 and difh < 10 and difw < 10):
+                print("BOx has only had small movement")
                 return True
-
+           
     return False
 
 def sendEnd(name,channel):
