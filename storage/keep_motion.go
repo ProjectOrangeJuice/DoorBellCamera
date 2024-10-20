@@ -73,7 +73,8 @@ func readyAndListen() {
 	go func() {
 		defer ch.Close()
 		for d := range msgs {
-			decodeMessage(d.Body)
+			go decodeMessage(d.Body)
+			d.Ack(true)
 		}
 	}()
 
@@ -170,6 +171,7 @@ func storeImage(msg Message) {
 	err2 := ioutil.WriteFile(location, bImage, 0644)
 	failOnError(err2, "Error writing image")
 	log.Printf("Stored image %s", location)
+	bImage = nil
 	recordDb(msg, location)
 }
 
