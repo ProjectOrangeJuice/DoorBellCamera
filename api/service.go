@@ -45,6 +45,7 @@ func main() {
 	sec.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/inspect/{location}", getImage).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/door", addDoorKey).Methods("POST", "OPTIONS")
+	sec.HandleFunc("/makeUser", makeUser).Methods("POST", "OPTIONS")
 
 	logger.Fatal(http.ListenAndServe(":8000", router))
 	logger.Print("ended")
