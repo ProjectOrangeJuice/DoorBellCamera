@@ -106,10 +106,10 @@ def checkFrame(image,name, frame,channel,stamp):
             if(settings.countOn[count] > settings.minCount[count]+15):
                 settings.countOn[count] = settings.minCount[count]+15
                 sendFrames(settings.name,channel)
+                print("Send frames due to 1")
         
         #No motion
         else:
-            
             settings.countOn[count] -= 1
             if(settings.countOn[count] < 1):
                 settings.countOn[count] = 0
@@ -129,24 +129,27 @@ def checkFrame(image,name, frame,channel,stamp):
         if(settings.countOn[count] > settings.minCount[count]):
             #send frames
             settings.codeUsed = True
+            print(str(settings.countOn[count])+" -- "+str(settings.minCount[count]))
+            print("Code used")
         else:
             if settings.codeUsed:
                 # send frames
                 sendFrames(settings.name,channel)
+                print("SEnd due to 2")
         
         count += 1
 
     #Pretend debug switch
-    image = cv2.imencode(".jpg",mimg)[1]
-    cv2.putText(image, stamp, (10, 25),
-	cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
-    b64 = base64.b64encode(image)
+    imagetemp = cv2.imencode(".jpg",mimg)[1]
+    # cv2.putText(imagetemp, stamp, (10, 25),
+	#     cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    b64 = base64.b64encode(imagetemp)
     
     settings.heldFrames.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":settings.imgCount,"blocks":",".join(seen),"locations":str(locations)})
     settings.imgCount += 1
     ##Update the background every x frames.
-    if(frameCount > 2):
+    if(frameCount > 3):
         settings.prev = gray
         frameCount = -1
     frameCount += 1
