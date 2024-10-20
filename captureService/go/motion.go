@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"time"
 
@@ -21,6 +22,8 @@ type InputImage struct {
 	frame gocv.Mat
 	image gocv.Mat
 }
+
+var blocks []image.Rectangle
 
 //Takes in images
 //Delivers to channel when motion is detected
@@ -87,9 +90,59 @@ func checkMotion(in chan InputImage, out chan gocv.Mat, setting *settings) {
 				rect := gocv.BoundingRect(contour)
 				newBox = append(newBox, rect)
 
+				midX := rect.Min.X + rect.Dx()
+				midY := rect.Min.Y + rect.Dy()
+
+				if len(blocks) == 0 {
+					fmt.Printf("No blocks")
+					// No prev boxes
+					//Draw box in ORANGE
+					continue
+				}
+				x, y := findClosestBox(midX, midY)
+
+				if x > zone.BoxJump || y > zone.BoxJump {
+					// Box is too far (large gap)
+					// RED
+					gocv.Rectangle(&f.image)
+					continue
+				}
+				if x < zone.SmallIgnore || y < zone.SmallIgnore {
+					// Box moved too little
+					// PURPLE
+					continue
+				}
+				// Motion box
+				// Green
+				motion = true
+
 			}
 		}
 
 	}
 
+}
+
+func findClosestBox(x int, y int) (int, int) {
+	difX := -1
+	difY := -1
+	for _, block := range blocks {
+		midX := block.Min.X + block.Dx()
+		midY := block.Min.Y + block.Dy()
+		dy := abs(midY - y)
+		dx := abs(midX - x)
+		if difX == 1 || difX < dx && difY < dy {
+			difX = dx
+			difY = dy
+		}
+	}
+	return difX, difY
+
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
