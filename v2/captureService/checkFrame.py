@@ -73,7 +73,7 @@ def checkFrame(image,name, frame):
         try:
             # ( _, cnts , _) -- version issue.
             # (cnts, _)
-            (_,cnts, _) = cv2.findContours(thresh_frame.copy(),
+            (cnts, _) = cv2.findContours(thresh_frame.copy(),
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         except ValueError:
             print("Not enough values...")
@@ -92,8 +92,8 @@ def checkFrame(image,name, frame):
         if(motion):
             
             ##Add the zone to seen
-            if(current[4] not in seen):
-                seen.append(current[4])
+            if(str(count) not in seen):
+                seen.append(str(count))
             ##Increase the number of frames that have seen motion
             settings.countOn[count] += 1
             ##When motion stops, it will record 15 more frames
