@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/icza/mjpeg"
 	_ "github.com/mattn/go-sqlite3"
@@ -72,7 +71,7 @@ func convert(msg []byte) {
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
 
-	aw, err := mjpeg.New(fmt.Sprintf("videos/%s.avi", m.Code), 1280, 720, 25)
+	aw, err := mjpeg.New(fmt.Sprintf("videos/%s", m.Code), 1280, 720, 10)
 	failOnError(err, "Setting up video")
 
 	db, err := sql.Open("sqlite3", DBName)
@@ -98,9 +97,8 @@ func convert(msg []byte) {
 		failOnError(err, "Failed reading image")
 		err = aw.AddFrame(data)
 		failOnError(err, "failed to add frame")
-		err = os.Remove(fmt.Sprintf("%s/%s", root, location))
-		failOnError(err, "Failed to remove image")
-		log.Printf("Added.. %s", fmt.Sprintf("%s/%s", root, location))
+		//err = os.Remove(fmt.Sprintf("%s/%s", root, location))
+		//failOnError(err, "Failed to remove image")
 
 	}
 	err = aw.Close()
