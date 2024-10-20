@@ -170,4 +170,4 @@ def sendFrames(name,channel):
 def sendEnd(name,channel):
     channel.basic_publish(exchange='motion',
         routing_key= name.replace(" ","."),
-        body= json.dumps({"end":True,"code":settings.code,"name":name})
+        body= json.dumps({"end":True,"code":settings.code,"name":name}))
