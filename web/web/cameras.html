@@ -16,9 +16,16 @@
     <div class="w3-row-padding w3-margin-bottom">
       <form id="camForm">
         Camera name:
-        <input name="cname" id="cname">
+        <select id="camName">
+          {{ range $i,$a := .Cam }}
+            <option value="{{ $a }}">{{ $a }}</option>
+          {{ end }}
+        </select>
         <input class="w3-button w3-green" type="submit">
+       
       </form>
+      <input name="cname" id="cname">
+      <button class="w3-button w3-green" onclick="save()">Save</button>
 
 
       <div id="imageArea">
@@ -29,7 +36,10 @@
 
 
     <script>
-
+      function save(){
+        name = $("#cname").val()
+        $.get("http://localhost:8001/add/"+encodeURI(name));
+      }
       function processForm(e) {
         if (e.preventDefault) e.preventDefault();
 
@@ -39,7 +49,7 @@
         var long = document.getElementById("imageArea");
         var urlParams = new URLSearchParams(window.location.search);
         // 2
-        var socket = new WebSocket("ws://localhost:8000/s/stream/" + encodeURI(document.getElementById("cname").value))
+        var socket = new WebSocket("ws://localhost:8000/s/stream/" + encodeURI(document.getElementById("camName").value))
         const img = document.getElementById('videoI');
         // 3
         var update = function () {
