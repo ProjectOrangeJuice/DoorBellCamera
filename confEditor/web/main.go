@@ -15,11 +15,12 @@ import (
 
 var server = "amqp://guest:guest@192.168.1.126:30188/"
 
-type OutMessage struct {
+type outMessage struct {
 	Task  string
 	Inner string
 }
 
+//Message is the json format
 type Message struct {
 	Image string
 	Time  string
@@ -28,6 +29,7 @@ type Message struct {
 	Name  string
 }
 
+//This is for the websockets
 var clients = make(map[*websocket.Conn]bool)
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -44,6 +46,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
+//Socket handler
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	failOnError(err, "Couldn't upgrade")
@@ -53,6 +56,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	go doStream(cam, ws)
 }
 
+//For the connection, get the stream and send it to the socket
 func doStream(cam string, ws *websocket.Conn) {
 	log.Printf("Setting up connection for %s", cam)
 	conn, err := amqp.Dial(server)
@@ -124,19 +128,21 @@ func doStream(cam string, ws *websocket.Conn) {
 	log.Printf("Finished..")
 }
 
+//GET for getconfig
 func getConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	params := mux.Vars(r)
 	msg := getCommand(params["service"])
-	body := OutMessage{params["service"], msg}
+	body := outMessage{params["service"], msg}
 	b, err := json.Marshal(body)
 	failOnError(err, "failed to create json to send")
 	w.Write(b)
 
 }
 
+//POST for setconfig
 func setConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "plain/text")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -147,6 +153,7 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	setCommand(params["service"], string(body))
 }
 
+//Listens for the return of the config file
 func goListen(rch chan string, arg string) {
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -200,12 +207,13 @@ func goListen(rch chan string, arg string) {
 
 func decodeMsg(msg []byte, arg string) string {
 	arg = strings.Replace(arg, ".", "-", -1)
-	var m OutMessage
+	var m outMessage
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
 	return m.Inner
 }
 
+//Get the config file
 func getCommand(arg string) string {
 	returnCh := make(chan string)
 	go goListen(returnCh, arg)
@@ -216,7 +224,7 @@ func getCommand(arg string) string {
 	failOnError(err, "Failed to connect to RabbitMQ (get)")
 	defer conn.Close()
 
-	body := OutMessage{"read", "test"}
+	body := outMessage{"read", "test"}
 	b, err := json.Marshal(body)
 
 	ch, err := conn.Channel()
@@ -260,11 +268,12 @@ func failOnError(err error, msg string) {
 	}
 }
 
+//Set the config file
 func setCommand(arg string, config string) {
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ (get)")
 	defer conn.Close()
-	body := OutMessage{"update", config}
+	body := outMessage{"update", config}
 	b, err := json.Marshal(body)
 
 	ch, err := conn.Channel()
