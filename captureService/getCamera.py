@@ -61,8 +61,9 @@ def readFrames():
         try:
             ret, frame = vcap.read()
             frame = cv2.flip(frame,1)
+            sendFrame = frame
             st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-            cv2.putText(frame, st, (10, 25),
+            cv2.putText(sendFrame, st, (10, 25),
 		    cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
         except:
             #Error with frame, try again.
@@ -89,7 +90,7 @@ def readFrames():
                 break
             #reset error
             failedImage = 0
-            b64 = base64.b64encode(image)
+            b64 = base64.b64encode(sendFrame)
             sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
