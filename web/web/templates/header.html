@@ -14,4 +14,27 @@
 <style>
 html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
 </style>
+
+<script>
+    function doRefresh(){
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+          if (xhttp.readyState == 4 && xhttp.status == 401) {
+            location.reload();
+          }
+        }
+        xhttp.withCredentials = true;
+        xhttp.open("GET", "http://localhost:8000/s/refresh", true);
+        xhttp.send();
+      
+    }
+window.setInterval(function(){
+  doRefresh()
+      
+}, 15000);
+doRefresh()
+</script>
+
+
 {{ end }}
