@@ -93,7 +93,8 @@ def readFrames():
             #reset error
             failedImage = 0
             b64 = base64.b64encode(image)
-            #sf.sendFrame(b64,cameraName,broadcastChannel)
+            if not s.setting.debug:
+                sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
             #t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
