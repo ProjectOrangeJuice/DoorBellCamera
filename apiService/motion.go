@@ -46,12 +46,40 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func getMotionBetweenDates(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	startTime, _ := strconv.Atoi(params["start"])
+	endTime, _ := strconv.Atoi(params["end"])
+	log.Print("get motion")
+	collection := conn.Collection("video")
+	findOptions := options.Find()
+	// Sort by
+	findOptions.SetSort(bson.D{{"start", -1}})
+	filter := bson.M{
+		"start": bson.M{"$gt": strconv.FormatInt(int64(startTime), 10)},
+		"end":   bson.M{"$lt": strconv.FormatInt(int64(endTime), 10)},
+	}
+	cur, err := collection.Find(context.TODO(), filter, findOptions)
+	failOnError(err, "Failed to get video records")
+
+	var records []videoRecord
+	for cur.Next(context.TODO()) {
+		var record videoRecord
+		err := cur.Decode(&record)
+		failOnError(err, "Failed to decode record")
+		records = append(records, record)
+	}
+
+	json.NewEncoder(w).Encode(records)
+
+}
+
 func getMotion24(w http.ResponseWriter, r *http.Request) {
 	log.Print("get motion")
 	t := time.Now()
 	t = t.Add(time.Duration(-24) * time.Hour)
 	stamp := t.Unix()
-	strconv.FormatInt(stamp, 10)
+	log.Printf("stamp used is %v", strconv.FormatInt(stamp, 10))
 	collection := conn.Collection("video")
 	filter := bson.M{
 		"start": bson.M{"$gt": strconv.FormatInt(stamp, 10)},
