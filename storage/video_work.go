@@ -97,6 +97,10 @@ func addToDatabase(code string, name string, start string, end string, reason st
 	collection := conn.Collection("video")
 	collection.InsertOne(context.TODO(), r)
 
+	collection = conn.Collection("capture")
+	filter := bson.M{"code": code}
+	collection.DeleteMany(context.TODO(), filter)
+
 	//log.Printf("Saved to db")
 
 	//	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)
