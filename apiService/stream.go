@@ -58,11 +58,11 @@ func getVideoShared(w http.ResponseWriter, r *http.Request) {
 func sendSharedVideo(cam string) {
 	log.Printf("Shared video has started for %s", cam)
 	msgs, ch := listenToExchange("videoStream", cam)
-	//ws.SetCompressionLevel(9)
 	var m Message
 	timer := time.NewTimer(duration)
 	last := time.Now().UnixNano()
 	firstFrame := true
+	skip := false
 	for len(socketList[cam]) != 0 {
 		select {
 		case d := <-msgs:
@@ -79,13 +79,29 @@ func sendSharedVideo(cam string) {
 			failOnError(err, "Json decode error")
 			//Go through each socket
 			for index, socket := range socketList[cam] {
-
 				if socket.active {
 					//If uncompressed
-					if socket.fullRez {
+					if socket.fullRez && !skip {
+						//We still want to reduce our bandwidth so we skip a frame
+						//We also compress the image
+
+						// socket.lock.Lock()
+						// err = socket.socket.WriteMessage(websocket.TextMessage, []byte(m.Image))
+						// socket.lock.Unlock()
+
+						sDec, _ := b64.StdEncoding.DecodeString(m.Image)
+						image, _, err := image.Decode(bytes.NewReader(sDec))
+						failOnError(err, "Failed to read image to compress")
+
+						buf := new(bytes.Buffer)
+						err = jpeg.Encode(buf, image, &jpeg.Options{60})
+						sends3 := buf.Bytes()
+
+						sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
 						socket.lock.Lock()
-						err = socket.socket.WriteMessage(websocket.TextMessage, []byte(m.Image))
+						err = socket.socket.WriteMessage(websocket.TextMessage, []byte(sEnc))
 						socket.lock.Unlock()
+
 					} else if diff > waitTime || firstFrame {
 						//Compressed
 						//Should only compress once, but i'm lazy
@@ -116,6 +132,7 @@ func sendSharedVideo(cam string) {
 				}
 
 			}
+			skip = !skip
 
 		case <-timer.C:
 			log.Printf("Cam has timed out. Closing all sockets")
@@ -229,11 +246,11 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 				//skip every other frame
 				last = time.Now().UnixNano()
 			} else if !compressed {
-				err := json.Unmarshal(d.Body, &m)
-				failOnError(err, "Json decode error")
-				lock.Lock()
-				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
-				lock.Unlock()
+				// err := json.Unmarshal(d.Body, &m)
+				// failOnError(err, "Json decode error")
+				// lock.Lock()
+				// err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
+				// lock.Unlock()
 			}
 			if err != nil {
 
