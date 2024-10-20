@@ -65,13 +65,14 @@ def motionCheck(name,image,time):
 
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
     cvimg = cv2.imdecode(nparr,cv2.IMREAD_COLOR)
-  
+    kernel = np.ones((2,2),np.float32)/25
+    newImage = cv2.filter2D(cvimg,-1,kernel)
 
     if(tc[prevImage] is None ):
-       tc[prevImage] = cvimg 
+       tc[prevImage] = newImage 
        tc[code] = randomString(10)
     else:
-        res = cv2.absdiff(cvimg, tc[prevImage])
+        res = cv2.absdiff(newImage, tc[prevImage])
         res = res.astype(np.uint8)
         ##percentage = (np.count_nonzero(res) * 100)/ res.size
         divBy = len(tc[threshold])
@@ -136,7 +137,7 @@ def motionCheck(name,image,time):
        
 
 
-    tc[prevImage] = cvimg
+    tc[prevImage] = newImage
 
 
 def checkUpdateCallback(ch, method, properties, body):
