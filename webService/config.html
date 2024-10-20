@@ -100,19 +100,19 @@
 
       <div v-for="(a,index) in area" class="row">
         <div class="col">
-          <label>x1</label>
+          <label>y1</label>
           <input class="form-control" v-model.number="a[0]">
         </div>
         <div class="col">
-          <label>x2</label>
+          <label>y2</label>
           <input class="form-control" v-model.number="a[1]">
         </div>
         <div class="col">
-          <label>y1</label>
+          <label>x1</label>
           <input class="form-control" v-model.number="a[2]">
         </div>
         <div class="col">
-          <label>y2</label>
+          <label>x2</label>
           <input class="form-control" v-model.number="a[3]">
         </div>
         <div class="col">
@@ -239,21 +239,22 @@
           var  b = this.$el.getBoundingClientRect()
           var i = document.getElementById("zo");
           var x = e.clientX - b.left;
+          var y = e.clientY - b.top - i.height;
           //Get ratio, then find real x value.
+        
           x = Math.round(x *(i.naturalWidth/i.width))
-          var y = e.clientY - b.top;
           y = Math.round(y *(i.naturalHeight/i.height))
           console.log("x "+x+ "y "+y)
           if (this.newZone) {
             this.amount.push(50);
             this.mincount.push(5);
             this.threshold.push(15);
-            this.area.push([x, 0, y, 0]);
+            this.area.push([y, 0, x, 0]);
             this.newZone = false;
           } else {
             v = this.area[this.area.length - 1]
-            v[1] = x;
-            v[3] = y;
+            v[1] = y;
+            v[3] = x;
             this.newZone = true;
           }
         },
