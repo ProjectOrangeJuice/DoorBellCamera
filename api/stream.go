@@ -2,15 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/streadway/amqp"
 )
 
 //Message is the json format
@@ -58,53 +55,38 @@ func getDoor(w http.ResponseWriter, r *http.Request) {
 
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn) {
-	msgs, ch := listenToExchange("videoStream", strings.Replace(cam, " ", ".", -1))
-	forever := make(chan bool)
+	msgs, ch := listenToExchange("videoStream", cam)
 	var m Message
-
-	defer closeThis(ch)
+	forever := make(chan bool)
 	const duration = 3 * time.Second
 	timer := time.NewTimer(duration)
-	for !connect.IsClosed() {
+	alive := true
+	for alive {
 		select {
 		case d := <-msgs:
 			timer.Reset(duration)
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
-
 			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
-
 			if err != nil {
-				log.Printf("Websocket error: %s", err)
+				ch.Close()
 				ws.Close()
-				closeThis(ch)
-				msgs = nil
-				forever = nil
-				d = amqp.Delivery{}
-				err = nil
+				alive = false
 				break
 			}
-
 		case <-timer.C:
-			fmt.Println("Timeout !")
+			print("Timer!")
+			ch.Close()
 			ws.Close()
+			alive = false
 			break
 		}
-		print("For loop!")
-	}
-	print("Ended?")
-	connect = nil
-	m = Message{}
-	ws = nil
-	return
-	<-forever
-	print("Ended forever")
-}
 
-func closeThis(ch *amqp.Channel) {
-	log.Print("Closing channel")
-	ch.Close()
-	ch = nil
+	}
+
+	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
+	<-forever
+
 }
 
 //For the connection, get motion and send it
