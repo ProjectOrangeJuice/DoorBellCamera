@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	_ "github.com/lib/pq"
 )
 
 // Create the JWT key used to create the signature
@@ -14,6 +17,14 @@ var jwtKey = []byte("my_secret_key")
 var users = map[string]string{
 	"user": "password",
 }
+
+const (
+	host   = "localhost"
+	port   = 5432
+	user   = "door"
+	passdb = "door"
+	dbname = "doorservice"
+)
 
 // Credentials for reading username/password from json
 type Credentials struct {
@@ -25,6 +36,22 @@ type Credentials struct {
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
+}
+
+func checkuser(username string, password string) bool {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, passdb, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	failOnError(err, "Database opening error")
+	defer db.Close()
+	sqlStatement := `SELECT id FROM accounts WHERE 'user'=$1 AND password=$2;`
+	row, err := db.Query(sqlStatement, username, password)
+	failOnError(err, "Query error")
+	defer row.Close()
+	return row.Next()
+
 }
 
 // Create the Signin handler
@@ -48,14 +75,8 @@ func signin(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("Signin bad request from %s", r.RemoteAddr)
 		return
 	}
-
-	// Get the expected password from our in memory map
-	expectedPassword, ok := users[creds.Username]
-
-	// If a password exists for the given user
-	// AND, if it is the same as the password we received, the we can move ahead
-	// if NOT, then we return an "Unauthorized" status
-	if !ok || expectedPassword != creds.Password {
+	ok := checkuser(creds.Username, creds.Password)
+	if !ok {
 		logger.Printf("Signin attempt from %s", r.RemoteAddr)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
