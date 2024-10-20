@@ -113,7 +113,12 @@
 
 
   <script>
-
+//On page load, decide if the full stream should be selected
+var cip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"
+if(cip.includes("192.168.1")){
+  console.log("IP is lan, default is full stream")
+  document.getElementById("fullres").checked = true;
+}
 
     /* do what you want with the form */
     function loadVideo() {
