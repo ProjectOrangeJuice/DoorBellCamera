@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -34,6 +33,7 @@ func getVideo(w http.ResponseWriter, r *http.Request) {
 	// register client
 	params := mux.Vars(r)
 	cam := params["camera"]
+	logger.Printf("Get video, socket upgraded for %s to watch %s", r.RemoteAddr, params["camera"])
 	go sendVideo(cam, ws)
 }
 
@@ -41,7 +41,7 @@ func getVideo(w http.ResponseWriter, r *http.Request) {
 func getMotionWatch(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	failOnError(err, "Couldn't upgrade")
-
+	logger.Printf("Motion watch for %s", r.RemoteAddr)
 	go motionWatch("", ws)
 }
 
@@ -49,13 +49,13 @@ func getMotionWatch(w http.ResponseWriter, r *http.Request) {
 func getDoor(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	failOnError(err, "Couldn't upgrade")
+	logger.Printf("Door watch for %s", r.RemoteAddr)
 	// register client
 	go doorWatch("", ws)
 }
 
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn) {
-	log.Printf("Setting up connection for %s", cam)
 	msgs, ch := listenToExchange("videoStream", strings.Replace(cam, " ", ".", -1))
 	defer ch.Close()
 
@@ -75,7 +75,7 @@ func sendVideo(cam string, ws *websocket.Conn) {
 				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 
 				if err != nil {
-					log.Printf("Websocket error: %s", err)
+					logger.Printf("Websocket error: %s", err)
 					ws.Close()
 					return
 				}
