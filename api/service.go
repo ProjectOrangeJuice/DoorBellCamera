@@ -36,7 +36,7 @@ func main() {
 	sec.HandleFunc("/refresh", refresh).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/motion", allMotion).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/motion/{code}", getMotion).Methods("DELETE", "GET", "OPTIONS")
-	sec.HandleFunc("/stream/{code}", getVideo).Methods("GET", "OPTIONS")
+	sec.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/service/motion", getMotionWatch).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/service/door", getDoor).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/config/{service}", setConfig).Methods("POST", "OPTIONS")
