@@ -1,0 +1,44 @@
+<div id="imageArea">
+       
+</div>
+<img id="videoI">
+</div>
+
+
+<script>
+
+
+      /* do what you want with the form */
+
+
+      var long = document.getElementById("imageArea");
+      var urlParams = new URLSearchParams(window.location.search);
+      // 2
+      var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI("Hello"))
+      const img = document.getElementById('videoI');
+      // 3
+      var update = function () {
+
+        // Log errors
+        socket.onclose = function (error) {
+          long.innerHTML = "Socket has been closed. Connection to camera has failed"
+        };
+      
+        socket.onmessage = function (event) {
+          decoded = atob(event.data)
+
+          img.src = "data:image/jpg;base64, "+event.data
+          //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+
+        }
+      };
+      window.setTimeout(update);
+
+
+    
+
+
+
+
+  </script>
