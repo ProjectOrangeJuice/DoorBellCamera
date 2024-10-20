@@ -55,8 +55,8 @@ def checkFrame(image,name, frame,channel):
         zone = settings.amount[count]
         # Crop for roi
       
-        roiPrev = settings.prev #[current[0]:current[1], current[2]:current[3]]
-        roi = gray#[current[0]:current[1], current[2]:current[3]]
+        roiPrev = settings.prev[current[0]:current[1], current[2]:current[3]]#settings.prev #
+        roi = gray[current[0]:current[1], current[2]:current[3]]#gray#
 
         # Difference between frames
         diff_frame = cv2.absdiff(roiPrev, roi)
