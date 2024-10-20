@@ -1,6 +1,6 @@
 <?php
 $title = "Motion";
-$current = 2;
+$current = 1;
 
 include "include/head.php";
 ?>
@@ -100,7 +100,7 @@ include "include/head.php";
                     <tr>
 
                         <td>
-                            <input class="w3-check" type="checkbox" v-model="selected" :value="alert.Code" number>
+                            <input class="w3-check" type="checkbox" v-model="selected" :value="alert.Code"></input>
                         </td>
 
                         <td>
@@ -112,12 +112,13 @@ include "include/head.php";
                         <td>
                             Occured at {{ dateChange(alert.Start) }} <br>
                             Lasted {{ timeLength(alert.Start, alert.End) }} seconds
+                            <br>Code of {{ alert.Code }}
                         </td>
 
                     </tr>
                     <tr>
                         <td></td>
-                        <td><button class="w3-button w3-red">Delete</button></td>
+                        <td><button class="w3-button w3-red" v-on:click="deleteCode(alert.Code)">Delete</button></td>
                     </tr>
 
                 </table>
@@ -132,14 +133,14 @@ include "include/head.php";
             </div>
 
 
-        </div>
 
-        <hr>
-        <div class="">
-            <button v-on:click="deleteSelected" class="w3-red w3-button">Delete selected</button>
-            <button v-on:click="deleteAll" class="w3-red w3-button">Delete All</button>
-        </div>
 
+            <hr>
+            <div class="">
+                <button v-on:click="deleteSelected" class="w3-red w3-button">Delete selected</button>
+                <button v-on:click="deleteAll" class="w3-red w3-button">Delete All</button>
+            </div>
+        </div>
 
 
 
@@ -239,6 +240,7 @@ include "include/head.php";
                 selected: [],
                 alerts: [],
                 camNames: [],
+                timeClick: false,
             },
             mounted() {
                 //this.updateMotion();
@@ -285,6 +287,7 @@ include "include/head.php";
 
                 },
                 loadAlerts() {
+                    this.timeClick = true;
                     $('#datepickerTo').datepicker("option", "dateFormat", '@')
                     var start = $("#datepickerTo").val()
                     $('#datepickerFrom').datepicker("option", "dateFormat", '@')
@@ -305,7 +308,11 @@ include "include/head.php";
                     axios
                         .delete("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/motion/" + code)
                         .then(response => {
-                            this.updateMotion()
+                            if (this.timeClick) {
+                                this.updateMotion()
+                            } else {
+                                this.display24();
+                            }
 
                         })
                         .catch(response => {
