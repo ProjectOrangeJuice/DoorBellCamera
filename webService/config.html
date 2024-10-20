@@ -1,0 +1,33 @@
+<head>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+</head>
+<body>
+
+
+<div id="app">
+
+    <input v-model="name">
+
+</div>
+
+</body>
+
+<script>
+var app = new Vue({
+  el: '#app',
+  data: {
+    name: 'Hello Vue!'
+  }, mounted() {
+    axios
+      .get("http://localhost:8000/config")
+      .then(response => {
+        this.name = response.data.Name;
+      })
+      .catch(response => {
+        console.log("Error " + response);
+      });
+  },
+})
+</script>

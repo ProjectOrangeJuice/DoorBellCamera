@@ -21,6 +21,7 @@ type cameraSettings struct {
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
+	log.Print("get config")
 	collection := conn.Collection("settings")
 	filter := bson.M{"_id": 0}
 	doc := collection.FindOne(context.TODO(), filter)
@@ -35,6 +36,7 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
+	log.Print("Set config")
 	decoder := json.NewDecoder(r.Body)
 	var settings cameraSettings
 	err := decoder.Decode(&settings)
