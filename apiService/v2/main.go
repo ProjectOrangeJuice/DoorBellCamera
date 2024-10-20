@@ -30,6 +30,7 @@ func main() {
 	//rabbit
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
+	go streamEngine()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/config", getConfig).Methods("GET")
@@ -45,6 +46,9 @@ func main() {
 	router.HandleFunc("/videos/{last}", getNextSet).Methods("GET")
 	router.HandleFunc("/videos/", getNextSet).Methods("GET")
 	router.HandleFunc("/videos/{start}/{end}", getBetween).Methods("GET")
+
+	// Live
+	router.HandleFunc("/stream", getVideoShared).Methods("GET", "OPTIONS")
 
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),
