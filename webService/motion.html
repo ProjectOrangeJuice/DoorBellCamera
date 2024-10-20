@@ -70,7 +70,7 @@ body {font-size:16px;}
     <div class="w3-container">
       <span onclick="document.getElementById('id01').style.display='none'"
       class="w3-button w3-display-topright">&times;</span>
-      <video controls :src="video"></video>
+      <video controls :src="videoL"></video>
     </div>
   </div>
 </div>
@@ -113,7 +113,7 @@ function onClick(element) {
   var app = new Vue({
     el: '#app',
     data: {
-      video: "",
+      videoL: "",
     alerts: []
     }, mounted() {
      this.updateMotion();
@@ -147,7 +147,9 @@ function onClick(element) {
         });
       },
       showVideo(v){
-        video = "http://localhost:8000/motion/"+v;
+        console.log("v is .. "+v)
+        this.videoL = "http://localhost:8000/motion/"+v;
+        console.log("video is "+this.videoL)
         document.getElementById('id01').style.display='block'
       }
     }
