@@ -18,13 +18,7 @@
       <label>Min count</label>
       <input class="w3-input" type="number" name="minCount" id="min"></p>
 
-    <p>
-      <label>Rotate for motion</label>
-      <input class="w3-input" type="number" name="rotate" id="rot"></p>
-
-    <p>
-      <label>Blur amount</label>
-      <input class="w3-input" type="number" name="blur" id="blur"></p>
+   
     <button class="w3-button w3-green" type="submit">Save</button>
   </form>
 </div>
@@ -43,8 +37,7 @@
         $("#sp").val(jsont["serverPort"])
         $("#th").val(jsont["threshold"])
         $("#min").val(jsont["minCount"])
-        $("#rot").val(jsont["rotation"])
-        $("#blur").val(jsont["blur"])
+
 
       }
     };
@@ -59,7 +52,7 @@
     event.preventDefault();
     var dataJson = JSON.stringify({
       "serverAddress": $("#sa").val(), "serverPort": $("#sp").val(),
-      "threshold": $("#th").val(), "minCount": $("#min").val(),"rotation":$("#rot").val(),"blur":$("#blur").val()
+      "threshold": $("#th").val(), "minCount": $("#min").val()
     })
     var xhttp = new XMLHttpRequest();
     xhttp.withCredentials = true;
