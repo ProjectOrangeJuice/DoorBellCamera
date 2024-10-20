@@ -129,8 +129,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	// register client
 	params := mux.Vars(r)
 	cam := params["camera"]
-
-	go socket.DoStream(cam, ws)
+	go DoStream(cam, ws)
 }
 
 //GET for getconfig

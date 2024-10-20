@@ -1,4 +1,4 @@
-package socket
+package main
 
 import (
 	"encoding/json"
@@ -10,17 +10,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/streadway/amqp"
 )
-
-//Message is the json format
-type Message struct {
-	Image string
-	Time  string
-	Code  string
-	Count int
-	Name  string
-}
-
-var server = "amqp://guest:guest@192.168.1.126:30188/"
 
 //For the connection, get the stream and send it to the socket
 func DoStream(cam string, ws *websocket.Conn) {
@@ -102,10 +91,4 @@ func DoStream(cam string, ws *websocket.Conn) {
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 	log.Printf("Finished..")
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
 }
