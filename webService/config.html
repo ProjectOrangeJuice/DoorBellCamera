@@ -127,6 +127,10 @@
           <label>Min count</label>
           <input class="form-control" v-model.number="mincount[index]">
         </div>
+        <div class="col">
+         <button class="w3-button w3-red" v-on:click="deleteZone(index)">Delete</button>
+        </div>
+        
 
       </div>
      
@@ -221,7 +225,7 @@
           decoded = atob(event.data)
 
           self.vid = "data:image/jpg;base64, " + event.data;
-          console.log("Updating")
+     
           //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
 
 
@@ -231,7 +235,12 @@
 
       },
       methods: {
-
+        deleteZone(index){
+          this.area.splice(index, 1);
+          this.threshold.splice(index, 1);
+          this.mincount.splice(index, 1);
+          this.amount.splice(index, 1);
+        },
         save: function () {
           axios
             .post("http://localhost:8000/config", {
