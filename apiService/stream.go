@@ -125,9 +125,10 @@ func getMotionAlert(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	failOnError(err, "Couldn't upgrade")
 	// register client
-
+	params := mux.Vars(r)
+	cam := params["camera"]
 	log.Printf("Get motion, socket upgraded for %s to watch", r.RemoteAddr)
-	go getMotionAlerts(ws)
+	go getMotionAlerts(ws, cam)
 }
 
 type alert struct {
@@ -136,9 +137,9 @@ type alert struct {
 }
 
 //For the connection, get the stream and send it to the socket
-func getMotionAlerts(ws *websocket.Conn) {
+func getMotionAlerts(ws *websocket.Conn, camera string) {
 	var lock sync.Mutex
-	msgs, ch := listenToExchange("motion", "#")
+	msgs, ch := listenToExchange("motion", camera)
 	var m alert
 	p := make(chan bool)
 	go pingponger(ws, p, &lock)

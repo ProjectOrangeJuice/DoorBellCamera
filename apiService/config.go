@@ -59,6 +59,7 @@ type zone struct {
 	MinCount    int
 	BoxJump     int
 	SmallIgnore int
+	Area        int
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
