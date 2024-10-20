@@ -104,12 +104,11 @@ func getInformation(w http.ResponseWriter, r *http.Request) {
 	log.Print("get camera information")
 	collection := conn.Collection("settings")
 	log.Printf("Can get collection")
-	findOptions := options.Find()
-	cur, err := collection.Find(context.TODO(), bson.M{}, findOptions)
+	cur, err := collection.Find(context.TODO(), bson.D{})
 	failOnError(err, "Failed to get setting records")
 	var cams []info
 	for cur.Next(context.TODO()) {
-		var setting cameraSettings
+		var setting newSettings
 		err := cur.Decode(&setting)
 		failOnError(err, "Failed to decode setting")
 		log.Printf("going to get alerts for %s", setting.Name)
