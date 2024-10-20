@@ -26,11 +26,12 @@ include "include/head.php";
         display: none;
         position: absolute;
         top: 50%;
-        left: 50%;
-        max-width: 600px;
-        max-height: 360px;
-        margin-left: -300px;
-        margin-top: -180px;
+        margin-right: 15px;
+        /* left: 50%; */
+        /* max-width: 600px;
+        max-height: 360px; */
+        /* margin-left: -300px;
+        margin-top: -180px; */
         border: 2px solid #FFF;
         background: #FFF;
         z-index: 1002;
@@ -125,9 +126,9 @@ include "include/head.php";
 
             </div>
 
-            <div id="light">
+            <div id="light" >
                 <a class="boxclose" id="boxclose" onclick="lightbox_close();"></a>
-                <video id="videoPlayer" :src="videoL" width="600" controls>
+                <video id="videoPlayer" :src="videoL" width="100%" controls>
                     <!--Browser does not support <video> tag -->
                 </video>
             </div>
