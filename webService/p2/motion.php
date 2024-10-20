@@ -19,54 +19,77 @@ include "include/head.php";
 
         <!-- Photo grid (modal) -->
         <div class="w3-row-padding" id="app">
-            <div style="width:200px">
+            <div style="width:250px">
                 Camera:
                 <select class="w3-input" id="curCam">
                     <option v-for="cn in camNames" :value="cn.Name">{{ cn.Name }}</option>
                 </select>
-                <p>Date from: <input type="text" id="datepickerTo" class="w3-input"></p>
-                <p>Date to: <input type="text" id="datepickerFrom" class="w3-input"></p>
-                <button v-on:click="loadAlerts" class="w3-button">Search</button>
+                <div>
+                    <div class="w3-half w3-border">From: <input type="text" id="datepickerTo" class="w3-input"></div>
+                    <div class="w3-half w3-border"> To: <input type="text" id="datepickerFrom" class="w3-input"></div>
+                </div>
+
+                <button v-on:click="loadAlerts" class="w3-button w3-green">Search</button>
             </div>
             <hr>
 
             <div v-for="alert in alerts">
+                <table>
 
-                <div class="w3-col">
-                    <div class="w3-col" style="width:220px">
-                        <img v-bind:src="alert.Thumbnail" v-on:click="showVideo(alert.Code)" />
-                        <button class="w3-button w3-red">Delete</button>
-                    </div>
-                    <div class="w3-rest">
-                        Occured at {{ dateChange(alert.Start) }}
-                        <input class="w3-check" type="checkbox" v-model="selected" :value="alert.Code" number>
-                    </div>
-                </div>
+                    <tr>
+
+                        <th>
+                            <input class="w3-check" type="checkbox" v-model="selected" :value="alert.Code" number>
+                        </th>
+
+                        <th>
+
+                            <img v-bind:src="alert.Thumbnail" v-on:click="showVideo(alert.Code)" />
+
+                        </th>
+
+                        <th>
+                            Occured at {{ dateChange(alert.Start) }} <br>
+                            Lasted {{ timeLength(alert.Start, alert.End) }} seconds
+                        </th>
+
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th><button class="w3-button w3-red">Delete</button></th>
+                    </tr>
+
+                </table>
+
             </div>
-
-            <button v-on:click="deleteSelected">Delete selected</button>
-            <button v-on:click="deleteAll">Delete All</button>
-
-
-
-            <!-- The Modal -->
-            <div id="id01" class="w3-modal">
-                <div class="w3-modal-content">
-                    <div class="w3-container">
-                        <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span>
-                        <video controls :src="videoL" width="100%"></video>
-                        <button onclick="document.getElementById('id01').style.display='none'">Close</button>
-                    </div>
-                </div>
-            </div>
-
 
         </div>
 
+        <hr>
+        <div class="">
+            <button v-on:click="deleteSelected" class="w3-red w3-button">Delete selected</button>
+            <button v-on:click="deleteAll" class="w3-red w3-button">Delete All</button>
+        </div>
+
+
+        <!-- The Modal -->
+        <div id="id01" class="w3-modal">
+            <div class="w3-modal-content">
+                <div class="w3-container">
+                    <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                    <video controls :src="videoL" width="100%"></video>
+                    <button onclick="document.getElementById('id01').style.display='none'">Close</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
 
 
 
-        <!-- End page content -->
+
+    <!-- End page content -->
     </div>
 
     <!-- W3.CSS Container -->
@@ -153,6 +176,13 @@ include "include/head.php";
                 dateChange(d) {
                     date = new Date(d * 1000);
                     return (date.toLocaleString());
+                },
+                timeLength(a, b) {
+                    date1 = new Date(a * 1000);
+                    date2 = new Date(b * 1000);
+                    const diffTime = Math.abs(date2 - date1);
+                    return Math.round(diffTime / 1000);
+
                 },
                 loadAlerts() {
                     $('#datepickerTo').datepicker("option", "dateFormat", '@')
