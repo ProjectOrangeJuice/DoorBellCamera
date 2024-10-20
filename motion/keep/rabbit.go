@@ -1,6 +1,10 @@
 package main
 
-import "github.com/streadway/amqp"
+import (
+	"log"
+
+	"github.com/streadway/amqp"
+)
 
 func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 
@@ -10,7 +14,7 @@ func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 	qu, err := ch.QueueDeclare(
 		q,     // name
 		false, // durable
-		false, // delete when usused
+		true,  // delete when usused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
@@ -26,11 +30,12 @@ func listenToQueue(q string) (<-chan amqp.Delivery, *amqp.Channel) {
 		nil,     // args
 	)
 	failOnError(err, "Failed to register a consumer")
+
 	return msgs, ch
 }
 
 func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.Channel) {
-
+	log.Printf("I'm going to listen to %s with %s", name, routing)
 	ch, err := connect.Channel()
 	failOnError(err, "Failed to open a channel")
 	err = ch.ExchangeDeclare(
@@ -46,12 +51,14 @@ func listenToExchange(name string, routing string) (<-chan amqp.Delivery, *amqp.
 	q, err := ch.QueueDeclare(
 		"",    // name
 		false, // durable
-		false, // delete when usused
+		true,  // delete when usused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+	err = ch.Qos(1, 0, true)
+	failOnError(err, "Setting QOS")
 
 	err = ch.QueueBind(
 		q.Name,  // queue name
@@ -82,7 +89,7 @@ func listenToFanout(name string) (<-chan amqp.Delivery, *amqp.Channel) {
 		name,     // name
 		"fanout", // type
 		false,    // durable
-		false,    // auto-deleted
+		true,     // auto-deleted
 		false,    // internal
 		false,    // no-wait
 		nil,      // arguments
@@ -91,7 +98,7 @@ func listenToFanout(name string) (<-chan amqp.Delivery, *amqp.Channel) {
 	q, err := ch.QueueDeclare(
 		"",    // name
 		false, // durable
-		false, // delete when usused
+		true,  // delete when usused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
