@@ -89,23 +89,33 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
             if cv2.contourArea(contour) < zone:
                 continue
             totalArea += cv2.contourArea(contour)
-
-            motion = True
-            M = cv2.moments(contour)
-            locations.append(M)
-            #pretend debug switch
             (x, y, w, h) = cv2.boundingRect(contour)
             newPrev.append([x,y,w,h])
-            x = x + current[2]
-            y = y + current[0]
-            cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
+            if rainCheck(prevBox,[x,y]):
+                # ignore this box as it's rain
+                cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,0, 255), 2)
+                (sx,sy) = smallestDif(prevBox,[x,y])
+                cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+                continue
+            else:
+                motion = True
+                M = cv2.moments(contour)
+                locations.append(M)
+                #pretend debug switch
+                
+
+                x = x + current[2]
+                y = y + current[0]
+                cv2.rectangle(mimg,(x, y), (x + w, y + h), (0, 255, 0), 2)
+                (sx,sy) = smallestDif(prevBox,[x,y])
+                cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+
         if compBoxes(prevBox,newPrev):
             boxNoMove += 1
 
         
         ##Maths is done. Check if this is an alert
-        rain = rainBox(prevBox,newPrev)
-        if(motion and rain):
+        if(motion):
             
             ##Add the zone to seen
             if(str(count) not in seen):
@@ -143,8 +153,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
 
     #Pretend debug switch
-    tem = "Do I see rain? "+str(rain)
-    cv2.putText(mimg,tem, (20, 50),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+
     tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>516000)
     cv2.putText(mimg,str(tempText), (40, 100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 150),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
@@ -224,9 +233,31 @@ def compBoxes(prev,nowBox):
             dify = abs(item2[1] - item[1])
             difh = abs(item2[2] - item[2])
             difw = abs(item2[3] - item[3])
-            if(difx < 15 and dify < 15):
+            if(difx < 25 and dify < 25):
                 return True
     return False
+
+def smallestDif(prev,cur):
+    sx = 99999
+    sy = 99999
+    for item in prev:       
+        difx = abs(cur[0] - item[0])
+        dify = abs(cur[1] - item[1])
+        if(difx < sx and dify < sy):
+            sx = difx
+            sy = dify
+           
+    return [sx,sy]
+
+def rainCheck(prev,cur):
+    for item in prev:
+    
+        difx = abs(cur[0] - item[0])
+        dify = abs(cur[1] - item[1])
+        
+        if(difx < 200 and dify < 200):
+            return False
+    return True
 
 def rainBox(prev,nowBox):
     for item in prev:
@@ -235,8 +266,8 @@ def rainBox(prev,nowBox):
             dify = abs(item2[1] - item[1])
           
             if(difx < 200 and dify < 200):
-                return True
-    return False
+                return False
+    return True
 
 
 
