@@ -18,6 +18,12 @@ class Setting:
     buffer = 0
     bufferUse = False
     buffered = []
+    blur = 21
+    boxJump = 150
+    debug = True
+    bufferBefore = 25
+    bufferAfter = 15
+    noMoveRefreshCount = 5
 
 setting = Setting()
 
@@ -33,6 +39,13 @@ def update():
     setting.name = x["name"]
     setting.connection = x["connection"]
     setting.active = x["motion"]
+
+    setting.blur = x["blur"]
+    setting.boxJump = x["boxJump"]
+    setting.debug = x["debug"]
+    setting.bufferBefore = x["bufferBefore"]
+    setting.bufferAfter = x["bufferAfter"]
+    setting.noMoveRefreshCount = x["noMoveRefreshCount"]
 
 
 def connect():
