@@ -44,6 +44,7 @@ include "include/head.php";
         //On page load, decide if the full stream should be selected
         var cip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"
         var fullRez = false;
+        var audio = new Audio('doorbell-1.mp3');
         //LoadVideo button click
         var socket = "";
         var imgErr = document.getElementById("imageArea");
@@ -121,7 +122,7 @@ include "include/head.php";
         }
 
 
-
+        var lastAlert = new Date();
         function alerts() {
             //Close existing connection
             try {
@@ -154,6 +155,12 @@ include "include/head.php";
                         imgErr.innerHTML = "Alert for " + obj.Name + " At " + hours + ":" + minutes + ":" + seconds;
                         console.log("Alert " + event.data)
                         //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+
+                        var diff = (date.getTime() - lastAlert.getTime()) / 1000;
+                        if(diff > 30){
+                            audio.play();
+                        }
+                            lastAlert = date;
                     }
 
                 }
