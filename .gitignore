@@ -3,3 +3,6 @@ __pycache__
 *.db
 motion/capture
 motion/video/videos
+#ignore binary files
+motion/video/image_video
+motion/keep/keep_video
