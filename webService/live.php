@@ -49,10 +49,12 @@ include "include/head.php";
         var imgErr = document.getElementById("imageArea");
         var imgBox = document.getElementById('video');
         var askClose = false;
+        var aSocket = "";
         if (cip.includes("192.168.1")) {
             console.log("IP is lan, default is full stream")
             fullRez = true;
             document.getElementById("rez").innerHTML = "Switch to compressed resolution";
+            // loadVideo();
             loadVideo();
         }
 
@@ -116,7 +118,7 @@ include "include/head.php";
 
         }
 
-        var aSocket = "";
+
 
         function alerts() {
             //Close existing connection
@@ -125,14 +127,17 @@ include "include/head.php";
             } catch (err) {
                 console.log("I tried to close the alert socket but got this " + err.message);
             }
-            aSocket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/motionAlert")
-            var update = function() {
+            aSocket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/motionAlert/" + encodeURI(camName))
+
+            var updateAlert = function() {
+
                 // Log errors
                 aSocket.onclose = function(error) {
                     console.log("Alert closed")
                 };
 
                 aSocket.onmessage = function(event) {
+
                     if (event.data == "PING") {
                         socket.send("PONG")
                     } else {
@@ -151,7 +156,7 @@ include "include/head.php";
 
                 }
             };
-            window.setTimeout(update);
+            window.setTimeout(updateAlert);
         }
     </script>
 

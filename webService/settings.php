@@ -1,6 +1,6 @@
 <?php
-$title = "Motion";
-$current = 1;
+$title = "Settings";
+$current = 3;
 
 include "include/head.php";
 ?>
@@ -98,6 +98,7 @@ include "include/head.php";
                         <td>Bottom right X</td>
                         <td>Bottom right Y</td>
                         <td>Threshold</td>
+                        <td>Area</td>
                         <td>Min count</td>
                         <td>Box jump</td>
                         <td>Small ignore</td>
@@ -110,6 +111,7 @@ include "include/head.php";
                         <td> <input class="form-control" v-model.number="zone.x2"></td>
                         <td> <input class="form-control" v-model.number="zone.y2"></td>
                         <td> <input class="form-control" v-model.number="zone.threshold"></td>
+                        <td> <input class="form-control" v-model.number="zone.area"></td>
                         <td> <input class="form-control" v-model.number="zone.minCount"></td>
                         <td> <input class="form-control" v-model.number="zone.boxJump"></td>
                         <td> <input class="form-control" v-model.number="zone.smallAmount"></td>
@@ -215,6 +217,7 @@ include "include/head.php";
                             x2: 70,
                             y2: 40,
                             threshold: 20,
+                            area: 1220,
                             minCount: 7,
                             boxJump: 5,
                             smallAmount: 5,
@@ -229,6 +232,7 @@ include "include/head.php";
                                 x2: entry.x2,
                                 y2: entry.y2,
                                 threshold: entry.threshold,
+                                area: entry.area,
                                 minCount: entry.minCount,
                                 BoxJump: entry.boxJump,
                                 SmallIgnore: entry.smallAmount
@@ -288,6 +292,7 @@ include "include/head.php";
                                             x2: z.X2,
                                             y2: z.Y2,
                                             threshold: z.Threshold,
+                                            area: z.Area,
                                             minCount: z.MinCount,
                                             boxJump: z.BoxJump,
                                             smallAmount: z.SmallIgnore,
