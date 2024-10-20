@@ -58,13 +58,16 @@ func main() {
 	failOnError(err, "Failed to connect to RabbitMQ")
 	router := mux.NewRouter()
 	router.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
-	router.HandleFunc("/motion", getMotions).Methods("GET", "OPTIONS")
+	sec := router.PathPrefix("/s").Subrouter()
+	sec.Use(auth)
+	sec.HandleFunc("/motion", getMotions).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion/{code}", getMotion).Methods("GET", "OPTIONS")
 	router.HandleFunc("/delete/{code}", delMotion).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", wsHandler)
 	router.HandleFunc("/streamMotion", wsHandlerMotion)
 	router.HandleFunc("/streamDoor", wsHandlerDoor)
+	router.HandleFunc("/login", Signin).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
