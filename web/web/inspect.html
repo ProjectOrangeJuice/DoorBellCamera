@@ -16,11 +16,23 @@
       <img id="curImg">
       <div id="matrix"></div>
     </div>
-
-
+    <input type="number" id="skip" value="1">
+    <button onclick="next()">Next</button>
+    <button onclick="prev()">Prev</button>
     <script>
+      imgnum = 1
+
+      function next(){
+        imgnum += parseInt($("#skip").val())
+        loadThis()
+      }
+      function prev(){
+        imgnum -=parseInt( $("#skip").val())
+        loadThis()
+      }
+
       function loadThis() {
-        imgnum = 1
+        
         img = document.getElementById('curImg');
         var xhttp = new XMLHttpRequest();
         xhttp.withCredentials = true;
