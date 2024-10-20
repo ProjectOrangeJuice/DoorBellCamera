@@ -161,7 +161,7 @@ def motionCheck(name,image,camtime):
                 tc[countOn] = (int(vals[6])*2)-1
        
         tc[imgCount] += 1
-        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":"Motion"})
+        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":vals[7]})
          
         count += 1
         if(doNew):
