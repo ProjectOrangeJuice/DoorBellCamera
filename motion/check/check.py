@@ -135,7 +135,7 @@ def checkFrame(name,image,camtime):
         ##Now that the maths is done, check if it's a valid motion to report
         if(motion):
             print("I think I saw something at "+str(vals[7]))
-            print("At "+str(locations))
+            print("At "+str(len(locations)))
             #Add the zone to this frame
             if(vals[7] not in seen):
                 seen.append(vals[7])
@@ -167,7 +167,7 @@ def checkFrame(name,image,camtime):
                 sendFrames(tc)
         count += 1 #Next roi
     
-    tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":",".join(seen)})
+    tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":",".join(seen),"locations":str(locations)})
     tc[imgCount] += 1
     if(doNew):
         tc[prevImage] = gray 
