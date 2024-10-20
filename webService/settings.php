@@ -106,10 +106,10 @@ include "include/head.php";
 
                     </tr>
                     <tr v-for="(zone,index) in zones">
-                        <td> <input class="form-control" v-model.number="zone.translatedX"></td>
-                        <td> <input class="form-control" v-model.number="zone.translatedY"></td>
-                        <td> <input class="form-control" v-model.number="zone.translatedW"></td>
-                        <td> <input class="form-control" v-model.number="zone.translatedH"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedX" @change="manualChange()"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedY" @change="manualChange()"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedW" @change="manualChange()"></td>
+                        <td> <input class="form-control" v-model.number="zone.translatedH" @change="manualChange()"></td>
                         <td> <input class="form-control" v-model.number="zone.threshold"></td>
                         <td> <input class="form-control" v-model.number="zone.area"></td>
                         <td> <input class="form-control" v-model.number="zone.minCount"></td>
@@ -153,373 +153,384 @@ include "include/head.php";
 
         <script>
             var app = new Vue({
-                el: '#app',
-                data: {
-                    camNames: [],
-                    selectedCam: "",
-                    socket: "",
-                    name: '',
-                    connection: '',
-                    fps: 5,
-                    area: [],
-                    amount: [],
-                    threshold: [],
-                    active: true,
-                    mincount: [],
-                    vid: "",
-                    newZone: true,
-                    smallMove: 20,
-                    blur: 5,
-                    boxJump: 20,
-                    debug: true,
-                    bufferBefore: 10,
-                    bufferAfter: 10,
-                    refreshCount: 5,
-                    zones: [],
-                    drawInfo: {},
-                    unknownProfile: "",
-                },
-                mounted() {
-                    //this.updateMotion();
-                    this.updateInfo();
+                        el: '#app',
+                        data: {
+                            camNames: [],
+                            selectedCam: "",
+                            socket: "",
+                            name: '',
+                            connection: '',
+                            fps: 5,
+                            area: [],
+                            amount: [],
+                            threshold: [],
+                            active: true,
+                            mincount: [],
+                            vid: "",
+                            newZone: true,
+                            smallMove: 20,
+                            blur: 5,
+                            boxJump: 20,
+                            debug: true,
+                            bufferBefore: 10,
+                            bufferAfter: 10,
+                            refreshCount: 5,
+                            zones: [],
+                            drawInfo: {},
+                            unknownProfile: "",
+                        },
+                        mounted() {
+                            //this.updateMotion();
+                            this.updateInfo();
 
-                    var canvas = document.getElementById("canvasImage");
-                    canvas.addEventListener('mousedown', this.mouseDown, false);
-                    canvas.addEventListener('mouseup', this.mouseUp, false);
-                    canvas.addEventListener('mousemove', this.mouseMove, false);
-                },
-                methods: {
-                    createProfile() {
-                        axios
-                            .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
+                            var canvas = document.getElementById("canvasImage");
+                            canvas.addEventListener('mousedown', this.mouseDown, false);
+                            canvas.addEventListener('mouseup', this.mouseUp, false);
+                            canvas.addEventListener('mousemove', this.mouseMove, false);
+                        },
+                        methods: {
+                            createProfile() {
+                                axios
+                                    .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
 
-                            })
-                            .then(response => {
-                                alert("Created");
-                                location.reload();
-                            })
-                            .catch(response => {
-                                alert("Failed to create");
-                            });
-                    },
-                    deleteProfile() {
-                        axios
-                            .delete("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
-
-                            })
-                            .then(response => {
-                                alert("Deleted");
-                                location.reload();
-                            })
-                            .catch(response => {
-                                alert("Failed to delete");
-                            });
-                    },
-                    updateDisplay() {
-                        try {
-                            this.socket.close()
-                        } catch (err) {}
-                        this.displayVideo();
-                        this.getSettings();
-                    },
-                    deleteZone(index) {
-                        this.zones.splice(index, 1);
-                    },
-
-
-                    addZone() {
-                        if("xRatio" in this.drawInfo){
-                        let self = this;
-                        this.zones.push({
-                            startX: 40,
-                            startY: 20,
-                            w: 30,
-                            h: 20,
-                            dragTL: false,
-                            dragBL: false,
-                            dragTR: false,
-                            dragBR: false,
-                            translatedX: Math.round(40 * self.drawInfo["xRatio"]),
-                            translatedY: Math.round(20 * self.drawInfo["yRatio"]),
-                            translatedW: Math.round(30 * self.drawInfo["xRatio"]),
-                            translatedH: Math.round(20 * self.drawInfo["yRatio"]),
-                            threshold: 20,
-                            area: 1220,
-                            minCount: 7,
-                            boxJump: 5,
-                            smallAmount: 5,
-                        })
-                        }else{
-                            alert("Ratio can't be calculated");
-                            //Should just add the real values, not the viewable ones
-                        }
-
-                    },
-                    setSettings() {
-                        var formattedZones = []
-                        this.zones.forEach(function(entry) {
-                            formattedZones.push({
-                                x1: entry.translatedX,
-                                y1: entry.translatedY,
-                                x2: entry.translatedX + entry.translatedW,
-                                y2: entry.translatedY + entry.translatedH,
-                                threshold: entry.threshold,
-                                area: entry.area,
-                                minCount: entry.minCount,
-                                BoxJump: entry.boxJump,
-                                SmallIgnore: entry.smallAmount
-
-                            })
-                        });
-                        axios
-                            .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam), {
-                                Connection: this.connection,
-                                FPS: this.fps,
-                                Motion: this.active,
-                                Blur: this.blur,
-                                Debug: this.debug,
-                                BufferBefore: this.bufferBefore,
-                                BufferAfter: this.bufferAfter,
-                                NoMoveRefreshCount: this.refreshCount,
-                                Zones: formattedZones,
-
-                            })
-                            .then(response => {
-                                alert("Saved");
-                            })
-                            .catch(response => {
-                                alert("Failed to save");
-                            });
-                    },
-                    getSettings() {
-                        axios
-                            .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam))
-                            .then(response => {
-
-                                this.connection = response.data.Connection;
-                                this.fps = response.data.FPS;
-                                this.blur = response.data.Blur;
-                                this.debug = response.data.Debug;
-                                this.bufferBefore = response.data.BufferBefore;
-                                this.bufferAfter = response.data.BufferAfter;
-                                this.refreshCount = response.data.NoMoveRefreshCount;
-                                this.active = response.data.Motion;
-
-                                if (response.data.Zones != null) {
-                                    let self = this;
-                                    var c = document.getElementById("canvasImage");
-                                    response.data.Zones.forEach(function(z, index) {
-
-                                        self.zones.push({
-                                            //We don't set the "startX.."because the ratio has not been worked out
-                                            dragTL: false,
-                                            dragBL: false,
-                                            dragTR: false,
-                                            dragBR: false,
-                                            translatedX: z.X1,
-                                            translatedY: z.Y1,
-                                            translatedW: z.X2 - z.X1,
-                                            translatedH: z.Y2 - z.Y1,
-                                            threshold: z.Threshold,
-                                            area: z.Area,
-                                            minCount: z.MinCount,
-                                            boxJump: z.BoxJump,
-                                            smallAmount: z.SmallIgnore,
-                                        });
-
+                                    })
+                                    .then(response => {
+                                        alert("Created");
+                                        location.reload();
+                                    })
+                                    .catch(response => {
+                                        alert("Failed to create");
                                     });
+                            },
+                            deleteProfile() {
+                                axios
+                                    .delete("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
+
+                                    })
+                                    .then(response => {
+                                        alert("Deleted");
+                                        location.reload();
+                                    })
+                                    .catch(response => {
+                                        alert("Failed to delete");
+                                    });
+                            },
+                            updateDisplay() {
+                                try {
+                                    this.socket.close()
+                                } catch (err) {}
+                                this.displayVideo();
+                                this.getSettings();
+                            },
+                            deleteZone(index) {
+                                this.zones.splice(index, 1);
+                            },
+
+
+                            addZone() {
+                                if ("xRatio" in this.drawInfo) {
+                                    let self = this;
+                                    this.zones.push({
+                                        startX: 40,
+                                        startY: 20,
+                                        w: 30,
+                                        h: 20,
+                                        dragTL: false,
+                                        dragBL: false,
+                                        dragTR: false,
+                                        dragBR: false,
+                                        translatedX: Math.round(40 * self.drawInfo["xRatio"]),
+                                        translatedY: Math.round(20 * self.drawInfo["yRatio"]),
+                                        translatedW: Math.round(30 * self.drawInfo["xRatio"]),
+                                        translatedH: Math.round(20 * self.drawInfo["yRatio"]),
+                                        threshold: 20,
+                                        area: 1220,
+                                        minCount: 7,
+                                        boxJump: 5,
+                                        smallAmount: 5,
+                                    })
+                                } else {
+                                    alert("Ratio can't be calculated");
+                                    //Should just add the real values, not the viewable ones
                                 }
-                                console.log("******* zones ******");
-                                console.log(this.zones)
 
-                            })
-                            .catch(response => {
-                                console.log("Error " + response);
-                            });
-                    },
-                    updateInfo() {
-                        axios
-                            .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/information")
-                            .then(response => {
-                                this.camNames = response.data;
-                                console.log(this.camNames.length)
-                                if (this.camNames.length > 0) {
-                                    //Set default value
-                                    this.selectedCam = this.camNames[0]["Name"];
-                                    this.updateDisplay()
+                            },
+                            setSettings() {
+                                var formattedZones = []
+                                this.zones.forEach(function(entry) {
+                                    formattedZones.push({
+                                        x1: entry.translatedX,
+                                        y1: entry.translatedY,
+                                        x2: entry.translatedX + entry.translatedW,
+                                        y2: entry.translatedY + entry.translatedH,
+                                        threshold: entry.threshold,
+                                        area: entry.area,
+                                        minCount: entry.minCount,
+                                        BoxJump: entry.boxJump,
+                                        SmallIgnore: entry.smallAmount
+
+                                    })
+                                });
+                                axios
+                                    .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam), {
+                                        Connection: this.connection,
+                                        FPS: this.fps,
+                                        Motion: this.active,
+                                        Blur: this.blur,
+                                        Debug: this.debug,
+                                        BufferBefore: this.bufferBefore,
+                                        BufferAfter: this.bufferAfter,
+                                        NoMoveRefreshCount: this.refreshCount,
+                                        Zones: formattedZones,
+
+                                    })
+                                    .then(response => {
+                                        alert("Saved");
+                                    })
+                                    .catch(response => {
+                                        alert("Failed to save");
+                                    });
+                            },
+                            getSettings() {
+                                axios
+                                    .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/config/" + encodeURI(this.selectedCam))
+                                    .then(response => {
+
+                                        this.connection = response.data.Connection;
+                                        this.fps = response.data.FPS;
+                                        this.blur = response.data.Blur;
+                                        this.debug = response.data.Debug;
+                                        this.bufferBefore = response.data.BufferBefore;
+                                        this.bufferAfter = response.data.BufferAfter;
+                                        this.refreshCount = response.data.NoMoveRefreshCount;
+                                        this.active = response.data.Motion;
+
+                                        if (response.data.Zones != null) {
+                                            let self = this;
+                                            var c = document.getElementById("canvasImage");
+                                            response.data.Zones.forEach(function(z, index) {
+
+                                                self.zones.push({
+                                                    //We don't set the "startX.."because the ratio has not been worked out
+                                                    dragTL: false,
+                                                    dragBL: false,
+                                                    dragTR: false,
+                                                    dragBR: false,
+                                                    translatedX: z.X1,
+                                                    translatedY: z.Y1,
+                                                    translatedW: z.X2 - z.X1,
+                                                    translatedH: z.Y2 - z.Y1,
+                                                    threshold: z.Threshold,
+                                                    area: z.Area,
+                                                    minCount: z.MinCount,
+                                                    boxJump: z.BoxJump,
+                                                    smallAmount: z.SmallIgnore,
+                                                });
+
+                                            });
+                                        }
+                                        console.log("******* zones ******");
+                                        console.log(this.zones)
+
+                                    })
+                                    .catch(response => {
+                                        console.log("Error " + response);
+                                    });
+                            },
+                            updateInfo() {
+                                axios
+                                    .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/information")
+                                    .then(response => {
+                                        this.camNames = response.data;
+                                        console.log(this.camNames.length)
+                                        if (this.camNames.length > 0) {
+                                            //Set default value
+                                            this.selectedCam = this.camNames[0]["Name"];
+                                            this.updateDisplay()
+                                        }
+                                    })
+                                    .catch(response => {
+                                        console.log("Error " + response);
+                                    });
+
+                            },
+                            displayVideo() {
+                                console.log(this.selectedCam);
+                                this.socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/mobilestream/" + encodeURI(this.selectedCam))
+                                // Log errors
+                                this.socket.onclose = function(error) {
+                                    vid = "";
+                                };
+                                let self = this;
+
+
+                                this.socket.onmessage = function(event) {
+
+                                    if (event.data == "PING") {
+                                        self.socket.send("PONG")
+                                    } else {
+                                        decoded = atob(event.data)
+                                        var c = document.getElementById("canvasImage");
+                                        var ctx = c.getContext("2d");
+                                        var image = new Image();
+                                        image.onload = function() {
+                                            self.drawInfo["image"] = image;
+                                            //Do ratio calcs
+                                            self.drawInfo["xRatio"] = image.width / c.width;
+                                            self.drawInfo["yRatio"] = image.height / c.height;
+
+                                            // ctx.drawImage(image, 0, 0, c.width, c.height);
+                                            self.canvasDraw();
+                                            // self.imageW = image.width;
+                                            // self.imageH = image.height;
+
+                                        };
+
+                                        image.src = "data:image/jpg;base64, " + event.data;
+
+                                        // imgBox.src = "data:image/jpg;base64, " + event.data
+                                    }
+
+
+
                                 }
-                            })
-                            .catch(response => {
-                                console.log("Error " + response);
-                            });
-
-                    },
-                    displayVideo() {
-                        console.log(this.selectedCam);
-                        this.socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/mobilestream/" + encodeURI(this.selectedCam))
-                        // Log errors
-                        this.socket.onclose = function(error) {
-                            vid = "";
-                        };
-                        let self = this;
-
-
-                        this.socket.onmessage = function(event) {
-
-                            if (event.data == "PING") {
-                                self.socket.send("PONG")
-                            } else {
-                                decoded = atob(event.data)
+                            },
+                            mouseDown(e) {
+                                console.log("Logged mousedown");
                                 var c = document.getElementById("canvasImage");
                                 var ctx = c.getContext("2d");
-                                var image = new Image();
-                                image.onload = function() {
-                                    self.drawInfo["image"] = image;
-                                    //Do ratio calcs
-                                    self.drawInfo["xRatio"] = image.width / c.width;
-                                    self.drawInfo["yRatio"] = image.height / c.height;
+                                mouseX = e.pageX - c.offsetLeft;
+                                mouseY = e.pageY - c.offsetTop;
 
-                                    // ctx.drawImage(image, 0, 0, c.width, c.height);
-                                    self.canvasDraw();
-                                    // self.imageW = image.width;
-                                    // self.imageH = image.height;
+                                this.zones.forEach(function(rect) {
 
-                                };
+                                    // if there isn't a rect yet
+                                    if (rect.w === undefined) {
 
-                                image.src = "data:image/jpg;base64, " + event.data;
+                                        rect.startX = mouseY;
+                                        rect.startY = mouseX;
+                                        rect.dragBR = true;
+                                    }
 
-                                // imgBox.src = "data:image/jpg;base64, " + event.data
+                                    // if there is, check which corner
+                                    //   (if any) was clicked
+                                    //
+                                    // 4 cases:
+                                    // 1. top left
+                                    else if (checkCloseEnough(mouseX, rect.startX) && checkCloseEnough(mouseY, rect.startY)) {
+                                        rect.dragTL = true;
+                                    }
+                                    // 2. top right
+                                    else if (checkCloseEnough(mouseX, rect.startX + rect.w) && checkCloseEnough(mouseY, rect.startY)) {
+                                        rect.dragTR = true;
+
+                                    }
+                                    // 3. bottom left
+                                    else if (checkCloseEnough(mouseX, rect.startX) && checkCloseEnough(mouseY, rect.startY + rect.h)) {
+                                        rect.dragBL = true;
+
+                                    }
+                                    // 4. bottom right
+                                    else if (checkCloseEnough(mouseX, rect.startX + rect.w) && checkCloseEnough(mouseY, rect.startY + rect.h)) {
+                                        rect.dragBR = true;
+
+                                    }
+                                    // (5.) none of them
+                                    else {
+                                        // handle not resizing
+                                    }
+
+                                });
+
+                            },
+                            mouseMove(e) {
+                                var c = document.getElementById("canvasImage");
+                                var ctx = c.getContext("2d");
+                                mouseX = e.pageX - c.offsetLeft;
+                                mouseY = e.pageY - c.offsetTop;
+                                let self = this;
+                                this.zones.forEach(function(rect, index) {
+                                    change = false;
+                                    if (rect.dragTL) {
+                                        rect.w += rect.startX - mouseX;
+                                        rect.h += rect.startY - mouseY;
+                                        rect.startX = mouseX;
+                                        rect.startY = mouseY;
+                                        change = true;
+                                    } else if (rect.dragTR) {
+                                        rect.w = Math.abs(rect.startX - mouseX);
+                                        rect.h += rect.startY - mouseY;
+                                        rect.startY = mouseY;
+                                        change = true;
+                                    } else if (rect.dragBL) {
+                                        rect.w += rect.startX - mouseX;
+                                        rect.h = Math.abs(rect.startY - mouseY);
+                                        rect.startX = mouseX;
+                                        change = true;
+                                    } else if (rect.dragBR) {
+                                        rect.w = Math.abs(rect.startX - mouseX);
+                                        rect.h = Math.abs(rect.startY - mouseY);
+                                        change = true;
+                                    }
+                                    if (change) {
+                                        rect.translatedX = Math.round(rect.startX * self.drawInfo["xRatio"])
+                                        rect.translatedY = Math.round(rect.startY * self.drawInfo["yRatio"])
+                                        rect.translatedW = Math.round((rect.w) * self.drawInfo["xRatio"])
+                                        rect.translatedH = Math.round((rect.h) * self.drawInfo["yRatio"])
+                                    }
+
+                                });
+                            },
+                            mouseUp() {
+                                this.zones.forEach(function(rect) {
+                                    rect.dragTL = false;
+                                    rect.dragTR = false;
+                                    rect.dragBL = false;
+                                    rect.dragBR = false;
+
+                                });
+
+                            },
+
+                            manualChange() {
+                                //Manual change. Need to do some calculations and redraw
+                                let self = this;
+                                this.zones.forEach(function(rect) {
+                                            rect.startX = rect.translatedX / self.drawInfo["xRatio"];
+                                            rect.startY = rect.translatedY / self.drawInfo["yRatio"];
+                                            rect.w = (rect.translatedW) / self.drawInfo["xRatio"];
+                                            rect.h = (rect.translatedH) / self.drawInfo["yRatio"];
+                                        });
+                                        this.canvasDraw();
+                                    },
+                                    canvasDraw() {
+                                        var c = document.getElementById("canvasImage");
+                                        var ctx = c.getContext("2d");
+                                        let self = this;
+
+                                        //Draw image
+                                        ctx.drawImage(this.drawInfo["image"], 0, 0, c.width, c.height);
+                                        this.zones.forEach(function(rect) {
+
+                                            //Do ratio calcs on missing items
+                                            if (rect.startX == undefined) {
+                                                console.log("Startx is undefined. our xratio is " + self.drawInfo["xRatio"])
+
+                                                rect.startX = rect.translatedX / self.drawInfo["xRatio"];
+                                                rect.startY = rect.translatedY / self.drawInfo["yRatio"];
+                                                rect.w = (rect.translatedW) / self.drawInfo["xRatio"];
+                                                rect.h = (rect.translatedH) / self.drawInfo["yRatio"];
+                                            }
+
+
+                                            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+                                            ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
+                                            drawHandles(rect);
+                                        });
+                                    },
+
                             }
-
-
-
-                        }
-                    },
-                    mouseDown(e) {
-                        console.log("Logged mousedown");
-                        var c = document.getElementById("canvasImage");
-                        var ctx = c.getContext("2d");
-                        mouseX = e.pageX - c.offsetLeft;
-                        mouseY = e.pageY - c.offsetTop;
-
-                        this.zones.forEach(function(rect) {
-
-                            // if there isn't a rect yet
-                            if (rect.w === undefined) {
-
-                                rect.startX = mouseY;
-                                rect.startY = mouseX;
-                                rect.dragBR = true;
-                            }
-
-                            // if there is, check which corner
-                            //   (if any) was clicked
-                            //
-                            // 4 cases:
-                            // 1. top left
-                            else if (checkCloseEnough(mouseX, rect.startX) && checkCloseEnough(mouseY, rect.startY)) {
-                                rect.dragTL = true;
-                            }
-                            // 2. top right
-                            else if (checkCloseEnough(mouseX, rect.startX + rect.w) && checkCloseEnough(mouseY, rect.startY)) {
-                                rect.dragTR = true;
-
-                            }
-                            // 3. bottom left
-                            else if (checkCloseEnough(mouseX, rect.startX) && checkCloseEnough(mouseY, rect.startY + rect.h)) {
-                                rect.dragBL = true;
-
-                            }
-                            // 4. bottom right
-                            else if (checkCloseEnough(mouseX, rect.startX + rect.w) && checkCloseEnough(mouseY, rect.startY + rect.h)) {
-                                rect.dragBR = true;
-
-                            }
-                            // (5.) none of them
-                            else {
-                                // handle not resizing
-                            }
-
-                        });
-
-                    },
-                    mouseMove(e) {
-                        var c = document.getElementById("canvasImage");
-                        var ctx = c.getContext("2d");
-                        mouseX = e.pageX - c.offsetLeft;
-                        mouseY = e.pageY - c.offsetTop;
-                        let self = this;
-                        this.zones.forEach(function(rect, index) {
-                            change = false;
-                            if (rect.dragTL) {
-                                rect.w += rect.startX - mouseX;
-                                rect.h += rect.startY - mouseY;
-                                rect.startX = mouseX;
-                                rect.startY = mouseY;
-                                change = true;
-                            } else if (rect.dragTR) {
-                                rect.w = Math.abs(rect.startX - mouseX);
-                                rect.h += rect.startY - mouseY;
-                                rect.startY = mouseY;
-                                change = true;
-                            } else if (rect.dragBL) {
-                                rect.w += rect.startX - mouseX;
-                                rect.h = Math.abs(rect.startY - mouseY);
-                                rect.startX = mouseX;
-                                change = true;
-                            } else if (rect.dragBR) {
-                                rect.w = Math.abs(rect.startX - mouseX);
-                                rect.h = Math.abs(rect.startY - mouseY);
-                                change = true;
-                            }
-                            if(change){
-                            rect.translatedX = Math.round(rect.startX * self.drawInfo["xRatio"])
-                            rect.translatedY = Math.round(rect.startY * self.drawInfo["yRatio"])
-                            rect.translatedW = Math.round(( rect.w) * self.drawInfo["xRatio"])
-                            rect.translatedH = Math.round(( rect.h) * self.drawInfo["yRatio"])                            }
-
-                        });
-                    },
-                    mouseUp() {
-                        this.zones.forEach(function(rect) {
-                            rect.dragTL = false;
-                            rect.dragTR = false;
-                            rect.dragBL = false;
-                            rect.dragBR = false;
-
-                        });
-
-                    },
-
-
-                    canvasDraw() {
-                        var c = document.getElementById("canvasImage");
-                        var ctx = c.getContext("2d");
-                        let self = this;
-
-                        //Draw image
-                        ctx.drawImage(this.drawInfo["image"], 0, 0, c.width, c.height);
-                        this.zones.forEach(function(rect) {
-
-                            //Do ratio calcs on missing items
-                            if(rect.startX == undefined ){
-                                console.log("Startx is undefined. our xratio is "+self.drawInfo["xRatio"])
-        
-                                rect.startX = rect.translatedX / self.drawInfo["xRatio"];
-                                rect.startY = rect.translatedY / self.drawInfo["yRatio"];
-                                rect.w = (rect.translatedW) / self.drawInfo["xRatio"];
-                                rect.h = (rect.translatedH) / self.drawInfo["yRatio"];
-                            }
-                          
-
-                            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-                            ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
-                            drawHandles(rect);
-                        });
-                    },
-
-                }
-            })
+                        })
         </script>
 
         <script>
