@@ -141,6 +141,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                     settings.buffer = 99
         if(settings.countOn[count] < 1):
             settings.countOn[count] = 0
+            boxNoMove = 0
             if(settings.codeUsed):
                 allEmpty = False
                 #Check to see if all zones have no motion
@@ -156,7 +157,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
     #Pretend debug switch
 
-    tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>201000)
+    tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>65000)
     cv2.putText(mimg,str(tempText), (40, 100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 150),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     imagetemp = cv2.imencode(".jpg",mimg)[1]
@@ -203,7 +204,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
 
     
-    if(boxNoMove > 2):
+    if(boxNoMove > 5):
         settings.prev = gray
         frameCount = -1
         boxNoMove = 0
