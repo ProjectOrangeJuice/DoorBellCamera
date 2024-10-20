@@ -25,6 +25,7 @@
           <tbody>
             <tr>
               <td>Camera</td>
+              <td>Start</td>
               <td>Code</td>
               <td>Reason</td>
               <td>View</td>
@@ -71,6 +72,7 @@
         $("#motionTable").append(`<tbody>
             <tr>
               <td>Camera</td>
+              <td>Start</td>
               <td>Code</td>
               <td>Reason</td>
               <td>View</td>
@@ -112,12 +114,17 @@
               var newCell2 = newRow.insertCell(2);
               var newCell3 = newRow.insertCell(3);
               var newCell4 = newRow.insertCell(4);
+              var newCell5 = newRow.insertCell(5);
 
               // Append a text node to the cell
               var newText = document.createTextNode(entry.Code);
               newCell.appendChild(newText);
-              var newText2 = document.createTextNode(entry.Reason);
+
+              var newText2 = document.createTextNode(entry.Time);
               newCell2.appendChild(newText2);
+
+              var newText2 = document.createTextNode(entry.Reason);
+              newCell3.appendChild(newText2);
 
               var a = document.createElement("button")
               a.innerHTML = "View"
@@ -127,7 +134,7 @@
                 inspe = entry.Code
               });
 
-              newCell3.appendChild(a)
+              newCell4.appendChild(a)
 
               var b = document.createElement("button")
               b.innerHTML = "Delete"
@@ -135,7 +142,7 @@
                 deleteMotion(entry.Code)
               });
 
-              newCell4.appendChild(b)
+              newCell5.appendChild(b)
 
             });
 

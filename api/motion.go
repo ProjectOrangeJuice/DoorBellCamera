@@ -21,6 +21,7 @@ type MotionJSON struct {
 	Code   string
 	Reason string
 	Name   string
+	Time   string
 }
 
 //All motion handler
@@ -45,7 +46,7 @@ func allMotion(w http.ResponseWriter, r *http.Request) {
 	} else {
 		from = fromn[0]
 	}
-	cmd := fmt.Sprintf("select id,code,reason,name from video WHERE startTime BETWEEN '%s' AND '%s'", from, to)
+	cmd := fmt.Sprintf("select id,code,reason,name,startTime from video WHERE startTime BETWEEN '%s' AND '%s'", from, to)
 	log.Printf("Using %s", cmd)
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
@@ -55,10 +56,10 @@ func allMotion(w http.ResponseWriter, r *http.Request) {
 	var full []MotionJSON
 	for rows.Next() {
 		var id int
-		var code, reason, name string
-		err = rows.Scan(&id, &code, &reason, &name)
+		var code, reason, name, st string
+		err = rows.Scan(&id, &code, &reason, &name, &st)
 		failOnError(err, "Failed to get")
-		body := MotionJSON{id, code, reason, name}
+		body := MotionJSON{id, code, reason, name, st}
 		full = append(full, body)
 
 	}
