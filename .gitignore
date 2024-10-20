@@ -11,3 +11,4 @@ nginx-portable-master
 *.log
 serviceAccountKey.json
 *.mp4
+*.restore

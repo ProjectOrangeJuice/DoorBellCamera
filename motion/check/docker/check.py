@@ -6,10 +6,11 @@ import base64
 import random
 import string
 import threading
+import socket
 
 import redis
 import time
-r = redis.Redis(decode_responses=True)
+r = redis.Redis(host='redis',decode_responses=True)
 #Background
 static_back = None
 #countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage, blur, rot
@@ -33,6 +34,7 @@ def minute_passed(oldepoch):
 def readConfig():
     global serverAddress,serverPort,dt,dmin
     serverAddress = str(r.hget("config:motion","serverAddress"))
+    serverAddress = socket.gethostbyname(serverAddress)
     print("Address "+serverAddress)
     serverPort = r.hget("config:motion","serverPort")
     dt = json.loads(r.hget("config:motion","threshold"))

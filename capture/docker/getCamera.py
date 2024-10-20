@@ -3,13 +3,14 @@ import time,sys,base64
 import pika
 import json
 import datetime
+import socket
 '''This script gets a network cameras frames and streams them to a rabbit server'''
 
 import signal
 import sys
 import numpy as np
 import redis
-r = redis.Redis(decode_responses=True)
+r = redis.Redis(host='redis',decode_responses=True)
 cameraName = "test"
 timed = time.time()
 
@@ -23,6 +24,7 @@ def readConfig():
     l = "motion:camera:"+cameraName
     streamLocation = r.hget(l,"camAddress")
     serverAddress = r.hget(l,"serverAddress")
+    serverAddress = socket.gethostbyname(serverAddress)
     serverPort = r.hget(l,"serverPort")
     delay = int(r.hget(l,"fps"))
     rotation = int(r.hget(l,"liveRotation"))

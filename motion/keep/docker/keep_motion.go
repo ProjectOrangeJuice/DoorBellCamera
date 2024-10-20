@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -16,13 +15,12 @@ import (
 )
 
 //DBName is the database file name
-const DBName string = "/mnt/shared/motion/motions.db"
+const DBName string = "shared/motions.db"
 
-const configLocation string = "/mnt/shared/motion/config.txt"
-const videoFolder string = "/mnt/shared/motion/videos"
+const videoFolder string = "shared/motion/videos"
 
 //CaptureLocation is the location of the capture folder
-const CaptureLocation string = "/mnt/shared/motion/capture"
+const CaptureLocation string = "shared/motion/capture"
 
 var server = ""
 var connect *amqp.Connection
@@ -54,11 +52,8 @@ var timer time.Timer
 func main() {
 
 	var err error
-	file, err := os.Open(configLocation)
-	failOnError(err, "Couldn't open config")
-	defer file.Close()
-	serverb, _ := ioutil.ReadAll(file)
-	server = strings.TrimSpace(string(serverb))
+
+	server = "amqp://guest:guest@rabbit:5672/"
 	failOnError(err, "Failed to read config")
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
