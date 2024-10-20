@@ -42,7 +42,7 @@ func main() {
 	//Initiate templates
 	var err error
 	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
-		"web/templates/side.html", "web/dash.html", "web/cameras.html", "web/edit.html", 
+		"web/templates/side.html", "web/dash.html", "web/cameras.html", "web/edit.html",
 		"web/edit/cam.html", "web/inspect.html", "web/templates/alert.html", "web/edit/user.html")
 	failOnError(err, "Failed to read templates")
 
@@ -63,7 +63,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 }
 func edit(w http.ResponseWriter, r *http.Request) {
-	data := pageContent{Title: "Config edit", Side: makeSide("Config")}
+	data := pageContent{Title: "Config edit", Side: makeSide("Config"), Cam: getCams()}
 	decideTemplate(w, r, "config", data)
 
 }

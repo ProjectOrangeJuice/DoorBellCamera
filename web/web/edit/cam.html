@@ -3,16 +3,16 @@
 <div class="w3-row-padding w3-margin-bottom edit" id="cam" style="display:none">
 
   <p>Get cams config</p>
-  <input type="text" class="w3-input" id="camName">
+  <select id="camName">
+    {{ range $i,$a := .Cam }}
+      <option value="{{ $a }}">{{ $a }}</option>
+    {{ end }}
+  </select>
   <button class="w3-button w3-green" onclick="getCam()">Get</button>
+  <p>Or add a new camera</p>
+  <input type="text" id="cname">
+  <button class="w3-button w3-green" onclick="newCam()">Create</button>
   <form id="setCam">
-    <p>
-      <label>Server address</label>
-      <input class="w3-input" type="text" name="serverAddress" id="csa"></p>
-    <p>
-      <label>Server port</label>
-      <input class="w3-input" type="number" name="serverPort" id="csp"></p>
-    <p>
       <label>Camera address</label>
       <input class="w3-input" type="text" name="serverPort" id="caddr"></p>
     <p>
@@ -44,7 +44,7 @@
         <button class="w3-button w3-green" type="submit">Save</button>
   </form>
 
-  <div id="tbox">
+  <div id="tbox" style="display:none;">
     <p>Click twice to add a new location</p>
     <img id="camView">
     <table id="tvals">
@@ -74,6 +74,7 @@
 <script>
   firstClick = []
   function openThres() {
+    $("#tbox").show()
     var tableRef = document.getElementById('tvals').getElementsByTagName('tbody')[0];
     // 2
     var socket = new WebSocket("ws://localhost:8000/s/stream/" + encodeURI($("#camName").val()))
@@ -185,6 +186,7 @@
 
 
   function getCam() {
+    $("#tbox").hide()
     name = $("#camName").val()
     var jsonT;
     var xhttp = new XMLHttpRequest();
@@ -193,8 +195,6 @@
       if (this.readyState == 4 && this.status == 200) {
         jsont = JSON.parse(this.responseText)
         console.log(jsont)
-        $("#csa").val(jsont["serverAddress"])
-        $("#csp").val(jsont["serverPort"])
         $("#caddr").val(jsont["camAddress"])
         $("#cfps").val(jsont["fps"])
         $("#clrot").val(jsont["liveRotation"])
@@ -273,7 +273,7 @@
   $("#setCam").on("submit", function () {
     event.preventDefault();
     var dataJson = JSON.stringify({
-      "serverAddress": $("#csa").val(), "serverPort": $("#csp").val(), "camAddress": $("#caddr").val(),
+      "camAddress": $("#caddr").val(),
       "threshold": $("#cth").val(), "minCount": $("#cmin").val(), "fps": $("#cfps").val(),
       "liveRotation": $("#clrot").val(), "motionRotation": $("#cmrot").val(), "helpBlur": $("#hcblur").val(),
       "motionBlur": $("#cmblur").val()
@@ -289,6 +289,14 @@
     xhttp.send(dataJson);
 
   });
+
+
+
+  function newCam(){
+    name = $("#cname").val()
+        $.get("http://localhost:8001/add/"+encodeURI(name));
+    location.reload();
+  }
 
 </script>
 
