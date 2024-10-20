@@ -5,7 +5,10 @@ import (
 	fmt "fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -88,11 +91,11 @@ func recvMotionImg(buf chan *Buffer) {
 	}
 }
 
-func makeVideo(code chan string) {
-	for vid := range code {
+func makeVideo(codes chan string) {
+	for vid := range codes {
 
 		saveToFull := fmt.Sprintf("%s/%s.mp4", fullVideoLocation, vid)
-		saveToSmall := fmt.Sprintf("%s/%s.mp4", smallVideoLocation, code)
+		saveToSmall := fmt.Sprintf("%s/%s.mp4", smallVideoLocation, vid)
 		imgs := fmt.Sprintf("%s/%s-*.jpg", imageLocation, vid)
 		fmt.Printf("code: %s imgs: %s\n", vid, imgs)
 		output, err := exec.Command("ffmpeg", "-framerate", "5", "-pattern_type", "glob", "-i", imgs, saveToFull).Output()
@@ -104,6 +107,17 @@ func makeVideo(code chan string) {
 		log.Println(output)
 		failOnError(err, "c")
 
+		// Remove images
+		imgLoc := fmt.Sprintf("%s/%s-*.jpg", imageLocation, strings.Replace(vid, " ", "\\ ", -1))
+		files, err := filepath.Glob(imgLoc)
+		if err != nil {
+			panic(err)
+		}
+		for _, f := range files {
+			if err := os.Remove(f); err != nil {
+				panic(err)
+			}
+		}
 	}
 }
 
