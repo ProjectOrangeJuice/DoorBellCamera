@@ -31,9 +31,9 @@ include "include/head.php";
                     <button class="w3-button w3-green" v-on:click="updateDisplay">Display</button>
                 </div>
                 <div class="w3-half">
-                    Profile name: <input type="text" class="w3-input">
-                    <button class="w3-button w3-green">Create</button>
-                    <button class="w3-button w3-red">Delete</button>
+                    Profile name: <input type="text" v-model="unknownProfile" class="w3-input">
+                    <button class="w3-button w3-green" v-on:click="createProfile">Create</button>
+                    <button class="w3-button w3-red" v-on:click="deleteProfile">Delete</button>
                 </div>
             </div>
 
@@ -176,6 +176,7 @@ include "include/head.php";
                     refreshCount: 5,
                     zones: [],
                     zoneInfo: [],
+                    unknownProfile: "",
                 },
                 mounted() {
                     //this.updateMotion();
@@ -187,6 +188,32 @@ include "include/head.php";
                     canvas.addEventListener('mousemove', this.mouseMove, false);
                 },
                 methods: {
+                    createProfile(){
+                        axios
+                            .post("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
+                              
+                            })
+                            .then(response => {
+                                alert("Created");
+                                location.reload();
+                            })
+                            .catch(response => {
+                                alert("Failed to create");
+                            });
+                    },
+                    deleteProfile(){
+                        axios
+                            .delete("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/profile/" + encodeURI(this.unknownProfile), {
+                              
+                            })
+                            .then(response => {
+                                alert("Deleted");
+                                location.reload();
+                            })
+                            .catch(response => {
+                                alert("Failed to delete");
+                            });
+                    },
                     updateDisplay() {
                         try {
                             this.socket.close()
