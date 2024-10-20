@@ -1,0 +1,22 @@
+<input id="user"></input>
+<input id="pass"></input>
+<button onclick="login()">login</button>
+<script>
+function login(){
+
+var details = {}
+details["username"]=document.getElementById("user").value;  
+details["password"]=document.getElementById("pass").value;  
+
+var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+            location.reload();
+          }
+        }
+        xhttp.withCredentials = true;
+        xhttp.open("POST", "http://localhost:8000/login", true);
+        xhttp.send(JSON.stringify(details));
+      }
+      
+</script>
