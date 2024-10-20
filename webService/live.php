@@ -45,7 +45,7 @@
     <div class="w3-bar-block">
       <a href="/" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Home</a>
       <a href="/live.php" onclick="w3_close()" class="w3-bar-item  w3-white w3-button w3-hover-white">Live</a>
-       
+
       <a href="/motion.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a>
       <a href="/config.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Settings</a>
     </div>
@@ -113,81 +113,102 @@
 
 
   <script>
-//On page load, decide if the full stream should be selected
-var cip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"
-if(cip.includes("192.168.1")){
-  console.log("IP is lan, default is full stream")
-  document.getElementById("fullres").checked = true;
-}
-
-    /* do what you want with the form */
-    function loadVideo() {
-      //We need to get the camera name
-      $.getJSON('http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/config', function (config) {
-
-        var long = document.getElementById("imageArea");
-        long.innerHTML = ""
-        var urlParams = new URLSearchParams(window.location.search);
-        // 2
-        var socket = "";
-        if(document.getElementById("fullres").checked){
-         socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/stream/" + encodeURI(config.Name))
-        }else{
-          socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/mobilestream/" + encodeURI(config.Name))
-        }
-        const img = document.getElementById('video');
-        // 3
-        var update = function () {
-
-          // Log errors
-          socket.onclose = function (error) {
-            long.innerHTML = "Socket has been closed. Connection to camera has failed"
-            img.src = "";
-          };
-
-          socket.onmessage = function (event) {
-            if(event.data == "PING"){
-            socket.send("PONG")
-          }else{
-            decoded = atob(event.data)
-
-            img.src = "data:image/jpg;base64, " + event.data
-            //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
-
-          }
-          }
-        };
-        window.setTimeout(update);
-        alerts();
-      });
-
+    //On page load, decide if the full stream should be selected
+    var cip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"
+    if (cip.includes("192.168.1")) {
+      console.log("IP is lan, default is full stream")
+      document.getElementById("fullres").checked = true;
     }
 
-    function alerts() {
-      var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motionAlert")
-      var long = document.getElementById("imageArea");
-      long.innerHTML = ""
+    //Get the camera name
+    var camName = "";
+    $.getJSON('http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/config', function (config) {
+      camName = config.Name;
+    });
+
+    //LoadVideo button click
+    var socket = "";
+    var imgErr = document.getElementById("imageArea");
+    var imgBox = document.getElementById('video');
+    var askClose = false;
+    function loadVideo() {
+      //Close existing connection
+      try {
+        askClose = true;
+        socket.close();
+      } catch (err) {
+        askClose = false;
+        console.log("I tried to close the socket but got this " + err.message);
+      }
+
+
+      //Reset image err
+      imgErr.innerHTML = ""
+      //Set socket
+      if (document.getElementById("fullres").checked) {
+        socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/stream/" + encodeURI(camName))
+      } else {
+        socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/mobilestream/" + encodeURI(camName))
+      }
+
+      //Connect to socket
       var update = function () {
+
         // Log errors
         socket.onclose = function (error) {
-          console.log("Alert closed")
+          if (!askClose) {
+            imgErr.innerHTML = "Socket has been closed. Connection to camera has failed"
+            imgBox.src = "";
+          }
+          askClose = false;
         };
 
         socket.onmessage = function (event) {
-          if(event.data == "PING"){
+          if (event.data == "PING") {
             socket.send("PONG")
-          }else{
-          obj  = JSON.parse(event.data)
-          date = new Date(obj.Time * 1000)
-          // Hours part from the timestamp
-          var hours = date.getHours();
-          // Minutes part from the timestamp
-          var minutes = "0" + date.getMinutes();
-          // Seconds part from the timestamp
-          var seconds = "0" + date.getSeconds();
-          long.innerHTML = "Alert for " + obj.Name + " At "+hours+":"+minutes+":"+seconds;
-          console.log("Alert " + event.data)
-          //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
+          } else {
+            decoded = atob(event.data)
+            imgBox.src = "data:image/jpg;base64, " + event.data
+          }
+        }
+      };
+      window.setTimeout(update);
+      //Activate alerts
+      alerts();
+
+    }
+
+    var aSocket = "";
+
+    function alerts() {
+      //Close existing connection
+      try {
+        aSocket.close();
+      } catch (err) {
+        console.log("I tried to close the alert socket but got this " + err.message);
+      }
+      aSocket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motionAlert")
+      var update = function () {
+        // Log errors
+        aSocket.onclose = function (error) {
+          console.log("Alert closed")
+        };
+
+        aSocket.onmessage = function (event) {
+          if (event.data == "PING") {
+            socket.send("PONG")
+          } else {
+            obj = JSON.parse(event.data)
+            date = new Date(obj.Time * 1000)
+            // Hours part from the timestamp
+            var hours = date.getHours();
+            // Minutes part from the timestamp
+            var minutes = "0" + date.getMinutes();
+            // Seconds part from the timestamp
+            var seconds = "0" + date.getSeconds();
+            imgErr.innerHTML = "Alert for " + obj.Name + " At " + hours + ":" + minutes + ":" + seconds;
+            console.log("Alert " + event.data)
+            //long.innerHTML = "<img src='data:image/jpg;base64, "+event.data+"' alt='image'>"
           }
 
         }
