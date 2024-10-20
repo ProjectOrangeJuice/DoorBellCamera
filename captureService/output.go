@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/streadway/amqp"
 	"gocv.io/x/gocv"
@@ -16,8 +17,11 @@ func liveStreamPush() {
 	defer rabbitChannel.Close()
 	for img := range liveStream {
 		//Convert the image to jpg
-		buf, _ := gocv.IMEncodeWithParams(".jpg", img, []int{gocv.IMWriteJpegQuality, 50})
-		rabbitChannel.Publish("", "camera", false, false, amqp.Publishing{
+		buf, err := gocv.IMEncodeWithParams(".jpg", img, []int{gocv.IMWriteJpegQuality, 50})
+		if err != nil {
+			log.Printf("Error encoding %s", err)
+		}
+		rabbitChannel.Publish("camera", "", false, false, amqp.Publishing{
 			DeliveryMode: amqp.Transient,
 			ContentType:  "bytes",
 			Body:         buf,
