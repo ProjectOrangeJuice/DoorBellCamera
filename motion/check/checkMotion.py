@@ -131,7 +131,7 @@ def motionCheck(name,image,time):
             #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
            # tc[countOn] -= 1
 
-        tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[imgCount]})
+        tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":totals})
 
        
 
