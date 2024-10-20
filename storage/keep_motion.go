@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -49,11 +50,11 @@ var timer time.Timer
 var conn *mongo.Database
 
 func main() {
-
+	go http.ListenAndServe("localhost:8080", nil)
 	var err error
 	conn, err = configDB(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		//log.Fatal(err)
 	}
 	server = "amqp://guest:guest@localhost:5672/"
 	connect, err = amqp.Dial(server)
@@ -73,20 +74,20 @@ func readyAndListen() {
 	go func() {
 		defer ch.Close()
 		for d := range msgs {
-			go decodeMessage(d.Body)
+			decodeMessage(d.Body)
 			d.Ack(true)
 		}
 	}()
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	//log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 }
 
 func createTimer() {
-	timer := time.NewTimer(15 * time.Second)
+	timer := time.NewTimer(3 * time.Second)
 	go func() {
 		<-timer.C
-		log.Printf("Timer is over")
+		//log.Printf("Timer is over")
 		for k, v := range camera {
 			if v.prev != "" && v.prev != v.notified && !v.ignoreTimer {
 				v.notified = v.prev
@@ -100,8 +101,10 @@ func createTimer() {
 	}()
 }
 
+var m Message
+
 func decodeMessage(d []byte) {
-	var m Message
+
 	err := json.Unmarshal(d, &m)
 	failOnError(err, "Json decode error")
 	if _, ok := camera[m.Name]; !ok {
@@ -146,7 +149,7 @@ func recordDb(msg Message, loc string) {
 
 	tc := camera[msg.Name]
 	if tc.prev != "" && tc.prev != msg.Code {
-		log.Printf("End of prev code")
+		//log.Printf("End of prev code")
 		notifyQueue(tc.prev, msg.Name)
 		tc.ignoreTimer = true
 		tc.prev = msg.Code
@@ -156,11 +159,13 @@ func recordDb(msg Message, loc string) {
 
 	}
 
+	//log.Println("End record")
 }
 
 func notifyQueue(code string, name string) {
-	log.Printf("making video.. code is %s and name is %s", code, name)
-	go makeVideo(code, name)
+	//log.Printf("making video.. code is %s and name is %s", code, name)
+	makeVideo(code, name)
+	//log.Println("Finished making video?")
 }
 
 func storeImage(msg Message) {
@@ -168,15 +173,16 @@ func storeImage(msg Message) {
 	bImage, err := base64.StdEncoding.DecodeString(msg.Image)
 	failOnError(err, "Base64 error")
 	location := fmt.Sprintf("%s/%s-%v.jpg", CaptureLocation, msg.Code, msg.Count)
-	err2 := ioutil.WriteFile(location, bImage, 0644)
-	failOnError(err2, "Error writing image")
-	log.Printf("Stored image %s", location)
-	bImage = nil
+	err = ioutil.WriteFile(location, bImage, 0644)
+	failOnError(err, "Error writing image")
+	//log.Printf("Stored image %s", location)
+	//log.Println(bImage[0])
 	recordDb(msg, location)
+	//log.Println("End store image")
 }
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		//log.Fatalf("%s: %s", msg, err)
 	}
 }
