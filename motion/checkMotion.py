@@ -16,6 +16,7 @@ minCount = 4
 code = 5
 codeUsed = 6
 prevImage = 7
+imgCount = 8
 
 def readConfig():
     global serverAddress,serverPort,dt,dmin
@@ -26,7 +27,7 @@ def readConfig():
         dt = data["threshold"]
         dmin = data["minCount"]
         for cam in data["cameras"]:
-            cameras[cam["name"]] = [0, 0, [], cam["threshold"], cam["minCount"], "", False, None]
+            cameras[cam["name"]] = [0, 0, [], cam["threshold"], cam["minCount"], "", False, None, 0]
 
 
 readConfig()
@@ -52,7 +53,7 @@ def motionCheck(name,image,time):
         tc = cameras.get(name)
     else:
         #countOn, countOff, heldFrames, threshold, minCount, code, codeUsed, prevImage
-        cameras[name] = [0, 0, [], dt, dmin, "", False, None]
+        cameras[name] = [0, 0, [], dt, dmin, "", False, None,0]
         tc = cameras.get(name)
 
     nparr = np.fromstring(base64.b64decode(image), np.uint8)
@@ -68,30 +69,31 @@ def motionCheck(name,image,time):
         res = res.astype(np.uint8)
         percentage = (np.count_nonzero(res) * 100)/ res.size
 
-        print(str(tc[countOn]) + "-" + str(tc[countOff]))
         print(str(percentage) + " - " +str(tc[threshold]))
-
+        tc[imgCount] += 1
         if(percentage > tc[threshold]):
             tc[countOn] += 1
             tc[countOff] = 0
-            print("Increase counton")
+
         
         else:
             tc[countOff] += 1
             if(tc[minCount] < tc[countOff]):
                 tc[countOn] = 0
+                tc[imgCount] = 0
                 if(tc[codeUsed]):
                     #send the held frames
                     for data in tc[heldFrames]:
                         channel.basic_publish(exchange='',
                             routing_key='motionAlert',
                             body=json.dumps(data))
+                    print("New code")
+                    tc[code] = randomString(10)
+                    tc[codeUsed] = False
                     #All frames now sent
                 tc[heldFrames].clear()
-            
-                print("New code")
-                tc[code] = randomString(10)
-                tc[codeUsed] = False
+                
+                
                 
             if(tc[countOn] > tc[minCount]):
                
@@ -101,7 +103,7 @@ def motionCheck(name,image,time):
                 #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
                 tc[countOn] -= 1
 
-        tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
+        tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[imgCount]})
 
        
 
