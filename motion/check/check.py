@@ -138,12 +138,14 @@ def motionCheck(name,image,camtime):
             motion = True
         if(motion):
             print("i saw something in section "+str(vals[7]))
+            if(tc[countOn]%4 == 0):
+                doNew=True
             if(seen == ""):
                 seen = str(vals[7])
             else:
                 seen = seen+","+str(vals[7])
             tc[countOn] += 1
-            if(tc[countOn] > 5):
+            if(tc[countOn] > 15):
                 sendFrames(tc)
         else:
             tc[countOn] -= 1
