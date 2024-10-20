@@ -77,8 +77,8 @@ def checkFrame(image,name, frame,channel):
             (cnts, _) = cv2.findContours(thresh_frame.copy(),
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         except ValueError:
-            print("Not enough values...")
-            return
+            ( _, cnts , _) = cv2.findContours(thresh_frame.copy(),
+                                         cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # Check if it is over the threshold
         for contour in cnts:
@@ -149,8 +149,8 @@ def checkFrame(image,name, frame,channel):
         frameCount = -1
     frameCount += 1
     print(settings.countOn)
-    cv2.imshow("frame", mimg)
-    cv2.waitKey(1)
+    # cv2.imshow("frame", mimg)
+    # cv2.waitKey(1)
 
 
 def sendFrames(name,channel):
