@@ -72,7 +72,7 @@ func main() {
 }
 
 func readyAndListen() {
-	msgs, ch := listenToQueue("motionAlert")
+	msgs, ch := listenToFanout("motion")
 
 	createTimer()
 	forever := make(chan bool)
