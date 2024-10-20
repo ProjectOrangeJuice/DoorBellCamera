@@ -56,7 +56,7 @@ func main() {
 	router.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion", getMotions).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion/{code}", getMotion).Methods("GET", "OPTIONS")
-	router.HandleFunc("/motion/{code}", delMotion).Methods("DELETE")
+	router.HandleFunc("/delete/{code}", delMotion).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", wsHandler)
 
@@ -68,6 +68,7 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 
@@ -95,21 +96,24 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 
 //del motion handler
 func delMotion(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Access-Control-Allow-Origin, access-control-allow-headers")
+
+	print("Deleting motion")
 	params := mux.Vars(r)
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 	tx, err := db.Begin()
 	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("DELETE FROM video WHERE motionCode=?")
+	stmt, err := tx.Prepare("DELETE FROM video WHERE code=?")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
 	_, err = stmt.Exec(params["code"])
 	failOnError(err, "Record could not insert")
 	tx.Commit()
+	w.Write([]byte("Okay"))
 }
 
 //Get the single data
