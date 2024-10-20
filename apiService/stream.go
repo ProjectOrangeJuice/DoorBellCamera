@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	b64 "encoding/base64"
-	"encoding/json"
 	"image"
 	"image/jpeg"
 	"log"
@@ -56,7 +55,7 @@ type Message struct {
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	msgs, ch := listenToExchange("videoStream", cam)
-	ws.SetCompressionLevel(9)
+	//ws.SetCompressionLevel(9)
 	var lock sync.Mutex
 	var m Message
 	//forever := make(chan bool)
@@ -69,14 +68,15 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	for alive {
 		select {
 		case d := <-msgs:
+			var err error
 			timer.Reset(duration)
-			err := json.Unmarshal(d.Body, &m)
-			failOnError(err, "Json decode error")
 			currentTime := time.Now().UnixNano()
 			diff := currentTime - last
 			var waitTime int64
 			waitTime = 1000000000 / 2
 			if compressed && diff > waitTime {
+				err := json.Unmarshal(d.Body, &m)
+				failOnError(err, "Json decode error")
 				sDec, _ := b64.StdEncoding.DecodeString(m.Image)
 				image, _, err := image.Decode(bytes.NewReader(sDec))
 				failOnError(err, "Failed to read image to compress")
@@ -92,6 +92,8 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 				//skip every other frame
 				last = time.Now().UnixNano()
 			} else if !compressed {
+				err := json.Unmarshal(d.Body, &m)
+				failOnError(err, "Json decode error")
 				lock.Lock()
 				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 				lock.Unlock()
