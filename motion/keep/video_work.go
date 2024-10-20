@@ -92,6 +92,7 @@ func addToDatabase(code string, name string, start string, end string, reason st
 	_, err = stmt.Exec(code, name, start, end, reason)
 	failOnError(err, "Record could not insert")
 	tx.Commit()
+	db.Close()
 	log.Printf("Saved to db")
 
 	//	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)

@@ -143,6 +143,7 @@ func recordDb(msg Message, loc string) {
 		tc.ignoreTimer = true
 
 	}
+	db.Close()
 }
 
 func notifyQueue(code string, name string) {
