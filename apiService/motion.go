@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,6 +26,31 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 	log.Print("get motion")
 	collection := conn.Collection("video")
 	cur, err := collection.Find(context.TODO(), bson.M{})
+	failOnError(err, "Failed to get video records")
+
+	var records []videoRecord
+	for cur.Next(context.TODO()) {
+		var record videoRecord
+		err := cur.Decode(&record)
+		failOnError(err, "Failed to decode record")
+		records = append(records, record)
+	}
+
+	json.NewEncoder(w).Encode(records)
+
+}
+
+func getMotionYester(w http.ResponseWriter, r *http.Request) {
+	log.Print("get motion")
+	t := time.Now()
+	t = t.Add(time.Duration(-24) * time.Hour)
+	stamp := t.Unix()
+	strconv.FormatInt(stamp, 10)
+	collection := conn.Collection("video")
+	filter := bson.M{
+		"start": bson.M{"$gt": strconv.FormatInt(stamp, 10)},
+	}
+	cur, err := collection.Find(context.TODO(), filter)
 	failOnError(err, "Failed to get video records")
 
 	var records []videoRecord

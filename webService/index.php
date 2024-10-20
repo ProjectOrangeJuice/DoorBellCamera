@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
+  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+  integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+  crossorigin="anonymous"></script>
 <style>
 body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
 body {font-size:16px;}
@@ -43,15 +52,20 @@ body {font-size:16px;}
   <!-- Header -->
   <div class="w3-container" style="margin-top:80px" id="showcase">
     <h1 class="w3-jumbo"><b>Summary</b></h1>
-    <h1 class="w3-xxxlarge w3-text-red"><b>Oops.</b></h1>
+    <h1 class="w3-xxxlarge w3-text-red"><b>Motion alerts from yesterday</b></h1>
     <hr style="width:50px;border:5px solid red" class="w3-round">
   </div>
   
+ 
   <!-- Photo grid (modal) -->
-  <div class="w3-row-padding">
-  <p>Nothing here yet</p>
-  </div>
-
+  <div class="w3-row-padding" id="app">
+      <div v-for="alert in alerts">
+        <img v-bind:src="alert.Thumbnail" v-on:click="showVideo(alert.Code)"/>
+        {{ alert.Code }} <br>
+        Occured at {{ dateChange(alert.Start) }} to {{ dateChange(alert.End) }}<br>
+        <button v-on:click="deleteCode(alert.Code)">Delete</button>
+        <hr>
+      </div>
   
 <!-- End page content -->
 </div>
@@ -78,6 +92,55 @@ function onClick(element) {
   var captionText = document.getElementById("caption");
   captionText.innerHTML = element.alt;
 }
+</script>
+
+
+
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      videoL: "",
+    alerts: []
+    }, mounted() {
+     this.updateMotion();
+    
+    },
+    methods: {
+      dateChange(d){
+        date = new Date(d*1000);
+        return(date.toLocaleString());
+      },
+      deleteCode(code){
+        axios
+        .delete("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion/"+code)
+        .then(response => {
+          this.updateMotion()
+ 
+        })
+        .catch(response => {
+          console.log("Error " + response);
+        });
+      },
+      updateMotion(){
+        axios
+        .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/fromyesterday")
+        .then(response => {
+          this.alerts = response.data;
+ 
+        })
+        .catch(response => {
+          console.log("Error " + response);
+        });
+      },
+      showVideo(v){
+        console.log("v is .. "+v)
+        this.videoL = "http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion/"+v;
+        console.log("video is "+this.videoL)
+        document.getElementById('id01').style.display='block'
+      }
+    }
+  })
 </script>
 
 </body>
