@@ -7,9 +7,11 @@ import base64
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('192.168.99.100',31693))
 channel = connection.channel()
-
+channel2 = connection.channel()
 countOn = 0
 countOff = 0
+threshold = 50
+minCount = 5
 
 channel.queue_declare(queue='videoStream')
 def callback(ch, method, properties, body):
@@ -33,18 +35,21 @@ def motionCheck(image):
         percentage = (np.count_nonzero(res) * 100)/ res.size
         #print(percentage)
 
-        if(percentage > 20):
+        if(percentage > threshold):
             #motion?
             
             countOn += 1
-            if(countOn > 5):
+            if(countOn > minCount):
                 print("Motion!!!")
+                channel.basic_publish(exchange='',
+                      routing_key='motionAlert',
+                      body='Motion!')
                 countOff = 0
             else:
                 print("Possible motion")
         else:
             countOff += 1
-            if(countOff > 5):
+            if(countOff > minCount):
                 countOn = 0
             print("Nothing")
             
@@ -55,7 +60,7 @@ def motionCheck(image):
 
 
 
-
+channel2.queue_declare(queue='motionAlert')
 
 channel.basic_consume(queue='videoStream',
                       auto_ack=True,
@@ -63,3 +68,4 @@ channel.basic_consume(queue='videoStream',
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()
+channel2.close()
