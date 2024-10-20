@@ -5,30 +5,14 @@ function ErrorDisplay() {
     return <p>Unable to sign in</p>;
 }
 
-function p2(){
-    fetch('http://localhost:8000/s/motion', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-       
-    })
-    .then((res) => {
-        console.log(res.status)
-    })
-
-}
-
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             username: '',
-            password: ''
+            password: '',
+            error: false
         };
-        this.error = false;
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
@@ -56,8 +40,12 @@ class LoginForm extends React.Component {
             })
         })
         .then((res) => {
-            console.log(res.status)
-            p2()
+            if(res.status === 401 ){
+                this.setState({error: true})
+            }else if(res.status === 200){
+                console.log("logged in");
+            }
+           
         })
 
 
@@ -68,9 +56,10 @@ class LoginForm extends React.Component {
     }
 
     render() {
+        console.log("rendering.. "+this.state.error)
         return (
             <div class="w3-display-topmiddle">
-                { this.error &&
+                { this.state.error &&
                     <ErrorDisplay />
                 }
                 <form class="w3-container" onSubmit={this.handleSubmit}>
