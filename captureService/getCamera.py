@@ -60,18 +60,19 @@ def readFrames():
     while(vcap.isOpened()):
         time_elapsed = time.time() - prev
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-        try:
-            ret, frame = vcap.read()
-            frame = cv2.flip(frame,1)
-            sendFrame = frame
-            cv2.putText(sendFrame, st, (10, 25),
-		    cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
-        except:
-            #Error with frame, try again.
-            print("Error with frame (debug, close)")
-            exit(1)
-            #continue
+       
         if(time_elapsed > 1./s.setting.fps):
+            try:
+                ret, frame = vcap.read()
+                frame = cv2.flip(frame,1)
+                sendFrame = frame
+                cv2.putText(sendFrame, st, (10, 25),
+                cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+            except:
+                #Error with frame, try again.
+                print("Error with frame (debug, close)")
+                exit(1)
+                #continue
             prev = time.time()
             
             #rotation
@@ -105,6 +106,8 @@ def readFrames():
                 print("Updating settings")
                 s.update()
                 refresh = time.time()
+        else:
+            vcap.grab()
 readConfig()
 openCamera()
 openConnection()
