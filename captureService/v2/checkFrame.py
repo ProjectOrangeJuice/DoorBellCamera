@@ -28,10 +28,10 @@ def cropper(setting, frame):
 # Go through the previous motion boxes and see what one is the closest
 
 
-def closeBox(cx, cy):
+def closeBox(cx, cy,count):
     sx = -1
     sy = -1
-    for item in tracker["prevMotion"]:
+    for item in tracker["prevBoxes"][count]:
         difx = abs(cx - item[0])
         dify = abs(cy - item[1])
         if(difx < sx and dify < sy):
@@ -41,9 +41,9 @@ def closeBox(cx, cy):
     return [sx, sy]
 
 
-def checkContour(contour, setting, debugFrame):
+def checkContour(contour, setting, debugFrame,count):
     # Check if the area is larger than required
-    if cv2.contourArea(contour) < setting["threshold"]:
+    if cv2.contourArea(contour) < setting["area"]:
         return {"motion": False, "debugFrame": debugFrame}
 
     # Create a box
@@ -55,7 +55,7 @@ def checkContour(contour, setting, debugFrame):
     y = y + setting["y1"]
 
     # Find the closest box from the previous frame
-    (sx, sy) = closeBox(cX, cY)
+    (sx, sy) = closeBox(cX, cY,count)
     txt = "Box movement ("+str(sx)+","+str(sy)+")"
 
     # Check to see if the box has jumped
@@ -67,7 +67,7 @@ def checkContour(contour, setting, debugFrame):
         return {"motion": False, "debugFrame": debugFrame}
 
     # compare how much the box has moved
-    elif(sx != -1 and sx < setting["smallignore"] and sy < setting["smallignore"]):
+    elif(sx != -1 or sx < setting["smallignore"] and sy < setting["smallignore"]):
         # Box has moved too little (sun light?)
         cv2.rectangle(debugFrame, (x, y), (x + w, y + h), (125, 125, 255), 2)
         cv2.putText(debugFrame, txt, (x+10, y-20),
@@ -115,7 +115,7 @@ def checkFrame(b64, name, frame, channel, stamp, debugpub, settings):
     while count < len(settings["zones"]):
         # Setup the prevboxes check
         if(len(tracker["prevBoxes"]) < len(settings["zones"])):
-            tracker["prevBoxes"] = [0] * (len(settings["zones"]))
+            tracker["prevBoxes"] = [[]] * (len(settings["zones"]))
             tracker["counter"] = [0] * (len(settings["zones"]))
 
         # current zone settings
@@ -149,13 +149,15 @@ def checkFrame(b64, name, frame, channel, stamp, debugpub, settings):
 
             # add to our motion movement checker list
             (x, y, w, h) = cv2.boundingRect(contour)
+            M = cv2.moments(contour)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            newPrev.append([cX, cY, w, h])
-            answer = checkContour(contour, setting, debugImage)
+            # Only add the boxes if it is large enough
+            if cv2.contourArea(contour) > setting["area"]:
+                newPrev.append([cX, cY, w, h])
+            answer = checkContour(contour, setting, debugImage,count)
             debugImage = answer["debugFrame"]
             if(answer["motion"]):
-                M = cv2.moments(contour)
                 locations.append(M)
                 motion = True
 
