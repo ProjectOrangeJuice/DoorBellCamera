@@ -1,6 +1,6 @@
 <?php
 $title = "Motion";
-$current = 2;
+$current = 1;
 
 include "include/head.php";
 ?>
