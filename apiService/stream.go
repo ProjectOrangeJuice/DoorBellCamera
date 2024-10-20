@@ -176,6 +176,13 @@ func getMotionAlerts(ws *websocket.Conn, camera string) {
 }
 
 func pingponger(ws *websocket.Conn, c chan bool, lock *sync.Mutex) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()
+
 	lock.Lock()
 	ws.WriteMessage(websocket.TextMessage, []byte("PING"))
 	lock.Unlock()
