@@ -58,10 +58,13 @@ body {font-size:16px;}
   <!-- Photo grid (modal) -->
   <div class="w3-row-padding" id="app">
       <li v-for="alert in alerts">
+      <input type="checkbox" v-model="selected" :value="alert.Code" number>
+         
         <img v-bind:src="alert.Thumbnail" v-on:click="showVideo(alert.Code)"/>{{ alert.Code }} Occured at {{ dateChange(alert.Start) }}
-        <button v-on:click="deleteCode(alert.Code)">Delete</button>
+        
       </li>
-
+      <button v-on:click="deleteSelected">Delete selected</button>
+      <button v-on:click="deleteAll">Delete All</button>
 
 
 
@@ -116,6 +119,7 @@ function onClick(element) {
     el: '#app',
     data: {
       videoL: "",
+      selected: [],
     alerts: []
     }, mounted() {
      this.updateMotion();
@@ -137,6 +141,16 @@ function onClick(element) {
           console.log("Error " + response);
         });
       },
+      deleteSelected(){
+        this.selected.forEach(this.deleteCode);
+      },
+      deleteAll(){
+        this.selected.forEach(function(entry){
+          console.log("Deleteing.. "+entry.Code);
+          this.deleteCode(entry.Code);
+        })
+      },
+
       updateMotion(){
         axios
         .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motion")
