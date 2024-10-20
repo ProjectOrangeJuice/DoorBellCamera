@@ -91,7 +91,8 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 
 //Get the single data
 func getMotion(w http.ResponseWriter, r *http.Request) {
-
+	params := mux.Vars(r)
+	http.ServeFile(w, r, fmt.Sprintf("/mnt/shared/motion/videos/%s", params["code"]))
 }
 
 //Socket handler
