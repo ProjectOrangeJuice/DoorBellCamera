@@ -36,7 +36,9 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	failOnError(err, "Json error")
 	for index, key := range objmap {
 		var new string
+
 		new = strings.Replace(string(*key), string('"'), "", -1)
+
 		client.HSet(params["service"], index, new)
 	}
 
