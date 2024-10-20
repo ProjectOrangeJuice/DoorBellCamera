@@ -14,6 +14,7 @@ RUN go build *.go
 FROM denismakogon/gocv-alpine:4.0.1-runtime
 
 COPY --from=build-stage /go/keep_motion /keep_motion
-
+RUN mkdir -p shared/motion/videos
+RUN mkdir shared/motion/capture
 
 CMD ["./keep_motion"]
