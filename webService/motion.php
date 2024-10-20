@@ -26,7 +26,7 @@ include "include/head.php";
         display: none;
         position: fixed;
         margin-right: 15px;
-        top: 50%;
+        top: 15%;
         border: 2px solid #FFF;
         background: #FFF;
         z-index: 1002;
