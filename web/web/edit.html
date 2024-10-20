@@ -1,19 +1,7 @@
-<?php 
-header('Access-Control-Allow-Origin: http://localhost:8000');
-
-header('Access-Control-Allow-Methods: GET, POST');
-
-header("Access-Control-Allow-Headers: X-Requested-With");
-$title = "Hello world";
-include("parts/header.php");
-?>
-
+{{ define "config" }}
+{{ template "header" . }}
 <body class="w3-light-grey">
-<?php 
-$sideBar = [["Overview",0,"index.php"],["Cameras",0,"cameras.php"],["Config editor",1,"edit.php"]];
-include("parts/side.php");
- ?>
-
+{{ template "side" . }}
 <!-- !PAGE CONTENT! -->
 <div class="w3-main" style="margin-left:300px;margin-top:43px;">
 
@@ -23,10 +11,21 @@ include("parts/side.php");
   </header>
 
   <div class="w3-row-padding w3-margin-bottom">
-  <pre><div id="editBox" contenteditable="true" editable>Get the config file first</div>
-  Service to update: <input type="text" id="ser" value="motion.check"></pre>
-  <button onclick="getSer()">Get</button>
-  <button onclick="setSer()">Set</button>
+  
+    <p>
+      <label>Server address</label>
+      <input class="w3-input" type="text" id="sa"></p>
+      <p>
+      <label>Server port</label>
+      <input class="w3-input" type="number" id="sp"></p>
+      <p>
+        <label>Threshold</label>
+        <i> eg [80,70]</i>
+        <input class="w3-input" type="text" id="th"></p>
+        <p>
+          <label>Min count</label>
+          <input class="w3-input" type="number" id="min"></p>
+          <button class="w3-button w3-green">Save</button>
   </div>
 
  
@@ -35,17 +34,25 @@ temp = ""
 function getSer(){
   var jsonT;
   var xhttp = new XMLHttpRequest();
+  xhttp.withCredentials = true;
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       jsont =  JSON.parse(this.responseText)
+      console.log(jsont)
+      $("#sa").val(jsont["serverAddress"])
+      $("#sp").val(jsont["serverPort"])
+      $("#th").val(jsont["threshold"])
+      $("#min").val(jsont["minCount"])
       //jsont.body = body = jsont.body.replace("/\n/g", "<br />");
       document.getElementById("editBox").innerHTML = jsont.Inner;
     }
   };
-  xhttp.open("GET", "http://localhost:8000/config/"+encodeURI(document.getElementById("ser").value), true);
+  xhttp.open("GET", "http://localhost:8000/s/config/config:motion", true);
   xhttp.send();
 
 }
+
+getSer()
 
 function setSer(){
   data =  document.getElementById("editBox").innerHTML 
@@ -61,8 +68,7 @@ function setSer(){
 }
 
   </script>
-
- <?php include("parts/footer.php") ?>
+{{ template "footer" . }}
 
   <!-- End page content -->
 </div>
@@ -70,3 +76,4 @@ function setSer(){
 
 </body>
 </html>
+{{ end }}
