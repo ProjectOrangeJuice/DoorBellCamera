@@ -36,12 +36,15 @@ func makeVideo(code string, name string) {
 		err = rows.Scan(&location, &time, &reason)
 		failOnError(err, "Failed to get")
 		sp := strings.Split(reason, ",")
-		for _, v := range sp {
-			spr := strings.Split(reasons, ",")
-			found := false
-			for _, v2 := range spr {
-				if v2 == v {
-					found = true
+		if len(sp) > 1 {
+			for _, v := range sp {
+				spr := strings.Split(reasons, ",")
+				found := false
+				for _, v2 := range spr {
+					log.Printf("Checking if %s is %s", v2, v)
+					if v2 == v {
+						found = true
+					}
 				}
 				if !found {
 					if reasons == "" {
@@ -51,7 +54,6 @@ func makeVideo(code string, name string) {
 					}
 				}
 			}
-
 		}
 		if startTime == "" {
 			startTime = time

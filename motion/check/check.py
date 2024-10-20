@@ -114,7 +114,7 @@ def motionCheck(name,image,camtime):
     
     count = 0
     roi = tc[threshold]
-
+    seen = ""
     while count < len(roi):
         vals = roi[count]
         ##crop roi
@@ -138,6 +138,10 @@ def motionCheck(name,image,camtime):
             motion = True
         if(motion):
             print("i saw something in section "+str(vals[7]))
+            if(seen == ""):
+                seen = str(vals[7])
+            else:
+                seen = seen+","+str(vals[7])
             tc[countOn] += 1
             sendFrames(tc)
         else:
@@ -161,7 +165,7 @@ def motionCheck(name,image,camtime):
                 tc[countOn] = (int(vals[6])*2)-1
        
         tc[imgCount] += 1
-        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":vals[7]})
+        tc[heldFrames].append({"time":camtime,"name":name,"image":image,"code":tc[code],"count":tc[imgCount],"blocks":seen})
          
         count += 1
         if(doNew):
