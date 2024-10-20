@@ -12,11 +12,12 @@ import (
 )
 
 type videoRecord struct {
-	Code   string
-	Name   string
-	Start  string
-	End    string
-	Reason string
+	Code      string
+	Name      string
+	Start     string
+	End       string
+	Reason    string
+	Thumbnail string
 }
 
 func getMotions(w http.ResponseWriter, r *http.Request) {
