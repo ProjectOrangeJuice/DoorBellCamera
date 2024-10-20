@@ -48,6 +48,8 @@ func main() {
 
 	router.HandleFunc("/information", getInformation).Methods("GET")
 
+	router.HandleFunc("/clean", clearLastMonth).Methods("DELETE")
+
 	router.HandleFunc("/profile/{cam}", createProfile).Methods("POST")
 	router.HandleFunc("/profile/{cam}", deleteProfile).Methods("DELETE")
 
