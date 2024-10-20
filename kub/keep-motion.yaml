@@ -51,7 +51,7 @@ spec:
           claimName: shared-vol
       containers:
       - name: check-motion
-        image: localhost:32000/keep-motion:latest
+        image: localhost:32000/keep-motion
       # Mount the volume that contains the configuration data 
       # into your container filesystem
         volumeMounts:
