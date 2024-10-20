@@ -52,9 +52,10 @@
     </div>
     <div class="w3-bar-block">
       <a href="/" onclick="w3_close()" class="w3-bar-item w3-button  w3-hover-white">Home</a>
-      <a href="/live.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a>
-      <a href="/motion.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a>
-      <a href="/config.html" onclick="w3_close()" class="w3-bar-item w3-white w3-button w3-hover-white">Settings</a>
+      <a href="/live.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a>
+      <a href="/com.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Mobile</a> 
+      <a href="/motion.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a>
+      <a href="/config.php" onclick="w3_close()" class="w3-bar-item w3-white w3-button w3-hover-white">Settings</a>
     </div>
   </nav>
 
@@ -197,7 +198,7 @@
         newZone: true
       }, mounted() {
         axios
-          .get("http://localhost:8000/config")
+          .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/config")
           .then(response => {
             this.name = response.data.Name;
             this.connection = response.data.Connection;
@@ -224,7 +225,7 @@
       },
       methods: {
         displayCamera() {
-          var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI(this.name))
+          var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/stream/" + encodeURI(this.name))
           // Log errors
           socket.onclose = function (error) {
             vid = "";
@@ -266,7 +267,7 @@
         },
         save: function () {
           axios
-            .post("http://localhost:8000/config", {
+            .post("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/config", {
               Name: this.name,
               Connection: this.connection,
               FPS: this.fps,

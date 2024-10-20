@@ -44,9 +44,10 @@
     </div>
     <div class="w3-bar-block">
       <a href="/" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Home</a>
-      <a href="/live.html" onclick="w3_close()" class="w3-bar-item  w3-white w3-button w3-hover-white">Live</a>
-      <a href="/motion.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a>
-      <a href="/config.html" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Settings</a>
+      <a href="/live.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Live</a>
+      <a href="/com.php" onclick="w3_close()" class="w3-bar-item w3-white w3-button w3-hover-white">Mobile</a> 
+      <a href="/motion.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Motion</a>
+      <a href="/config.php" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Settings</a>
     </div>
   </nav>
 
@@ -116,13 +117,13 @@
     /* do what you want with the form */
     function loadVideo() {
       //We need to get the camera name
-      $.getJSON('http://localhost:8000/config', function (config) {
+      $.getJSON('http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/config', function (config) {
 
         var long = document.getElementById("imageArea");
         long.innerHTML = ""
         var urlParams = new URLSearchParams(window.location.search);
         // 2
-        var socket = new WebSocket("ws://localhost:8000/stream/" + encodeURI(config.Name))
+        var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/mobilestream/" + encodeURI(config.Name))
         const img = document.getElementById('video');
         // 3
         var update = function () {
@@ -152,7 +153,7 @@
     }
 
     function alerts() {
-      var socket = new WebSocket("ws://localhost:8000/motionAlert")
+      var socket = new WebSocket("ws://<?php echo $_SERVER['HTTP_HOST'];?>:8000/motionAlert")
       var long = document.getElementById("imageArea");
       long.innerHTML = ""
       var update = function () {
