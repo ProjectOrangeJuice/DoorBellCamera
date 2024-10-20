@@ -30,7 +30,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
     #Pretend debug switch
     mimg = frame
     # blur to make it easier to find objects
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)  # 21,21 is default
+    gray = cv2.GaussianBlur(gray, (settings.blur, settings.blur), 0)  # 21,21 is default
 
     # First iteration then assign the value
     if settings.prev is None:
@@ -84,7 +84,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
             y = y + current[0]
             newPrev.append([x,y,w,h])
             (sx,sy) = smallestDif(prevBox,[x,y])
-            if (sx > 150 or sy > 150):
+            if (sx > settings.boxJump or sy > settings.boxJump):
                 # ignore this box as it's rain
                 cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,0, 255), 2)
                 (sx,sy) = smallestDif(prevBox,[x,y])
@@ -127,8 +127,8 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
             settings.countOn[count] = settings.minCount[count]
             if(not settings.bufferUse):
                 settings.codeUsed = True
-                if(settings.buffer != 50):
-                    settings.buffer = 99
+                if(settings.buffer != 999):
+                    settings.buffer = 998
         if(settings.countOn[count] < 1):
             settings.countOn[count] = 0
             boxNoMove = 0
@@ -139,7 +139,7 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                     if item >= 0:
                         allEmpty = True
                 if(allEmpty and not settings.bufferUse):
-                    settings.buffer = 15
+                    settings.buffer = settings.bufferAfter
                     settings.bufferUse = True
         
         count += 1
@@ -155,10 +155,11 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
    
     # cv2.putText(imagetemp, stamp, (10, 25),
 	#     cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
-    b64 = base64.b64encode(imagetemp)
+    if settings.debug:
+        b64 = base64.b64encode(imagetemp)
     
     #Fill the buffer list continously
-    if(len(settings.buffered) != 24):
+    if(len(settings.buffered) != settings.bufferBefore):
         settings.buffered.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":frameNum,"blocks":",".join(seen),"locations":str(locations)})
     else:
@@ -166,13 +167,13 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
         settings.buffered[bufferOrder] = {"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":frameNum,"blocks":",".join(seen),"locations":str(locations)}
         bufferOrder += 1
-        if(bufferOrder > 23):
+        if(bufferOrder > settings.bufferBefore-1):
             bufferOrder = 0
 
 
-    if(settings.buffer == 99):
+    if(settings.buffer == 998):
         sendBuffer(settings.name,settings.code,channel)
-        settings.buffer = 50
+        settings.buffer = 999
     #Update the buffer values
     if(settings.bufferUse):
         settings.buffer -= 1
@@ -194,14 +195,15 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
 
     
-    if(boxNoMove > 5):
+    if(boxNoMove > settings.noMoveRefreshCount):
         settings.prev = gray
         frameCount = -1
         boxNoMove = 0
         print("New frame")
     frameCount += 1
     #print(settings.countOn)
-    sf.sendFrame(b64,settings.name,debugpub)
+    if settings.debug:
+        sf.sendFrame(b64,settings.name,debugpub)
     # cv2.imshow("frame", mimg)
     # cv2.waitKey(1)
 
