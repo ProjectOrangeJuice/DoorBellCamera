@@ -75,7 +75,7 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 			currentTime := time.Now().UnixNano()
 			diff := currentTime - last
 			var waitTime int64
-			waitTime = 1000000000
+			waitTime = 1000000000 / 2
 			if compressed && diff > waitTime {
 				sDec, _ := b64.StdEncoding.DecodeString(m.Image)
 				image, _, err := image.Decode(bytes.NewReader(sDec))
