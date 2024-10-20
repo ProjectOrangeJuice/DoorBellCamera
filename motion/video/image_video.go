@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/icza/mjpeg"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/streadway/amqp"
+	"gocv.io/x/gocv"
 )
 
 type outMessage struct {
@@ -28,6 +28,7 @@ const configLocation string = "/shared/config.txt"
 var server = ""
 
 func main() {
+
 	if dbExists(DBName) {
 		readyListen()
 	} else {
@@ -128,8 +129,9 @@ func convert(msg []byte) {
 	var endTime string
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
+	video, err := gocv.VideoWriterFile(fmt.Sprintf("%s/%s", videoFolder, m.Code), "avc1", 5.0, 1280, 720, true)
 
-	aw, err := mjpeg.New(fmt.Sprintf("%s/%s", videoFolder, m.Code), 1280, 720, 10)
+	//aw, err := mjpeg.New(fmt.Sprintf("%s/%s", videoFolder, m.Code), 1280, 720, 10)
 	failOnError(err, "Setting up video")
 
 	db, err := sql.Open("sqlite3", DBName)
@@ -161,17 +163,18 @@ func convert(msg []byte) {
 		} else {
 			endTime = time
 		}
-
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s", location))
-		failOnError(err, "Failed reading image")
-		err = aw.AddFrame(data)
-		failOnError(err, "failed to add frame")
-		fr = append(fr, fmt.Sprintf("%s", location))
+		video.Write(gocv.IMRead(fmt.Sprintf("%s", location), gocv.IMReadAnyColor))
+		//data, err := ioutil.ReadFile(fmt.Sprintf("%s", location))
+		//failOnError(err, "Failed reading image")
+		//err = aw.AddFrame(data)
+		//failOnError(err, "failed to add frame")
+		//fr = append(fr, fmt.Sprintf("%s", location))
+		//exec.Command("ffmpeg", "-r 15", fmt.Sprintf("-i %s*", m.Code), "-vcodec libx264", "-crf 20", "-pix_fmt yuv420p", fmt.Sprintf("%s/%s.mp4", videoFolder, m.Code))
 
 	}
-	err = aw.Close()
-	failOnError(err, "Error closing")
-
+	//err = aw.Close()
+	//failOnError(err, "Error closing")
+	video.Close()
 	for _, elem := range fr {
 		err = os.Remove(elem)
 		failOnError(err, "Failed to remove image")
