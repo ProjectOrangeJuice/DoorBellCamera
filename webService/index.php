@@ -52,7 +52,7 @@ body {font-size:16px;}
   <!-- Header -->
   <div class="w3-container" style="margin-top:80px" id="showcase">
     <h1 class="w3-jumbo"><b>Summary</b></h1>
-    <h1 class="w3-xxxlarge w3-text-red"><b>Motion alerts from yesterday</b></h1>
+    <h1 class="w3-xxxlarge w3-text-red"><b>Motion alerts from last 24 hours</b></h1>
     <hr style="width:50px;border:5px solid red" class="w3-round">
   </div>
   
@@ -124,7 +124,7 @@ function onClick(element) {
       },
       updateMotion(){
         axios
-        .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/fromyesterday")
+        .get("http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/from24")
         .then(response => {
           this.alerts = response.data;
  
