@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/appleboy/go-fcm"
+	"github.com/go-redis/redis"
+	_ "github.com/lib/pq"
 	"github.com/streadway/amqp"
 )
 
@@ -39,6 +43,14 @@ type hold struct {
 	FalseCount    int
 }
 
+const (
+	host   = "localhost"
+	port   = 5432
+	user   = "door"
+	passdb = "door"
+	dbname = "doorservice"
+)
+
 func readConfig() {
 
 }
@@ -47,7 +59,18 @@ var connect *amqp.Connection
 
 const server = "amqp://guest:guest@192.168.1.126:30188/"
 
+var apiKey string
+
 func main() {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	apiKey = client.Get("cloudKey").String()
+	log.Print("Api key " + apiKey)
+
 	var err error
 	connect, err = amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -146,10 +169,55 @@ func decideFate(msg Message, held *hold) {
 
 			if held.Count > 5 {
 				log.Print("I would send a notification now!")
+				go sendNotification()
 				held.PreviousAlert = time.Now()
 			}
 		}
 
+	}
+
+}
+
+func sendNotification() {
+	// Create the message to be sent.
+
+	// Create a FCM client to send the message.
+	client, err := fcm.NewClient(apiKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, passdb, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	failOnError(err, "Database opening error")
+	defer db.Close()
+	sqlStatement := `SELECT key FROM keys`
+	row, err := db.Query(sqlStatement)
+	failOnError(err, "Query error")
+	defer row.Close()
+
+	for row.Next() {
+		var key string
+		err = row.Scan(&key)
+		failOnError(err, "Failed to scan")
+
+		msg := &fcm.Message{
+			To: key,
+			Data: map[string]interface{}{
+				"Door": "Alarm",
+			},
+		}
+
+		// Send the message and receive the response without retries.
+		response, err := client.Send(msg)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		log.Printf("%#v\n", response)
 	}
 
 }
