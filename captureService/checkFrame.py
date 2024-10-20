@@ -17,7 +17,7 @@ def randomString(stringLength=10):
 
 boxNoMove = 0
 prevBox = []
-def checkFrame(image,name, frame,channel,stamp,debugpub):
+def checkFrame(b64,name, frame,channel,stamp,debugpub):
     global settings,frameCount,boxNoMove,prevBox
     # if(frameCount % 2 == 0):
     #     #skip frame
