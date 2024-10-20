@@ -28,20 +28,20 @@ def cropper(setting, frame):
 # Go through the previous motion boxes and see what one is the closest
 
 
-def closeBox(cx, cy,count):
+def closeBox(cx, cy, count):
     sx = -1
     sy = -1
     for item in tracker["prevBoxes"][count]:
         difx = abs(cx - item[0])
         dify = abs(cy - item[1])
-        if(difx < sx and dify < sy):
+        if(sx == -1 or difx < sx and dify < sy):
             sx = difx
             sy = dify
 
     return [sx, sy]
 
 
-def checkContour(contour, setting, debugFrame,count):
+def checkContour(contour, setting, debugFrame, count):
     # Check if the area is larger than required
     if cv2.contourArea(contour) < setting["area"]:
         return {"motion": False, "debugFrame": debugFrame}
@@ -55,21 +55,23 @@ def checkContour(contour, setting, debugFrame,count):
     y = y + setting["y1"]
 
     # Find the closest box from the previous frame
-    (sx, sy) = closeBox(cX, cY,count)
+    (sx, sy) = closeBox(cX, cY, count)
     txt = "Box movement ("+str(sx)+","+str(sy)+")"
 
     # Check to see if the box has jumped
     if (sx > setting["boxjump"] or sy > setting["boxjump"]):
         # Box has jumped too far
-        cv2.rectangle(debugFrame, (x, y), (x + w, y + h), (255, 0, 255), 2)
+        # blue box
+        cv2.rectangle(debugFrame, (x, y), (x + w, y + h), (255, 0, 0), 2)
         cv2.putText(debugFrame, txt, (x+10, y-20),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         return {"motion": False, "debugFrame": debugFrame}
 
     # compare how much the box has moved
-    elif(sx != -1 or sx < setting["smallignore"] and sy < setting["smallignore"]):
+    elif(sx == -1 or sx < setting["smallignore"] and sy < setting["smallignore"]):
         # Box has moved too little (sun light?)
-        cv2.rectangle(debugFrame, (x, y), (x + w, y + h), (125, 125, 255), 2)
+        # purple
+        cv2.rectangle(debugFrame, (x, y), (x + w, y + h), (255, 0, 199), 2)
         cv2.putText(debugFrame, txt, (x+10, y-20),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         return {"motion": False, "debugFrame": debugFrame}
@@ -155,7 +157,7 @@ def checkFrame(b64, name, frame, channel, stamp, debugpub, settings):
             # Only add the boxes if it is large enough
             if cv2.contourArea(contour) > setting["area"]:
                 newPrev.append([cX, cY, w, h])
-            answer = checkContour(contour, setting, debugImage,count)
+            answer = checkContour(contour, setting, debugImage, count)
             debugImage = answer["debugFrame"]
             if(answer["motion"]):
                 locations.append(M)
@@ -221,7 +223,7 @@ def checkFrame(b64, name, frame, channel, stamp, debugpub, settings):
             tracker["bufferNumber"] = 0
             sendBuffer(name, tracker["code"], channel)
             tracker["outOfMotion"] += 1
-            if(tracker["outOfMotion"] > settings["bufferAfter"]):
+            if(tracker["outOfMotion"] > settings["bufferafter"]):
                 # we've finished buffering out
                 tracker["sendBuffer"] = False
                 tracker["code"] = randomString(10)
