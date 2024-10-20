@@ -143,7 +143,8 @@ def motionCheck(name,image,camtime):
             else:
                 seen = seen+","+str(vals[7])
             tc[countOn] += 1
-            sendFrames(tc)
+            if(tc[countOn] > 5):
+                sendFrames(tc)
         else:
             tc[countOn] -= 1
             if(tc[countOn] < 0):
