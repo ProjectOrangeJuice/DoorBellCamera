@@ -16,6 +16,7 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
+	EnableCompression: true,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -55,6 +56,7 @@ type Message struct {
 //For the connection, get the stream and send it to the socket
 func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	msgs, ch := listenToExchange("videoStream", cam)
+	ws.SetCompressionLevel(9)
 	var lock sync.Mutex
 	var m Message
 	//forever := make(chan bool)
@@ -80,7 +82,7 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 				failOnError(err, "Failed to read image to compress")
 
 				buf := new(bytes.Buffer)
-				err = jpeg.Encode(buf, image, &jpeg.Options{5})
+				err = jpeg.Encode(buf, image, &jpeg.Options{10})
 				sends3 := buf.Bytes()
 
 				sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
