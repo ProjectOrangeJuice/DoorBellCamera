@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type videoRecord struct {
@@ -51,7 +52,12 @@ func getMotion24(w http.ResponseWriter, r *http.Request) {
 	filter := bson.M{
 		"start": bson.M{"$gt": strconv.FormatInt(stamp, 10)},
 	}
-	cur, err := collection.Find(context.TODO(), filter)
+
+	findOptions := options.Find()
+	// Sort by
+	findOptions.SetSort(bson.D{{"start", -1}})
+
+	cur, err := collection.Find(context.TODO(), filter, findOptions)
 	failOnError(err, "Failed to get video records")
 
 	var records []videoRecord
