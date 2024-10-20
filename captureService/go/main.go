@@ -19,6 +19,9 @@ func main() {
 	//Connect to the rabbit
 	connectRabbit()
 	go liveStreamPush()
+	in := make(chan InputImage)
+	s := settings{}
+	go checkMotion(in, liveStream, &s)
 	//Open video
 	video, err := gocv.OpenVideoCapture("/home/oharris/t.mp4")
 	defer video.Close()
@@ -36,7 +39,7 @@ func main() {
 
 	fmt.Println("Reading the video now")
 	preTime := time.Now()
-	fps := 1. / 5
+	fps := 1. / 99
 	for {
 		//Skip some frames
 		timeSince := time.Since(preTime)
@@ -44,6 +47,7 @@ func main() {
 			video.Grab(1)
 			continue
 		}
+		preTime = time.Now()
 
 		ok := video.Read(&img)
 		if !ok {
@@ -63,8 +67,9 @@ func main() {
 		gocv.PutText(&streamImg, stamp, image.Pt(10, 20), gocv.FontHersheyPlain, 1.2, statusColor, 2)
 
 		// Push to live stream
-		liveStream <- streamImg
+		//liveStream <- streamImg
 		// Push to motion check
+		in <- InputImage{img, streamImg}
 	}
 }
 
