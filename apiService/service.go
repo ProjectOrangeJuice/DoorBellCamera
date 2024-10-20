@@ -46,7 +46,7 @@ func main() {
 		handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"}),
 	)
 
-	log.Fatal(http.ListenAndServe(":8000", cors(router)))
+	log.Fatal(http.ListenAndServe(":8000", handlers.CompressHandler(cors(router))))
 	log.Print("ended")
 }
 
