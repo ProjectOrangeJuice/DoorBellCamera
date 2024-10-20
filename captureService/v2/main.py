@@ -78,7 +78,8 @@ def readFrames():
 
             # encode frame
             try:
-                image = cv2.imencode(".jpg", sendFrame)[1]
+                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 60]
+                image = cv2.imencode(".jpg", sendFrame,encode_param)[1]
             except Exception as e:
                 # can be caused by the cam going offline
                 print("error here "+str(e))
