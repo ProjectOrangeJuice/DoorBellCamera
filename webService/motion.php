@@ -1,6 +1,6 @@
 <?php
 $title = "Motion";
-$current = 1;
+$current = 2;
 
 include "include/head.php";
 ?>
@@ -99,25 +99,25 @@ include "include/head.php";
 
                     <tr>
 
-                        <th>
+                        <td>
                             <input class="w3-check" type="checkbox" v-model="selected" :value="alert.Code" number>
-                        </th>
+                        </td>
 
-                        <th>
+                        <td>
 
                             <img v-bind:src="alert.Thumbnail" v-on:click="showVideo(alert.Code)" />
 
-                        </th>
+                        </td>
 
-                        <th>
+                        <td>
                             Occured at {{ dateChange(alert.Start) }} <br>
                             Lasted {{ timeLength(alert.Start, alert.End) }} seconds
-                        </th>
+                        </td>
 
                     </tr>
                     <tr>
-                        <th></th>
-                        <th><button class="w3-button w3-red">Delete</button></th>
+                        <td></td>
+                        <td><button class="w3-button w3-red">Delete</button></td>
                     </tr>
 
                 </table>
