@@ -18,9 +18,9 @@ include("parts/side.php");
   </header>
 
   <div class="w3-row-padding w3-margin-bottom">
-<form>
+<form id="camForm">
 Camera name:
-<input name="cname">
+<input name="cname" id="cname">
 <input type="submit">
 </form>
 
@@ -32,10 +32,17 @@ Loading the image :)
 
  
 <script>
+
+function processForm(e) {
+    if (e.preventDefault) e.preventDefault();
+
+    /* do what you want with the form */
+
+
  var long = document.getElementById("imageArea");
 var urlParams = new URLSearchParams(window.location.search);
 // 2
-var socket = new WebSocket("ws://localhost:8000/stream?cname="+urlParams["cname"])
+var socket = new WebSocket("ws://localhost:8000/stream/"+encodeURI(document.getElementById("cname").value))
          
          // 3
          var update = function(){
@@ -45,6 +52,22 @@ var socket = new WebSocket("ws://localhost:8000/stream?cname="+urlParams["cname"
            }
          };
          window.setTimeout(update);
+
+
+    // You must return false to prevent the default form behavior
+    return false;
+}
+
+var form = document.getElementById('camForm');
+if (form.attachEvent) {
+    form.attachEvent("submit", processForm);
+} else {
+    form.addEventListener("submit", processForm);
+}
+
+
+
+
 
 </script>
 
