@@ -143,23 +143,21 @@ func convert(msg []byte) {
 	defer rows.Close()
 
 	var fr []string
-	var high = 0
+	var totalAvg = 0
+	var counter = 0
 	for rows.Next() {
+		counter++
 		var location string
 		var time string
 		var reason string
 		err = rows.Scan(&location, &time, &reason)
 		failOnError(err, "Failed to get")
 		s := strings.Split(reason, "-")
-		total := 0
 		for _, val := range s {
 			t, _ := strconv.Atoi(val)
-			total += t
+			totalAvg += t
 		}
 
-		if total > high {
-			high = total
-		}
 		if startTime == "" {
 			startTime = time
 		} else {
@@ -168,6 +166,7 @@ func convert(msg []byte) {
 		video.Write(gocv.IMRead(fmt.Sprintf("%s", location), gocv.IMReadAnyColor))
 
 	}
+	totalAvg = totalAvg / counter
 	//err = aw.Close()
 	//failOnError(err, "Error closing")
 	video.Close()
@@ -177,10 +176,10 @@ func convert(msg []byte) {
 	}
 
 	log.Printf("Start time %s and end time %s", startTime, endTime)
-	addToDatabase(m.Code, m.Name, startTime, endTime, high)
+	addToDatabase(m.Code, m.Name, startTime, endTime, totalAvg)
 }
 
-func addToDatabase(code string, name string, start string, end string, high int) {
+func addToDatabase(code string, name string, start string, end string, totalAvg int) {
 
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
@@ -190,7 +189,7 @@ func addToDatabase(code string, name string, start string, end string, high int)
 	stmt, err := tx.Prepare("insert into video(code,name, startTime,endTime ,reason) values(?,?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(code, name, start, end, strconv.Itoa(high))
+	_, err = stmt.Exec(code, name, start, end, strconv.Itoa(totalAvg))
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	log.Printf("Saved to db")
