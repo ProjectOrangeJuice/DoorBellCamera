@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	b64 "encoding/base64"
 	"encoding/json"
+	"image"
+	"image/jpeg"
 	"log"
 	"net/http"
 	"time"
@@ -50,7 +54,15 @@ func sendVideo(cam string, ws *websocket.Conn) {
 			timer.Reset(duration)
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
-			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
+			sDec, _ := b64.StdEncoding.DecodeString(m.Image)
+			image, _, err := image.Decode(bytes.NewReader(sDec))
+
+			buf := new(bytes.Buffer)
+			err = jpeg.Encode(buf, image, &jpeg.Options{10})
+			send_s3 := buf.Bytes()
+
+			sEnc := b64.StdEncoding.EncodeToString([]byte(send_s3))
+			err = ws.WriteMessage(websocket.TextMessage, []byte(sEnc))
 			if err != nil {
 				ch.Close()
 				ws.Close()
