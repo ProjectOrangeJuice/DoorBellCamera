@@ -41,6 +41,7 @@ def openConnection():
     connection = pika.BlockingConnection(pika.ConnectionParameters(serverAddress,int(serverPort)))
     channel = connection.channel()
     channel.exchange_declare(exchange='videoStream', exchange_type="topic")
+    print("Opened")
 
 
 def rotateImage(image, angle):
@@ -54,6 +55,7 @@ def rotateImage(image, angle):
 readConfig()
 #Timing for fps
 prev = 0
+print("Streaming fromm "+streamLocation)
 vcap = cv2.VideoCapture(streamLocation)
 openConnection()
 #Should stream forever
