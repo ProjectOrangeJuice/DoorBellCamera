@@ -41,6 +41,7 @@ type MotionJSON struct {
 	Id     int
 	Code   string
 	Reason string
+	Name   string
 }
 
 //This is for the websockets
@@ -72,16 +73,16 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
 
-	rows, err := db.Query("select id,code,reason from video")
+	rows, err := db.Query("select id,code,reason,name from video")
 	failOnError(err, "prep failed")
 	defer rows.Close()
 	var full []MotionJSON
 	for rows.Next() {
 		var id int
-		var code, reason string
-		err = rows.Scan(&id, &code, &reason)
+		var code, reason, name string
+		err = rows.Scan(&id, &code, &reason, &name)
 		failOnError(err, "Failed to get")
-		body := MotionJSON{id, code, reason}
+		body := MotionJSON{id, code, reason, name}
 		full = append(full, body)
 
 	}
