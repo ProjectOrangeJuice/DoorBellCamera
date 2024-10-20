@@ -15,6 +15,9 @@ class Setting:
     name = "hello"
     connection = ""
     active = False
+    buffer = 0
+    bufferUse = False
+    buffered = []
 
 setting = Setting()
 
