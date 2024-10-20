@@ -73,7 +73,7 @@
           this.amount = response.data.Amount;
           this.threshold = response.data.Threshold;
           this.mincount = response.data.MinCount;
-          this.active = response.data.Active;
+          this.active = response.data.Motion;
         })
         .catch(response => {
           console.log("Error " + response);
@@ -90,7 +90,7 @@
             Amount: this.amount,
             Threshold: this.threshold,
             MinCount: this.mincount,
-            Active: this.active,
+            Motion: this.active,
           })
           .then(response => {
             alert("Saved");
