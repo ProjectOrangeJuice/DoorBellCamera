@@ -1,0 +1,30 @@
+{{ define "camConf" }}
+
+
+
+<div class="w3-row-padding w3-margin-bottom edit"  id ="cam" style="display:none">
+        <form id="set">
+          <p>
+            <label>Server address</label>
+            <input class="w3-input" type="text" name="serverAddress" id="sa"></p>
+          <p>
+            <label>Server port</label>
+            <input class="w3-input" type="number" name="serverPort" id="sp"></p>
+          <p>
+            <label>Rotate</label>
+            <i> eg [80,70]</i>
+            <input class="w3-input" type="text" name="threshold" id="th"></p>
+            <h3>Helpful setup</h3>
+            <p>
+                <label>Blur amount</label>
+                <input class="w3-input" type="number" name="minCount" id="min"></p>
+             
+                <button class="w3-button w3-green" type="submit">Save</button>
+        </form>
+      </div>
+
+      <script>
+       
+          </script>
+
+{{ end }}
