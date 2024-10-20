@@ -4,10 +4,14 @@ import pika
 
 import sendFrame as sf
 import checkFrame as cf
+import setting as s
 
 rabbitError = False
 import os
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
+
+s.connect()
+
 def readConfig():
     global cameraName
     ##Bypass the database
@@ -15,7 +19,7 @@ def readConfig():
     delay = 10
     rotation = 0
     blur = 0
-
+s.update()
 
 
 def openCamera():
@@ -51,7 +55,7 @@ def readFrames():
             #Error with frame, try again.
             print("Error with frame")
             continue
-        if(time_elapsed > 1./5):
+        if(time_elapsed > 1./s.setting.fps):
             prev = time.time()
             
             #rotation

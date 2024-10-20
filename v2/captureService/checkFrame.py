@@ -1,8 +1,8 @@
 import cv2
 import random,string,time
 import imutils
-
-class Setting:
+import setting as s
+class SettingOld:
     areas = [[0, 128, 0, 120,"Test zone"]]
     threshold = [[20]]
     amount = [10]
@@ -14,7 +14,7 @@ class Setting:
     imgCount = 0
     heldFrames = []
 
-settings = Setting()
+settings = s.setting
 frameCount = 0
 
 def randomString(stringLength=10):
@@ -26,6 +26,7 @@ def randomString(stringLength=10):
 
 def checkFrame(image,name, frame):
     global settings,frameCount
+    print("My name is "+settings.name)
     if(frameCount % 2 == 0):
         #skip frame
         frameCount += 1
@@ -62,7 +63,7 @@ def checkFrame(image,name, frame):
         diff_frame = cv2.absdiff(roiPrev, roi)
         
         thresh_frame = cv2.threshold(
-            diff_frame, threshold[count], 255, cv2.THRESH_BINARY)[1]
+            diff_frame, threshold, 255, cv2.THRESH_BINARY)[1]
         
         thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
         # cv2.imshow("frame", thresh_frame)
