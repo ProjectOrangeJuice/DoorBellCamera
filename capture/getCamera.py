@@ -52,6 +52,6 @@ while(1):
         
             prev = time.time()
 
-
+    time.sleep(5)
     vcap = cv2.VideoCapture(streamLocation)
    
