@@ -1,15 +1,11 @@
 package main
 
 import (
-	"context"
+	fmt "fmt"
 	"time"
 
-	"github.com/streadway/amqp"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/golang/protobuf/proto"
 )
-
-const videoFolder string = "videos"
-const captureLocation string = "images"
 
 type cameraStructure struct {
 	prev        string
@@ -18,20 +14,27 @@ type cameraStructure struct {
 }
 
 var timer time.Timer
-var conn *mongo.Database
+
+const imageLocation string = "../images"
+const fullVideoLocation string = "../videos"
+const smallVideoLocation string = "../videos/s"
 
 func main() {
 	//go http.ListenAndServe("localhost:8080", nil)
-	var err error
-	conn, err = configDB(context.Background())
-	if err != nil {
-		//log.Fatal(err)
+	mstream := make(chan *Buffer)
+	go recvMotionImg(mstream)
+	buf := &Buffer{}
+	c := setupRabbit()
+	for input := range c {
+		fmt.Println("Got message")
+		input.Ack(true)
+		// Pass the message to our video creator
+		err := proto.Unmarshal(input.Body, buf)
+		if err != nil {
+			fmt.Printf("Failed to unmash %v\n", err)
+			continue
+		}
+		mstream <- buf // Must block before getting next image
+		// Otherwise we will change the buffer while its working
 	}
-	server = "amqp://guest:guest@localhost:5672/"
-	connect, err = amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer connect.Close()
-
-	readyAndListen()
-
 }
