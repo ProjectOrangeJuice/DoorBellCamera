@@ -31,6 +31,7 @@ type Message struct {
 	Count  int
 	Name   string
 	Blocks string
+	End    bool
 }
 
 type outMessage struct {
@@ -112,7 +113,15 @@ func decodeMessage(d []byte) {
 		camera[m.Name] = &c
 	}
 
-	storeImage(m)
+	if m.End {
+		//end of motion, create video
+		tc := camera[m.Name]
+		notifyQueue(tc.prev, m.Name)
+		tc.ignoreTimer = true
+		tc.prev = m.Code
+	} else {
+		storeImage(m)
+	}
 
 }
 
