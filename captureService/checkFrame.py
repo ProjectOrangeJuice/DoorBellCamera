@@ -83,10 +83,12 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                                          cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         newPrev = []
+        totalArea = 0
         # Check if it is over the threshold
         for contour in cnts:
             if cv2.contourArea(contour) < zone:
                 continue
+            totalArea += cv2.contourArea(contour)
 
             motion = True
             M = cv2.moments(contour)
@@ -102,8 +104,8 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
         
         ##Maths is done. Check if this is an alert
-
-        if(motion and rainBox(prevBox,newPrev)):
+        rain = rainBox(prevBox,newPrev)
+        if(motion and rain):
             
             ##Add the zone to seen
             if(str(count) not in seen):
@@ -141,7 +143,13 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
 
     #Pretend debug switch
+    cv2.putText(mimg,str(rain), (40, 45),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    cv2.putText(mimg,str(totalArea), (40, 85),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    tempText = "Could ignore due to area? "+str(totalArea>516000)
+    cv2.putText(mimg,str(tempText), (40, 105),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     imagetemp = cv2.imencode(".jpg",mimg)[1]
+
+   
     # cv2.putText(imagetemp, stamp, (10, 25),
 	#     cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     b64 = base64.b64encode(imagetemp)
@@ -226,7 +234,7 @@ def rainBox(prev,nowBox):
             dify = abs(item2[1] - item[1])
           
             if(difx < 30 and dify < 30):
-                print("Box is close. Continue with motion")
+                print("Box is close. Continue with motion. %d %d" % (difx,dify))
                 return True
     return False
 
