@@ -13,7 +13,7 @@ channel2 = connection.channel()
 countOn = 0
 countOff = 0
 threshold = 50
-minCount = 5
+minCount = 15
 code = ""
 codeUsed = False
 
