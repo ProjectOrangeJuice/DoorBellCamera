@@ -152,7 +152,7 @@ def checkFrame(image,name, frame,channel,stamp):
 
 
     if(settings.buffer == 99):
-        sendBuffer(settings.name,channel)
+        sendBuffer(settings.name,settings.code,channel)
         print("Sending start buffer!")
         settings.buffer = 50
     #Update the buffer values
@@ -191,8 +191,9 @@ def sendFrame(name,frame,channel):
     routing_key= name.replace(" ","."),
     body= json.dumps(frame))
 
-def sendBuffer(name,channel):
+def sendBuffer(name,code,channel):
     for frame in settings.buffered:
+        frame["code"] = code
         channel.basic_publish(exchange='motion',
         routing_key= name.replace(" ","."),
         body= json.dumps(frame))
