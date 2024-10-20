@@ -8,7 +8,7 @@ import (
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		logger.Fatalf("%s: %s", msg, err)
+		log.Fatalf("%s: %s", msg, err)
 	}
 }
 
