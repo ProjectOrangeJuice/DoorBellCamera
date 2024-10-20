@@ -125,7 +125,7 @@ def checkFrame(image,name, frame,channel,stamp):
                 for item in settings.countOn:
                     if item >= 0:
                         allEmpty = True
-                if(allEmpty):
+                if(allEmpty and not settings.bufferUse):
                     settings.buffer = 15
                     settings.bufferUse = True
         
@@ -153,19 +153,23 @@ def checkFrame(image,name, frame,channel,stamp):
 
     if(settings.buffer == 99):
         sendBuffer(settings.name,channel)
+        print("Sending start buffer!")
         settings.buffer = 50
     #Update the buffer values
     if(settings.bufferUse):
+        print("Buffer in use "+str(settings.buffer))
         settings.buffer -= 1
         if(settings.buffer == 0):
             settings.bufferUse = False
             settings.codeUsed = False
             settings.code = randomString()
             sendEnd(settings.name,channel)
+            print("My buffer time is over. Resetting everything")
 
 
     #If the code is used, we can send the information
     if(settings.codeUsed):
+        print("Code is used. Sending frame")
         sendFrame(settings.name,
          {"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
     "count":frameNum,"blocks":",".join(seen),"locations":str(locations)},
