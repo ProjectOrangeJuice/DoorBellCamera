@@ -21,6 +21,8 @@ imgCount = 8
 
 def readConfig():
     global serverAddress,serverPort,dt,dmin
+    namesUpdated = []
+    print("Updating from config")
     with open("cConfig.json") as jf:
         data = json.load(jf)
         serverAddress = data["serverAddress"]
@@ -29,6 +31,11 @@ def readConfig():
         dmin = data["minCount"]
         for cam in data["cameras"]:
             cameras[cam["name"]] = [0, 0, [], cam["threshold"], cam["minCount"], "", False, None, 0]
+            namesUpdated.append(cam["name"])
+        for cam in cameras:
+            if not(cam in namesUpdated):
+                print("Camera using defaults, updating..")
+                cameras[cam] = [cameras[cam][0], cameras[cam][1], cameras[cam][2], dt, dmin, cameras[cam][5], cameras[cam][6], cameras[cam][7], cameras[cam][8]]
 
 
 readConfig()
@@ -62,7 +69,6 @@ def motionCheck(name,image,time):
   
 
     if(tc[prevImage] is None ):
-       print ("It is none")
        tc[prevImage] = cvimg 
        tc[code] = randomString(10)
     else:
@@ -71,6 +77,7 @@ def motionCheck(name,image,time):
         percentage = (np.count_nonzero(res) * 100)/ res.size
 
         print(str(percentage) + " - " +str(tc[threshold]))
+        print(str(tc[countOn]) + " - " +str(tc[countOff]))
         tc[imgCount] += 1
         if(percentage > tc[threshold]):
             tc[countOn] += 1
@@ -93,16 +100,24 @@ def motionCheck(name,image,time):
                     tc[codeUsed] = False
                     #All frames now sent
                 tc[heldFrames].clear()
+            if(tc[countOff] > 200):
+                tc[countOff] = 200
                 
                 
                 
-            if(tc[countOn] > tc[minCount]):
-               
-                tc[countOn] = tc[minCount]
-                tc[codeUsed] = True 
-            elif (tc[countOn] > 0):
-                #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
-                tc[countOn] -= 1
+        if(tc[countOn] > tc[minCount]):
+            #send the held frames
+            print("Pushing frames")
+            for data in tc[heldFrames]:
+                channel.basic_publish(exchange='',
+                    routing_key='motionAlert',
+                    body=json.dumps(data))
+            tc[heldFrames].clear()
+            tc[countOn] = tc[minCount]
+            tc[codeUsed] = True 
+        #elif (tc[countOn] > 0):
+            #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
+           # tc[countOn] -= 1
 
         tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[imgCount]})
 
@@ -117,6 +132,12 @@ def checkUpdateCallback(ch, method, properties, body):
     j = json.loads(body)
     if(j["Task"] == "update"):
         writeConfig(j["Inner"])
+        readConfig()
+    if(j["Task"] == "read"):
+        returnConfig()
+
+def returnConfig():
+    print("Threshold is.. "+str(dt))
 
 def writeConfig(inner):
     print("Writing to file.. "+str(inner))
@@ -129,7 +150,7 @@ def checkUpdates():
 
     channel3 = connection2.channel()
     channel3.exchange_declare(exchange='config',exchange_type="topic",durable=True)
-    result = channel3.queue_declare('configQueue', exclusive=False)
+    result = channel3.queue_declare('', exclusive=True)
     queue_name = result.method.queue
 
     channel3.queue_bind(
