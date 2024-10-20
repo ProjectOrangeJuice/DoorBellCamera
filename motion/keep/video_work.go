@@ -84,8 +84,8 @@ func addToDatabase(code string, name string, start string, end string, totalAvg 
 	tx.Commit()
 	log.Printf("Saved to db")
 
-	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)
-	failOnError(err, "Couldn't delete motion records")
+	//	_, err = db.Exec("DELETE FROM motion WHERE motionCode=?", code)
+	//	failOnError(err, "Couldn't delete motion records")
 
 }
 
