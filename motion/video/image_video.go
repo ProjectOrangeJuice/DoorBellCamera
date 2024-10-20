@@ -18,11 +18,61 @@ type OutMessage struct {
 }
 
 //DBName is the database file name
-const DBName string = "../motions.db"
+const DBName string = "shared/motions.db"
+const captureFolder string = "shared/capture"
+const configLocation string = "shared/config.txt"
+
+var server = ""
 
 func main() {
+	if dbExists(DBName) {
+		readyListen()
+	} else {
+		makeDatabase()
+	}
+}
 
-	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
+func dbExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
+func makeDatabase() {
+	db, err := sql.Open("sqlite3", DBName)
+	failOnError(err, "Error on database creation")
+	defer db.Close()
+
+	sqlStmt := `CREATE TABLE 'motion' (
+		'motionId'	INTEGER PRIMARY KEY AUTOINCREMENT,
+		'motionCode'	TEXT,
+		'location'	TEXT,
+		'time'	TEXT,
+		'reason' TEXT
+	);`
+
+	_, err = db.Exec(sqlStmt)
+
+	sqlStmt = `CREATE TABLE 'video' (
+		'id'	INTEGER PRIMARY KEY AUTOINCREMENT,
+		'code'	TEXT,
+		'startTime'	TEXT,
+		'endTime'	TEXT,
+		'reason' TEXT
+	);`
+
+	_, err = db.Exec(sqlStmt)
+	failOnError(err, "Error creating table")
+	readyListen()
+}
+
+func readyListen() {
+	serverb, err := ioutil.ReadFile(configLocation)
+	server = string(serverb)
+	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
