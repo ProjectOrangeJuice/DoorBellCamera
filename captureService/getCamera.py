@@ -64,7 +64,7 @@ def readFrames():
         if(time_elapsed > 1./s.setting.fps):
             try:
                 ret, frame = vcap.read()
-                frame = cv2.flip(frame,1)
+                #frame = cv2.flip(frame,1)
                 sendFrame = frame
                 cv2.putText(sendFrame, st, (10, 25),
                 cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)

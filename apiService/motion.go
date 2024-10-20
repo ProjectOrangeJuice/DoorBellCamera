@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -65,7 +66,7 @@ func getMotion24(w http.ResponseWriter, r *http.Request) {
 
 }
 
-const videoLoc = "../storage/videos"
+const videoLoc = "/storeDrive/videos"
 
 func getMotion(w http.ResponseWriter, r *http.Request) {
 
@@ -83,5 +84,7 @@ func deleteMotion(w http.ResponseWriter, r *http.Request) {
 	collection := conn.Collection("video")
 	filter := bson.M{"code": params["code"]}
 	collection.DeleteOne(context.TODO(), filter)
+	err := os.Remove(fmt.Sprintf("%s/%s.mp4", videoLoc, params["code"]))
+	failOnError(err, "Failed to delete")
 
 }
