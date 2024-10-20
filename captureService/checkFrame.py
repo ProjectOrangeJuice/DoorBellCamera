@@ -143,10 +143,11 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
 
     #Pretend debug switch
-    cv2.putText(mimg,str(rain), (40, 45),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
-    cv2.putText(mimg,str(totalArea), (40, 85),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
-    tempText = "Could ignore due to area? "+str(totalArea>516000)
-    cv2.putText(mimg,str(tempText), (40, 105),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    tem = "Do I see rain? "+str(rain)
+    cv2.putText(mimg,tem, (20, 50),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>516000)
+    cv2.putText(mimg,str(tempText), (40, 100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
+    cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 150),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     imagetemp = cv2.imencode(".jpg",mimg)[1]
 
    
@@ -233,8 +234,7 @@ def rainBox(prev,nowBox):
             difx = abs(item2[0] - item[0])
             dify = abs(item2[1] - item[1])
           
-            if(difx < 30 and dify < 30):
-                print("Box is close. Continue with motion. %d %d" % (difx,dify))
+            if(difx < 200 and dify < 200):
                 return True
     return False
 
