@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -43,4 +45,41 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Printf("Set config for %s. Set by %s with %v", params["service"], r.RemoteAddr, objmap)
+}
+
+type userStruct struct {
+	user     string
+	password string
+}
+
+func makeUser(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var up userStruct
+	err := decoder.Decode(&up)
+	failOnError(err, "failed to decode userstruct")
+	username := getUser(r)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, passdb, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	failOnError(err, "Database opening error")
+	defer db.Close()
+	sqlStatement := `INSERT INTO public.accounts ("user", password)
+	SELECT $1,$1
+	WHERE
+	NOT EXISTS ( SELECT user FROM public.accounts WHERE "user"=$1);
+	`
+	results, err := db.Exec(sqlStatement, up.user, up.password)
+	failOnError(err, "Query error")
+	ra, err := results.RowsAffected()
+	failOnError(err, "Failed to get rows")
+	if ra > 0 {
+		logger.Printf("created %s by %s", up.user, username)
+		w.WriteHeader(200)
+	} else {
+		w.WriteHeader(409)
+	}
+
 }
