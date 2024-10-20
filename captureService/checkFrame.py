@@ -90,6 +90,10 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
                 (sx,sy) = smallestDif(prevBox,[x,y])
                 cv2.putText(mimg,str(sx)+","+str(sy), (x+10, y-20),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
                 continue
+            elif(cv2.contourArea(contour) > 60000):
+                # ignore this box due to its size
+                cv2.rectangle(mimg,(x, y), (x + w, y + h), (255,255, 0), 2)
+                continue
             else:
                 motion = True
                 M = cv2.moments(contour)
