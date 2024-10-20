@@ -139,6 +139,8 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "plain/text")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	params := mux.Vars(r)
 	body, err := ioutil.ReadAll(r.Body)
 	failOnError(err, "failed to read body")
