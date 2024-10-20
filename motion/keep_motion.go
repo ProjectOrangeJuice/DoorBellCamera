@@ -40,7 +40,7 @@ type cameraStructure struct {
 	ignoreTimer bool
 }
 
-var camera map[string]cameraStructure
+var camera = make(map[string]*cameraStructure)
 var timer time.Timer
 
 func main() {
@@ -102,7 +102,6 @@ func createTimer() {
 		<-timer.C
 		log.Printf("Timer is over")
 		for k, v := range camera {
-
 			if v.prev != "" && v.prev != v.notified && !v.ignoreTimer {
 				v.notified = v.prev
 				notifyQueue(v.prev, k)
@@ -120,7 +119,8 @@ func decodeMessage(d []byte) {
 	err := json.Unmarshal(d, &m)
 	failOnError(err, "Json decode error")
 	if _, ok := camera[m.Name]; !ok {
-		camera[m.Name] = cameraStructure{"", "Nothing", true}
+		c := cameraStructure{"", "Nothing", true}
+		camera[m.Name] = &c
 	}
 
 	storeImage(m)
