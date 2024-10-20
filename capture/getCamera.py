@@ -57,7 +57,7 @@ try:
                 #The json to send to rabbit
                 bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
                 #TOPIC rabbit, with the topic being the camera name
-                print("Sending to routing key.. "+str(cameraName.replace(" ",".")))
+                
                 channel.basic_publish(exchange='videoStream',
                             routing_key=cameraName.replace(" ","."),
                             body=json.dumps(bodyText))
