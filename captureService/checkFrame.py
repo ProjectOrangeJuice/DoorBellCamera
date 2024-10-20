@@ -78,7 +78,6 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
         for contour in cnts:
             if cv2.contourArea(contour) < zone:
                 continue
-            totalArea += cv2.contourArea(contour)
             (x, y, w, h) = cv2.boundingRect(contour)
             x = x + current[2]
             y = y + current[0]
@@ -151,8 +150,6 @@ def checkFrame(image,name, frame,channel,stamp,debugpub):
 
     #Pretend debug switch
 
-    tempText = "Area seen is "+str(totalArea)+" Could I ignore?"+str(totalArea>65000)
-    cv2.putText(mimg,str(tempText), (40, 100),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     cv2.putText(mimg,"CurMotion "+str(settings.countOn[0]), (40, 150),cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     imagetemp = cv2.imencode(".jpg",mimg)[1]
 
