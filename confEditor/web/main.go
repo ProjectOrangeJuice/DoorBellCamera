@@ -13,7 +13,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var server = "amqp://guest:guest@192.168.99.100:31693/"
+var server = "amqp://guest:guest@192.168.1.126:30188/"
 
 type OutMessage struct {
 	Task  string
@@ -52,7 +52,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func doStream() {
-	conn, err := amqp.Dial("amqp://guest:guest@192.168.99.100:31693/")
+	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
