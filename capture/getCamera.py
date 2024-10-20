@@ -7,7 +7,7 @@ import datetime
 
 import signal
 import sys
-
+import numpy as np
 
 # Open the config file and read the values from it
 def readConfig():
@@ -50,6 +50,8 @@ try:
                 continue
             if(time_elapsed > 1./delay):
                 image = cv2.imencode(".jpg",frame)[1]
+                #kernel = np.ones((2,2),np.float32)/25
+                #newImage = cv2.filter2D(image,-1,kernel)
                 b64 = base64.b64encode(image)
                 #Testing of sizes
                 #print("size of b64: "+str((len(b64)/1024)/1024))
