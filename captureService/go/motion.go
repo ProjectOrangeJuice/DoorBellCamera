@@ -75,6 +75,10 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 		var boxesLocations []image.Point
 		gocv.CvtColor(f.frame, &grayMap, gocv.ColorBGRToGray)
 		gocv.GaussianBlur(grayMap, &blurMap, image.Pt(setting.Blur, setting.Blur), 0, 0, gocv.BorderDefault)
+		// Ensure the premade vars are the correct sizes
+		if len(blocks) != len(setting.Zones) {
+			blocks = make([][]image.Rectangle, len(setting.Zones))
+		}
 
 		//We require a prev frame to work
 		if preMap.Empty() {
@@ -115,7 +119,6 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 
 				midX := rect.Min.X + rect.Dx()
 				midY := rect.Min.Y + rect.Dy()
-				x, y := findClosestBox(midX, midY, i)
 				blocks[i] = newBox
 
 				if len(blocks) == 0 || len(blocks[i]) == 0 {
@@ -127,6 +130,8 @@ func checkMotion(in chan inputImage, out chan gocv.Mat, setting *settings) {
 					}
 					continue
 				}
+
+				x, y := findClosestBox(midX, midY, i)
 
 				if x > zone.BoxJump || y > zone.BoxJump {
 					// Box is too far (large gap)
