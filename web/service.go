@@ -22,7 +22,7 @@ func main() {
 	//Initiate templates
 	var err error
 	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
-		"web/templates/side.html")
+		"web/templates/side.html", "web/dash.html")
 	failOnError(err, "Failed to read templates")
 
 	router := mux.NewRouter()
