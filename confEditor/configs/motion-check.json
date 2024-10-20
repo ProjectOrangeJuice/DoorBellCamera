@@ -1,12 +1,12 @@
 {
     "serverAddress" : "192.168.1.126",
     "serverPort" : "30188",
-    "threshold":80,
+    "threshold":[80,80,80],
     "minCount":5,
     "cameras":[
         {
-            "name":"Test Cameras!!",
-            "threshold":0,
+            "name":"Test Camera@Dontuse",
+            "threshold":[80,80,80],
             "minCount":1
         }
     ]

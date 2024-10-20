@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -15,22 +16,23 @@ import (
 )
 
 //DBName is the database file name
-const DBName string = "shared/motions.db"
+const DBName string = "/shared/motions.db"
 
-const configLocation string = "shared/config.txt"
+const configLocation string = "/shared/config.txt"
 
 //CaptureLocation is the location of the capture folder
-const CaptureLocation string = "shared/capture"
+const CaptureLocation string = "/shared/capture"
 
 var server = ""
 
 //Message is the JSON message format
 type Message struct {
-	Image string
-	Time  string
-	Code  string
-	Count int
-	Name  string
+	Image  string
+	Time   string
+	Code   string
+	Count  int
+	Name   string
+	Blocks []int
 }
 
 type OutMessage struct {
@@ -52,14 +54,18 @@ func main() {
 	if dbExists(DBName) {
 		readyAndListen()
 	} else {
+		log.Print("database doesn't exist")
 		createDatabase()
 	}
 
 }
 
 func readyAndListen() {
-	serverb, err := ioutil.ReadFile(configLocation)
-	server = string(serverb)
+	file, err := os.Open(configLocation)
+	failOnError(err, "Couldn't open config")
+	defer file.Close()
+	serverb, _ := ioutil.ReadAll(file)
+	server = strings.TrimSpace(string(serverb))
 	failOnError(err, "Failed to read config")
 
 	conn, err := amqp.Dial(server)
@@ -142,10 +148,10 @@ func recordDb(msg Message, loc string) {
 	defer db.Close()
 	tx, err := db.Begin()
 	failOnError(err, "Failed to begin on record")
-	stmt, err := tx.Prepare("insert into motion(motionCode, location,time) values(?,?,?)")
+	stmt, err := tx.Prepare("insert into motion(motionCode, location,time,reason) values(?,?,?,?)")
 	failOnError(err, "Record sql prep failed")
 	defer stmt.Close()
-	_, err = stmt.Exec(msg.Code, loc, msg.Time)
+	_, err = stmt.Exec(msg.Code, loc, msg.Time, strings.Trim(strings.Replace(fmt.Sprint(msg.Blocks), " ", "-", -1), "[]"))
 	failOnError(err, "Record could not insert")
 	tx.Commit()
 	tc := camera[msg.Name]
@@ -242,6 +248,7 @@ func failOnError(err error, msg string) {
 }
 
 func dbExists(name string) bool {
+
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {
 			return false
