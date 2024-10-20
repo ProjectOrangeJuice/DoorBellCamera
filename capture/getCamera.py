@@ -25,11 +25,9 @@ while(1):
             #Error with frame, try again.
             print("Error with frame")
             continue
-        print("new frame.. ")
         image = cv2.imencode(".jpg",frame)[1]
-        print(cv2.imencode(".jpg",frame)[1])
         b64 = base64.b64encode(image)
-        print("size of b64: "+str(len(b64)))
+        print("size of b64: "+str((len(b64)/1024)/1024))
         
         bodyText = {"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
         channel.basic_publish(exchange='',
