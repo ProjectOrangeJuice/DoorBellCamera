@@ -53,6 +53,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
+	var err error
+	connect, err = amqp.Dial(server)
+	failOnError(err, "Failed to connect to RabbitMQ")
 	router := mux.NewRouter()
 	router.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion", getMotions).Methods("GET", "OPTIONS")
@@ -181,42 +184,8 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 
 //Listens for the return of the config file
 func goListen(rch chan string, arg string) {
-	conn, err := amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	msgs, ch := listenToExchange("config", "config.test")
 	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
-		"",    // name
-		false, // durable
-		false, // delete when usused
-		true,  // exclusive
-		false, // no-wait
-		nil,   // arguments
-	)
-	failOnError(err, "Failed to declare a queue")
-
-	err = ch.QueueBind(
-		q.Name,        // queue name
-		"config.test", // routing key
-		"config",      // exchange
-		false,
-		nil)
-	failOnError(err, "Failed to bind a queue")
-
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto ack
-		false,  // exclusive
-		false,  // no local
-		false,  // no wait
-		nil,    // args
-	)
-	failOnError(err, "Failed to register a consumer")
 	rch <- "ready"
 	forever := make(chan bool)
 
@@ -246,28 +215,14 @@ func getCommand(arg string) string {
 	if m := <-returnCh; m != "ready" {
 		log.Panicf("Something went wrong when waiting for ready")
 	}
-	conn, err := amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ (get)")
-	defer conn.Close()
 
+	_, ch := listenToExchange("config", arg)
 	body := outMessage{"read", "test"}
 	b, err := json.Marshal(body)
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	failOnError(err, "Failed to make json")
 	defer ch.Close()
-	err = ch.ExchangeDeclare(
-		"config", // name
-		"topic",  // type
-		true,     // durable
-		false,    // auto-deleted
-		false,    // internal
-		false,    // no-wait
-		nil,      // arguments
-	)
-	failOnError(err, "Failed to declare a exchange")
 	go func() {
-		err = ch.Publish(
+		err := ch.Publish(
 			"config", // exchange
 			arg,      // routing key
 			false,    // mandatory
