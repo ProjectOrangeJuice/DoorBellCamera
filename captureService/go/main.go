@@ -19,7 +19,8 @@ func main() {
 	//Connect to the rabbit
 	connectRabbit()
 	go liveStreamPush()
-	in := make(chan InputImage)
+	go motionStreamPush()
+	in := make(chan inputImage)
 	s := settings{}
 	go checkMotion(in, liveStream, &s)
 	//Open video
@@ -69,7 +70,7 @@ func main() {
 		// Push to live stream
 		//liveStream <- streamImg
 		// Push to motion check
-		in <- InputImage{img, streamImg}
+		in <- inputImage{img, streamImg}
 	}
 }
 
