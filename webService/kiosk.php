@@ -85,11 +85,11 @@ include "include/head.php";
                         socket.send("PONG")
                     } else {
                         //skip every other frame to help the pi
-                        if(!skip){
+                        
                         decoded = atob(event.data)
                         imgBox.src = "data:image/jpg;base64, " + event.data
-                        }
-                        skip = !skip;
+                        
+                      
                     }
                 }
             };
