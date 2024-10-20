@@ -100,7 +100,7 @@ func decideFate(msg Message, held *hold) {
 
 		diff := held.PreviousAlert.Sub(time.Now())
 		//log.Printf("Time %f", diff.Minutes())
-		if diff.Minutes() < -0.01 {
+		if diff.Minutes() < -2.0 {
 			if held.Code != msg.Code {
 				log.Print("Reset counters")
 				checkFrame = true
