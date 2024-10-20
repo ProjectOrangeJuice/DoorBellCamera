@@ -22,6 +22,8 @@ func main() {
 	sec.HandleFunc("/stream/{code}", getVideo).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/service/motion", getVideo).Methods("GET", "OPTIONS")
 	sec.HandleFunc("/service/door", getVideo).Methods("GET", "OPTIONS")
+	sec.HandleFunc("/config/{service}", setConfig).Methods("POST")
+	sec.HandleFunc("/config/{service}", getConfig).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
