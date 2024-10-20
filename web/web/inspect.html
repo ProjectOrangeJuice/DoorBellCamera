@@ -1,0 +1,52 @@
+{{ define "inspect" }}
+{{ template "header" . }}
+
+<body class="w3-light-grey">
+  {{ template "side" .}}
+
+  <!-- !PAGE CONTENT! -->
+  <div class="w3-main" style="margin-left:300px;margin-top:43px;">
+
+    <!-- Header -->
+    <header class="w3-container" style="padding-top:22px">
+      <h5><b><i class="fa fa-dashboard"></i> Inspect {{ .Code }} </b></h5>
+    </header>
+
+    <div class="w3-row-padding w3-margin-bottom">
+      <img id="curImg">
+      <div id="matrix"></div>
+    </div>
+
+
+    <script>
+      function loadThis() {
+        img = 0
+        img = document.getElementById('curImg');
+        var xhttp = new XMLHttpRequest();
+        xhttp.withCredentials = true;
+        xhttp.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 200) {
+            jsont = JSON.parse(this.responseText)
+            console.log(jsont)
+
+            img.src = "data:image/jpg;base64, " + jsont["Image"]
+            $("#matrix").html(jsont["Reason"])
+
+
+          }
+        };
+        xhttp.open("GET", "http://localhost:8000/s/inspect/" + encodeURI("/mnt/shared/motion/capture/{{.Code}}-" + img + ".jpg"), true);
+        xhttp.send();
+      }
+
+    </script>
+
+    <!-- End page content -->
+  </div>
+  {{ template "footer" . }}
+
+</body>
+
+</html>
+
+{{ end }}
