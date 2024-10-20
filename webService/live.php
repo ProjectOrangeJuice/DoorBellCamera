@@ -56,6 +56,8 @@ include "include/head.php";
             document.getElementById("rez").innerHTML = "Switch to compressed resolution";
             // loadVideo();
             loadVideo();
+        } else {
+            loadVideo();
         }
 
 
