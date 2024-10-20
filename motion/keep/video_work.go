@@ -102,6 +102,7 @@ func addToDatabase(code string, name string, start string, end string, reason st
 func squashVideo(code string) {
 	cmds := exec.Command("ffmpeg", "-i", fmt.Sprintf("%s/%s.mp4", videoFolder, code), "-crf", "50", fmt.Sprintf("%s/mobile/%s.mp4", videoFolder, code))
 	err := cmds.Run()
-	failOnError(err, "FAiled to compress video")
+	//failOnError(err, "FAiled to compress video")
+	log.Printf("I failed to make compressed video. %s", err)
 	log.Print("Finished making mobile")
 }
