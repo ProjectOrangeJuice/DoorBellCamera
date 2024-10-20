@@ -122,6 +122,7 @@ func decodeMessage(d []byte) {
 		tc.ignoreTimer = true
 		tc.notified = m.Code
 		m.End = false
+		tc.prev = ""
 
 	} else {
 		storeImage(m)
