@@ -20,17 +20,12 @@ type cameraSettings struct {
 	Name       string
 	Connection string
 	FPS        int
-	Area       [][]int
-	Amount     []int
-	Threshold  []int
-	MinCount   []int
-	Motion     bool
 }
 
 func makeVideo(code string, name string) {
 	log.Println("Make video")
 	collection := conn.Collection("settings")
-	filter := bson.M{"_id": 0}
+	filter := bson.M{"_id": name}
 	doc := collection.FindOne(context.TODO(), filter)
 	var settings cameraSettings
 	doc.Decode(&settings)
