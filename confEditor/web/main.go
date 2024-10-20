@@ -37,7 +37,7 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/config/{service}", getConfig).Methods("GET")
+	router.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", wsHandler)
 
@@ -126,6 +126,8 @@ func doStream(cam string, ws *websocket.Conn) {
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	params := mux.Vars(r)
 	msg := getCommand(params["service"])
 	body := OutMessage{params["service"], msg}
