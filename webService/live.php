@@ -74,7 +74,7 @@
     <!-- Photo grid (modal) -->
     <div class="w3-row-padding">
 
-      <img id="video"></img>
+      <img id="video" width="100%"></img>
       <button class="w3-button w3-blue" onclick="loadVideo()">Load</button>
 
     </div>
@@ -117,7 +117,7 @@
     /* do what you want with the form */
     function loadVideo() {
       //We need to get the camera name
-      $.getJSON('http://localhost:8000/config', function (config) {
+      $.getJSON('http://<?php echo $_SERVER['HTTP_HOST'];?>:8000/config', function (config) {
 
         var long = document.getElementById("imageArea");
         long.innerHTML = ""
