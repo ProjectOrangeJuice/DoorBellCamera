@@ -177,6 +177,8 @@ include "include/head.php";
                     zones: [],
                     zoneInfo: [],
                     unknownProfile: "",
+                    imgW: 1280,
+                    imgH: 720,
                 },
                 mounted() {
                     //this.updateMotion();
@@ -302,12 +304,18 @@ include "include/head.php";
 
                                 if (response.data.Zones != null) {
                                     let self = this;
+                                    var c = document.getElementById("canvasImage");
                                     response.data.Zones.forEach(function(z, index) {
+                                     
                                         self.zones.push({
-                                            startX: z.X1,
-                                            startY: z.Y1,
-                                            w: ((z.X2 - z.X1) / 2.56),
-                                            h: ((z.Y2 - z.Y1) / 2.4),
+                                            // startX: z.X1 /(self.imageW/c.width),
+                                            // startY: z.Y1 /(self.imageH/c.height),
+                                            // w: ((z.X2 - z.X1) / (self.imageW/c.width)),
+                                            // h: ((z.Y2 - z.Y1) /(self.imageH/c.height)),
+                                            startX:  Math.round(z.X1 /(1280/c.width)),
+                                            startY:  Math.round(z.Y1 /(720/c.height)),
+                                            w:  Math.round((z.X2 - z.X1) / (1280/c.width)),
+                                            h:  Math.round((z.Y2 - z.Y1) /(720/c.height)),
                                             dragTL: false,
                                             dragBL: false,
                                             dragTR: false,
@@ -364,10 +372,13 @@ include "include/head.php";
                                 image.onload = function() {
                                     ctx.drawImage(image, 0, 0, c.width, c.height);
                                     self.canvasDraw();
+                                    self.imageW = image.width;
+                                    self.imageH = image.height;
+
                                 };
 
                                 image.src = "data:image/jpg;base64, " + event.data;
-
+               
                                 // imgBox.src = "data:image/jpg;base64, " + event.data
                             }
 
@@ -451,8 +462,9 @@ include "include/head.php";
                             self.zoneInfo[index].x1 = rect.startX;
                             self.zoneInfo[index].y1 = rect.startY;
                             //2.56 and 2.4 is the scale factor
-                            self.zoneInfo[index].x2 = Math.round(rect.startX + (rect.w * 2.56));
-                            self.zoneInfo[index].y2 = Math.round(rect.startY + (rect.h * 2.4));
+                            //console.log("width "+(self.imageW/c.width) + " height "+(self.imageH/c.height));
+                            self.zoneInfo[index].x2 = Math.round(rect.startX + (rect.w * (self.imageW/c.width)));
+                            self.zoneInfo[index].y2 = Math.round(rect.startY + (rect.h * (self.imageH/c.height)));
 
                         });
                     },
