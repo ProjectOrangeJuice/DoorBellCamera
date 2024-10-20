@@ -346,10 +346,17 @@ include "include/head.php";
                             .get("http://<?php echo $_SERVER['HTTP_HOST']; ?>:8000/information")
                             .then(response => {
                                 this.camNames = response.data;
+                                console.log(this.camNames.length)
+                            if(this.camNames.length > 0){
+                                //Set default value
+                                this.selectedCam = this.camNames[0]["Name"];
+                                this.updateDisplay()
+                            }
                             })
                             .catch(response => {
                                 console.log("Error " + response);
                             });
+                           
                     },
                     displayVideo() {
                         console.log(this.selectedCam);
