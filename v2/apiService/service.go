@@ -7,19 +7,23 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var conn *mongo.Database
-
+var connect *amqp.Connection
 var logger *log.Logger
 
-const server = "amqp://guest:guest@192.168.1.126:5672/"
+const server = "amqp://guest:guest@localhost:5672/"
 
 func main() {
 	var err error
 	//Create a database connection
+	connect, err = amqp.Dial(server)
+	failOnError(err, "Failed to connect to RabbitMQ")
+
 	conn, err = configDB(context.Background())
 	if err != nil {
 		log.Fatal(err)
@@ -27,14 +31,9 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/config", getConfig).Methods("GET")
 	router.HandleFunc("/config", setConfig).Methods("POST")
+	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
 	log.Fatal(http.ListenAndServe(":8000", router))
 	log.Print("ended")
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		logger.Fatalf("%s: %s", msg, err)
-	}
 }
 
 func configDB(ctx context.Context) (*mongo.Database, error) {
