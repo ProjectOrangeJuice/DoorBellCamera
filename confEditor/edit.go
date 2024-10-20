@@ -78,7 +78,6 @@ func goListen(rch chan string, arg string) {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	print("Opened.. " + q.Name)
 	rch <- "ready"
 	forever := make(chan bool)
 
@@ -89,7 +88,6 @@ func goListen(rch chan string, arg string) {
 		}
 	}()
 
-	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
 	fmt.Print("over 2")
 }
@@ -143,10 +141,10 @@ func getCommand(arg string) {
 		failOnError(err, "Failed to publish a message")
 	}()
 
-	if m := <-returnCh; m != "done" {
+	if m := <-returnCh; m == "error" {
 		log.Print("Something went wrong when returning")
 	} else {
-		fmt.Printf("whats happened..")
+		fmt.Printf("Config saved to %s. Edit this\n", m)
 	}
 
 }

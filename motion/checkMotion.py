@@ -139,7 +139,7 @@ def checkUpdateCallback(ch, method, properties, body):
 def returnConfig(inner):
     f=  open("cConfig.json", "r")
     v={"Task":"readResponse","Inner":f.read()}
-    print("Sending to config."+inner)
+
 
 
 
