@@ -24,10 +24,11 @@ setting = Setting()
 def update():
     x = mycol.find_one()
     print(x)
+
     setting.areas = x["area"]
     setting.threshold = x["threshold"]
     setting.amount = x["amount"]
-    setting.mincount = x["mincount"]
+    setting.minCount = x["mincount"]
     setting.fps = x["fps"]
     setting.name = x["name"]
     setting.connection = x["connection"]
