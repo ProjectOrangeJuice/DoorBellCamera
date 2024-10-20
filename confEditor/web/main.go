@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -182,9 +183,13 @@ func doStream(cam string, ws *websocket.Conn) {
 	failOnError(err, "Failed to register a consumer")
 
 	forever := make(chan bool)
-
+	const duration = 3 * time.Second
+	timer := time.NewTimer(duration)
 	go func() {
-		for d := range msgs {
+
+		select {
+		case d := <-msgs:
+			timer.Reset(duration)
 			var m Message
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
@@ -195,8 +200,12 @@ func doStream(cam string, ws *websocket.Conn) {
 				ws.Close()
 				return
 			}
-
+		case <-timer.C:
+			fmt.Println("Timeout !")
+			ch.Close()
+			return
 		}
+
 	}()
 
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
