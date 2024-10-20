@@ -5,7 +5,7 @@ import pika
 import sendFrame as sf
 import checkFrame as cf
 import setting as s
-
+from threading import Thread
 rabbitError = False
 import os
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
@@ -77,7 +77,8 @@ def readFrames():
             sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
-           
+            #t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
+            #t.start()
             cf.checkFrame(b64, cameraName, frame,alertChannel)
           
             # cv2.imshow("frame2", frame)
