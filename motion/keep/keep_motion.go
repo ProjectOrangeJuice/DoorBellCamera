@@ -145,7 +145,8 @@ func recordDb(msg Message, loc string) {
 }
 
 func notifyQueue(code string, name string) {
-	makeVideo(code, name)
+	log.Printf("making video.. code is %s and name is %s", code, name)
+	go makeVideo(code, name)
 }
 
 func storeImage(msg Message) {
