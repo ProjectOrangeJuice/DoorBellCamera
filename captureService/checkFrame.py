@@ -17,6 +17,7 @@ class SettingOld:
 
 settings = s.setting
 frameCount = 0
+bufferOrder = 0
 
 def randomString(stringLength=10):
     """Generate a random string of fixed length """
@@ -31,7 +32,7 @@ def checkFrame(image,name, frame,channel,stamp):
     #     #skip frame
     #     frameCount += 1
     #     return
-
+    frameNum = int(time.time()*100)
     motion = False
     #frame = imutils.resize(frame,width=250,height=250)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -102,44 +103,34 @@ def checkFrame(image,name, frame,channel,stamp):
                 seen.append(str(count))
             ##Increase the number of frames that have seen motion
             settings.countOn[count] += 1
-            ##When motion stops, it will record 15 more frames
-            if(settings.countOn[count] > settings.minCount[count]+15):
-                settings.countOn[count] = settings.minCount[count]+15
-                sendFrames(settings.name,channel)
-                print("Send frames due to 1")
         
         #No motion
         else:
             settings.countOn[count] -= 1
-            if(settings.countOn[count] < 1):
-                settings.countOn[count] = 0
+
+            
+
+        #Has the number of motion frames gone above the min required?
+        if(settings.countOn[count] > settings.minCount[count]):
+            settings.countOn[count] = settings.minCount[count]
+            if(not settings.bufferUse):
+                settings.codeUsed = True
+                if(settings.buffer != 50):
+                    settings.buffer = 99
+        if(settings.countOn[count] < 1):
+            settings.countOn[count] = 0
+            if(settings.codeUsed):
                 allEmpty = False
                 #Check to see if all zones have no motion
                 for item in settings.countOn:
                     if item >= 0:
                         allEmpty = True
                 if(allEmpty):
-                    settings.heldFrames.clear()
-                    settings.imgCount = 0
-                    if(settings.codeUsed):
-                        sendEnd(settings.name,channel)
-                        settings.code = randomString(5)
-                        settings.codeUsed = False
-                        
-
-        #Has the number of motion frames gone above the min required?
-        if(settings.countOn[count] > settings.minCount[count]):
-            #send frames
-            settings.codeUsed = True
-            print(str(settings.countOn[count])+" -- "+str(settings.minCount[count]))
-            print("Code used")
-        else:
-            if settings.codeUsed:
-                # send frames
-                sendFrames(settings.name,channel)
-                print("SEnd due to 2")
+                    settings.buffer = 15
+                    settings.bufferUse = True
         
         count += 1
+
 
     #Pretend debug switch
     imagetemp = cv2.imencode(".jpg",mimg)[1]
@@ -147,9 +138,41 @@ def checkFrame(image,name, frame,channel,stamp):
 	#     cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     b64 = base64.b64encode(imagetemp)
     
-    settings.heldFrames.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
-    "count":settings.imgCount,"blocks":",".join(seen),"locations":str(locations)})
-    settings.imgCount += 1
+    #Fill the buffer list continously
+    if(len(settings.buffered) < 15):
+        settings.buffered.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
+    "count":frameNum,"blocks":",".join(seen),"locations":str(locations)})
+    else:
+        global bufferOrder
+        settings.buffered[bufferOrder] = {"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
+    "count":frameNum,"blocks":",".join(seen),"locations":str(locations)}
+        bufferOrder += 1
+        if(bufferOrder > 15):
+            bufferOrder = 0
+
+
+    if(settings.buffer == 99):
+        sendBuffer(settings.name,channel)
+        settings.buffer = 50
+    #Update the buffer values
+    if(settings.bufferUse):
+        settings.buffer -= 1
+        if(settings.buffer == 0):
+            settings.bufferUse = False
+            settings.codeUsed = False
+            settings.code = randomString()
+            sendEnd(settings.name,channel)
+
+
+    #If the code is used, we can send the information
+    if(settings.codeUsed):
+        sendFrame(settings.name,
+         {"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,
+    "count":frameNum,"blocks":",".join(seen),"locations":str(locations)},
+        channel)
+
+
+
     ##Update the background every x frames.
     if(frameCount > 3):
         settings.prev = gray
@@ -159,13 +182,17 @@ def checkFrame(image,name, frame,channel,stamp):
     # cv2.imshow("frame", mimg)
     # cv2.waitKey(1)
 
+def sendFrame(name,frame,channel):
+     channel.basic_publish(exchange='motion',
+    routing_key= name.replace(" ","."),
+    body= json.dumps(frame))
 
-def sendFrames(name,channel):
-    for frame in settings.heldFrames:
+def sendBuffer(name,channel):
+    for frame in settings.buffered:
         channel.basic_publish(exchange='motion',
         routing_key= name.replace(" ","."),
         body= json.dumps(frame))
-    settings.heldFrames.clear()
+    
 
 def sendEnd(name,channel):
     channel.basic_publish(exchange='motion',
