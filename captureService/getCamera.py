@@ -92,13 +92,13 @@ def readFrames():
             #reset error
             failedImage = 0
             b64 = base64.b64encode(image)
-            sf.sendFrame(b64,cameraName,broadcastChannel)
+            #sf.sendFrame(b64,cameraName,broadcastChannel)
             
             ##Do this on a different thread
             #t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
             #t.start()
             if(s.setting.active):
-                cf.checkFrame(b64, cameraName, frame,alertChannel,st)
+                cf.checkFrame(b64, cameraName, frame,alertChannel,st,broadcastChannel)
           
             # cv2.imshow("frame2", frame)
             if(minute_passed(refresh)):
