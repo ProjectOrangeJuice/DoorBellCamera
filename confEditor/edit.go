@@ -21,8 +21,12 @@ type outMessage struct {
 
 //should take this variable as an argument from the terminal
 var server = "amqp://guest:guest@192.168.1.126:30188/"
+var connect *amqp.Connection
 
 func main() {
+	var err error
+	connect, err = amqp.Dial(server)
+	failOnError(err, "Failed to connect to RabbitMQ")
 	//Get the input from the terminal
 	input := ""
 	read := true
@@ -47,44 +51,10 @@ func main() {
 	}
 }
 
-//Listen for the return of the configs
+//Listens for the return of the config file
 func goListen(rch chan string, arg string) {
-	conn, err := amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	msgs, ch := listenToExchange("config", "config.test")
 	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
-		"",    // name
-		false, // durable
-		false, // delete when usused
-		true,  // exclusive
-		false, // no-wait
-		nil,   // arguments
-	)
-	failOnError(err, "Failed to declare a queue")
-
-	err = ch.QueueBind(
-		q.Name,        // queue name
-		"config.test", // routing key
-		"config",      // exchange
-		false,
-		nil)
-	failOnError(err, "Failed to bind a queue")
-
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto ack
-		false,  // exclusive
-		false,  // no local
-		false,  // no wait
-		nil,    // args
-	)
-	failOnError(err, "Failed to register a consumer")
 	rch <- "ready"
 	forever := make(chan bool)
 
@@ -99,45 +69,21 @@ func goListen(rch chan string, arg string) {
 	fmt.Print("over 2")
 }
 
-func decodeMsg(msg []byte, arg string) {
-	arg = strings.Replace(arg, ".", "-", -1)
-	var m outMessage
-	err := json.Unmarshal(msg, &m)
-	failOnError(err, "Json decode error")
-	err = ioutil.WriteFile(fmt.Sprintf("configs/%s.json", arg), []byte(m.Inner), 0644)
-	failOnError(err, "Failed to write")
-
-}
-
-//Send the command to get the config file
+//Get the config file
 func getCommand(arg string) {
 	returnCh := make(chan string)
 	go goListen(returnCh, arg)
 	if m := <-returnCh; m != "ready" {
 		log.Panicf("Something went wrong when waiting for ready")
 	}
-	conn, err := amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ (get)")
-	defer conn.Close()
 
+	_, ch := listenToExchange("config", arg)
 	body := outMessage{"read", "test"}
 	b, err := json.Marshal(body)
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	failOnError(err, "Failed to make json")
 	defer ch.Close()
-	err = ch.ExchangeDeclare(
-		"config", // name
-		"topic",  // type
-		false,    // durable
-		false,    // auto-deleted
-		false,    // internal
-		false,    // no-wait
-		nil,      // arguments
-	)
-	failOnError(err, "Failed to declare a exchange")
 	go func() {
-		err = ch.Publish(
+		err := ch.Publish(
 			"config", // exchange
 			arg,      // routing key
 			false,    // mandatory
@@ -158,36 +104,31 @@ func getCommand(arg string) {
 
 }
 
+func decodeMsg(msg []byte, arg string) {
+	arg = strings.Replace(arg, ".", "-", -1)
+	var m outMessage
+	err := json.Unmarshal(msg, &m)
+	failOnError(err, "Json decode error")
+	err = ioutil.WriteFile(fmt.Sprintf("configs/%s.json", arg), []byte(m.Inner), 0644)
+	failOnError(err, "Failed to write")
+
+}
+
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
 	}
 }
 
-//Push the config file
+//Set the config file
 func setCommand(arg string) {
-	conn, err := amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ (get)")
-	defer conn.Close()
 	arg2 := strings.Replace(arg, ".", "-", -1)
 	dat, err := ioutil.ReadFile(fmt.Sprintf("configs/%s.json", arg2))
 	failOnError(err, "Couldn't read file")
 	body := outMessage{"update", string(dat)}
 	b, err := json.Marshal(body)
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	_, ch := listenToExchange("config", arg)
 	defer ch.Close()
-	err = ch.ExchangeDeclare(
-		"config", // name
-		"topic",  // type
-		false,    // durable
-		false,    // auto-deleted
-		false,    // internal
-		false,    // no-wait
-		nil,      // arguments
-	)
-	failOnError(err, "Failed to declare a exchange")
 
 	err = ch.Publish(
 		"config", // exchange

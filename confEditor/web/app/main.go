@@ -251,25 +251,11 @@ func failOnError(err error, msg string) {
 
 //Set the config file
 func setCommand(arg string, config string) {
-	conn, err := amqp.Dial(server)
-	failOnError(err, "Failed to connect to RabbitMQ (get)")
-	defer conn.Close()
+
 	body := outMessage{"update", config}
 	b, err := json.Marshal(body)
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	_, ch := listenToExchange("config", arg)
 	defer ch.Close()
-	err = ch.ExchangeDeclare(
-		"config", // name
-		"topic",  // type
-		true,     // durable
-		false,    // auto-deleted
-		false,    // internal
-		false,    // no-wait
-		nil,      // arguments
-	)
-	failOnError(err, "Failed to declare a exchange")
 
 	err = ch.Publish(
 		"config", // exchange
