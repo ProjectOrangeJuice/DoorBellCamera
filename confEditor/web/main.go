@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,14 +11,21 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/streadway/amqp"
 )
 
 var server = "amqp://guest:guest@192.168.1.126:30188/"
 
+//const DBName string = "/shared/motions.db"
+const DBName string = "/mnt/shared/motion/motions.db"
+
 type outMessage struct {
 	Task  string
 	Inner string
+}
+type microJson struct {
+	Motions []MotionJSON
 }
 
 //Message is the json format
@@ -27,6 +35,12 @@ type Message struct {
 	Code  string
 	Count int
 	Name  string
+}
+
+type MotionJSON struct {
+	Id     int
+	Code   string
+	Reason string
 }
 
 //This is for the websockets
@@ -40,10 +54,44 @@ var upgrader = websocket.Upgrader{
 func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/config/{service}", getConfig).Methods("GET", "OPTIONS")
+	router.HandleFunc("/motion", getMotions).Methods("GET", "OPTIONS")
+	router.HandleFunc("/motion/{code}", getMotion).Methods("GET", "OPTIONS")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", wsHandler)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
+}
+
+//All motion handler
+func getMotions(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", DBName)
+	failOnError(err, "Record failed because of DB error")
+
+	rows, err := db.Query("select id,code,reason from video")
+	failOnError(err, "prep failed")
+	defer rows.Close()
+	var full []MotionJSON
+	for rows.Next() {
+		var id int
+		var code, reason string
+		err = rows.Scan(&id, &code, &reason)
+		failOnError(err, "Failed to get")
+		body := MotionJSON{id, code, reason}
+		full = append(full, body)
+
+	}
+	fmt.Printf("Bodycurrently is %+v\n", full)
+	fmt.Printf("Single one is %v", full[1])
+	//f1 := microJson{full}
+	b, err := json.Marshal(full)
+	fmt.Printf("Json bytes are %s\n", b)
+	w.Write(b)
+
+}
+
+//Get the single data
+func getMotion(w http.ResponseWriter, r *http.Request) {
+
 }
 
 //Socket handler
