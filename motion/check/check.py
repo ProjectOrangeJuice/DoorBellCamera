@@ -137,7 +137,10 @@ def checkFrame(name,image,camtime):
         ##Now that the maths is done, check if it's a valid motion to report
         if(motion):
             print("I think I saw something at "+str(vals[7]))
-           
+            #Replace the background every 4 frames
+            if(tc[imgCount] > 4 and tc[imgCount]%4 == 0):
+                print("Asking for a new background")
+                doNew = True
             #Add the zone to this frame
             if(vals[7] not in seen):
                 seen.append(vals[7])
@@ -165,10 +168,6 @@ def checkFrame(name,image,camtime):
         
         #Has the number of motion frames gone above the min required?
         if(tc[countOn][count]>int(vals[6])):
-             #Replace the background every 4 frames
-            if(tc[countOn][count]%4 == 0):
-                print("Asking for a new background")
-                doNew = True
             sendFrames(tc)
             tc[codeUsed] = True
         else:
