@@ -37,10 +37,13 @@ def minute_passed(oldepoch):
 #Make a connection to the rabbit server
 def openConnection():
     print("Making connection")
-    global connection,broadcastChannel,rabbitError
+    global connection,broadcastChannel,alertChannel,rabbitError
     connection = pika.BlockingConnection(pika.ConnectionParameters("localhost",5672))
     broadcastChannel = connection.channel()
     broadcastChannel.exchange_declare(exchange='videoStream', exchange_type="topic")
+
+    alertChannel = connection.channel()
+    alertChannel.exchange_declare(exchange='motion', exchange_type="topic")
 
     rabbitError = False
 
@@ -67,12 +70,16 @@ def readFrames():
                 image = cv2.imencode(".jpg",frame)[1]
             except:
                 #can be caused by the cam going offline
+                print("error here")
                 break
             b64 = base64.b64encode(image)
-            print("My name "+cameraName)
+         
             sf.sendFrame(b64,cameraName,broadcastChannel)
+            
             ##Do this on a different thread
-            cf.checkFrame("b64", cameraName, frame)
+           
+            cf.checkFrame("b64", cameraName, frame,alertChannel)
+          
             # cv2.imshow("frame2", frame)
         
         
@@ -93,3 +100,4 @@ while(1):
     except pika.exceptions.ChannelClosedByBroker:
         print("Pika failed!")
         continue
+  
