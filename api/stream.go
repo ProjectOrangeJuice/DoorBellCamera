@@ -73,3 +73,48 @@ func sendVideo(cam string, ws *websocket.Conn) {
 	}()
 	<-forever
 }
+
+//For the connection, get motion and send it
+func motionWatch(cam string, ws *websocket.Conn) {
+	msgs, ch := listenToQueue("motionAlert")
+	defer ch.Close()
+	prev := ""
+	forever := make(chan bool)
+	go func() {
+		for d := range msgs {
+			m := decodeMessage(d.Body)
+			if prev != m.Code {
+				ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
+				prev = m.Code
+			}
+		}
+
+	}()
+	<-forever
+}
+
+//For the connection, get motion and send it
+func doorWatch(cam string, ws *websocket.Conn) {
+	msgs, ch := listenToQueue("doorService")
+	defer ch.Close()
+	prev := ""
+	forever := make(chan bool)
+	go func() {
+		for d := range msgs {
+			m := decodeMessage(d.Body)
+			if prev != m.Code {
+				ws.WriteMessage(websocket.TextMessage, []byte(m.Code))
+				prev = m.Code
+			}
+		}
+
+	}()
+	<-forever
+}
+func decodeMessage(d []byte) Message {
+	var m Message
+	err := json.Unmarshal(d, &m)
+	failOnError(err, "Json decode error")
+	return m
+
+}
