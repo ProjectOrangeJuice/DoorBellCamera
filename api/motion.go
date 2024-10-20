@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -24,11 +26,30 @@ type MotionJSON struct {
 //All motion handler
 func allMotion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var from, to string
+	params := r.URL.Query()
+	ton, ok1 := params["to"]
 
+	fromn, ok2 := params["from"]
+
+	t := time.Now()
+	if !ok1 {
+		nt := t.AddDate(0, 0, 1)
+		to = nt.Format("2006-01-02 15:04:05.000000")
+	} else {
+		to = ton[0]
+	}
+	if !ok2 {
+		nt := t.AddDate(0, 0, -1)
+		from = nt.Format("2006-01-02 15:04:05.000000")
+	} else {
+		from = fromn[0]
+	}
+	cmd := fmt.Sprintf("select id,code,reason,name from video WHERE startTime BETWEEN '%s' AND '%s'", from, to)
+	log.Printf("Using %s", cmd)
 	db, err := sql.Open("sqlite3", DBName)
 	failOnError(err, "Record failed because of DB error")
-
-	rows, err := db.Query("select id,code,reason,name from video")
+	rows, err := db.Query(cmd)
 	failOnError(err, "prep failed")
 	defer rows.Close()
 	var full []MotionJSON
