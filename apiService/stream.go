@@ -85,22 +85,22 @@ func sendSharedVideo(cam string) {
 						//We still want to reduce our bandwidth so we skip a frame
 						//We also compress the image
 
-						// socket.lock.Lock()
-						// err = socket.socket.WriteMessage(websocket.TextMessage, []byte(m.Image))
-						// socket.lock.Unlock()
-
-						sDec, _ := b64.StdEncoding.DecodeString(m.Image)
-						image, _, err := image.Decode(bytes.NewReader(sDec))
-						failOnError(err, "Failed to read image to compress")
-
-						buf := new(bytes.Buffer)
-						err = jpeg.Encode(buf, image, &jpeg.Options{60})
-						sends3 := buf.Bytes()
-
-						sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
 						socket.lock.Lock()
-						err = socket.socket.WriteMessage(websocket.TextMessage, []byte(sEnc))
+						err = socket.socket.WriteMessage(websocket.TextMessage, []byte(m.Image))
 						socket.lock.Unlock()
+
+						// sDec, _ := b64.StdEncoding.DecodeString(m.Image)
+						// image, _, err := image.Decode(bytes.NewReader(sDec))
+						// failOnError(err, "Failed to read image to compress")
+
+						// buf := new(bytes.Buffer)
+						// err = jpeg.Encode(buf, image, &jpeg.Options{60})
+						// sends3 := buf.Bytes()
+
+						// sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
+						// socket.lock.Lock()
+						// err = socket.socket.WriteMessage(websocket.TextMessage, []byte(sEnc))
+						// socket.lock.Unlock()
 
 					} else if diff > waitTime || firstFrame {
 						//Compressed

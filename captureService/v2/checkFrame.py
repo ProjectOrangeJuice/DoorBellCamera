@@ -192,7 +192,8 @@ def checkFrame(b64, name, frame, channel, stamp, debugpub, settings):
 
     cv2.putText(debugImage, "CurMotion " +
                 str(tracker["counter"]), (40, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-    imagetemp = cv2.imencode(".jpg", debugImage)[1]
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 60]
+    imagetemp = cv2.imencode(".jpg", debugImage,encode_param)[1]
 
     # cv2.putText(imagetemp, stamp, (10, 25),
     #     cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
