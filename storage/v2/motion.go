@@ -60,3 +60,8 @@ func recvMotionImg(buf chan *Buffer) {
 	}
 
 }
+
+//ffmpeg images to video
+// ffmpeg -framerate 5 -pattern_type glob -i "*.jpg" out.mp4
+//fmpeg squash video
+// ffmpeg -i out.mp4 -vcodec libx265 -crf 45 squash.mp4
