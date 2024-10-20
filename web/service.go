@@ -29,6 +29,7 @@ type pageContent struct {
 	Title string
 	Side  []side
 	Cam   []string
+	Code  string
 }
 
 type side struct {
@@ -42,7 +43,7 @@ func main() {
 	var err error
 	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
 		"web/templates/side.html", "web/dash.html", "web/cameras.html", "web/edit.html", "web/edit/motion.html",
-		"web/edit/cam.html")
+		"web/edit/cam.html", "web/inspect.html")
 	failOnError(err, "Failed to read templates")
 
 	router := mux.NewRouter()
@@ -51,6 +52,7 @@ func main() {
 	router.HandleFunc("/live", live).Methods("GET")
 	router.HandleFunc("/config", edit).Methods("GET")
 	router.HandleFunc("/add/{name}", addCam).Methods("GET")
+	router.HandleFunc("/inspect/{code}", inspect).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8001", router))
 }
@@ -63,6 +65,13 @@ func index(w http.ResponseWriter, r *http.Request) {
 func edit(w http.ResponseWriter, r *http.Request) {
 	data := pageContent{Title: "Config edit", Side: makeSide("Config")}
 	decideTemplate(w, r, "config", data)
+
+}
+
+func inspect(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	data := pageContent{Title: "Inspect", Side: makeSide("Config"), Code: params["code"]}
+	decideTemplate(w, r, "inspect", data)
 
 }
 
