@@ -1,0 +1,32 @@
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<img id="video" width="100%"></img>
+
+<script>
+
+
+socket = new WebSocket("ws://localhost:8000/stream")
+
+     //Connect to socket
+     var update = function() {
+
+// Log errors
+socket.onclose = function(error) {
+  console.log("Closed: "+error)
+};
+var imgBox = document.getElementById('video');
+socket.onmessage = function(event) {
+
+    var myObj = JSON.parse( event.data);
+    console.log("Got, alert is: "+myObj.Alert)
+        imgBox.src = "data:image/jpg;base64, " + myObj.Image
+    
+}
+};
+window.setTimeout(update);
+</script>
