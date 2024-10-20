@@ -13,6 +13,25 @@ import (
 )
 
 type cameraSettings struct {
+	Name               string //`bson:"_id"`
+	Connection         string
+	FPS                int
+	Area               [][]int
+	Amount             []int
+	Threshold          []int
+	MinCount           []int
+	Motion             bool
+	Blur               int
+	BoxJump            int
+	Debug              bool
+	BufferBefore       int
+	BufferAfter        int
+	NoMoveRefreshCount int
+	SmallMove          int
+	// Zones              []zone
+}
+
+type newSettings struct {
 	Name               string `bson:"_id"`
 	Connection         string
 	FPS                int
@@ -49,7 +68,7 @@ func getConfig(w http.ResponseWriter, r *http.Request) {
 	collection := conn.Collection("settings")
 	filter := bson.M{"_id": camName}
 	doc := collection.FindOne(context.TODO(), filter)
-	var settings cameraSettings
+	var settings newSettings
 	err := doc.Decode(&settings)
 	if err != nil {
 		//Content not found
@@ -63,7 +82,7 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	camName := params["cam"]
 	decoder := json.NewDecoder(r.Body)
-	var settings cameraSettings
+	var settings newSettings
 	err := decoder.Decode(&settings)
 	failOnError(err, "decode new settings")
 	settings.Name = camName
@@ -83,6 +102,7 @@ type info struct {
 func getInformation(w http.ResponseWriter, r *http.Request) {
 	log.Print("get camera information")
 	collection := conn.Collection("settings")
+	log.Printf("Can get collection")
 	findOptions := options.Find()
 	cur, err := collection.Find(context.TODO(), bson.M{}, findOptions)
 	failOnError(err, "Failed to get setting records")
@@ -91,6 +111,7 @@ func getInformation(w http.ResponseWriter, r *http.Request) {
 		var setting cameraSettings
 		err := cur.Decode(&setting)
 		failOnError(err, "Failed to decode setting")
+		log.Printf("going to get alerts for %s", setting.Name)
 		l, a := getAlertsInfo(setting.Name)
 		i := info{setting.Name, l, a}
 		cams = append(cams, i)
@@ -102,6 +123,7 @@ func getInformation(w http.ResponseWriter, r *http.Request) {
 
 func getAlertsInfo(name string) (last string, alerts int) {
 	collection := conn.Collection("video")
+	log.Printf("Can get collection for video")
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{"start", -1}})
 	t := time.Now()

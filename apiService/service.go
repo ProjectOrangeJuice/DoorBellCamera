@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 	router := mux.NewRouter()
-	router.HandleFunc("/config/{cam]", getConfig).Methods("GET")
+	router.HandleFunc("/config/{cam}", getConfig).Methods("GET")
 	router.HandleFunc("/config/{cam}", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", getVideo).Methods("GET", "OPTIONS")
 	router.HandleFunc("/mobilestream/{camera}", getCompressedVideo).Methods("GET", "OPTIONS")
