@@ -29,18 +29,24 @@ func main() {
 	//Initiate templates
 	var err error
 	templates, err = template.ParseFiles("web/index.html", "web/templates/header.html", "web/templates/footer.html",
-		"web/templates/side.html", "web/dash.html")
+		"web/templates/side.html", "web/dash.html", "web/cameras.html")
 	failOnError(err, "Failed to read templates")
 
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))))
 	router.HandleFunc("/", index).Methods("GET")
-	router.HandleFunc("/o", other).Methods("GET")
+	router.HandleFunc("/live", live).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8001", router))
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
+	data := pageContent{Title: "Dash", Side: makeSide("Dash")}
+	decideTemplate(w, r, "dash", data)
+
+}
+
+func decideTemplate(w http.ResponseWriter, r *http.Request, templateName string, data2 pageContent) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		data := pageContent{Title: "Login"}
@@ -50,15 +56,16 @@ func index(w http.ResponseWriter, r *http.Request) {
 			data := pageContent{Title: "Login"}
 			templates.ExecuteTemplate(w, "index", data)
 		} else {
-			data := pageContent{Title: "Dash", Side: makeSide("Dash")}
-			templates.ExecuteTemplate(w, "dash", data)
+			templates.ExecuteTemplate(w, templateName, data2)
 		}
 
 	}
-
 }
-func other(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "other", nil)
+
+func live(w http.ResponseWriter, r *http.Request) {
+	data := pageContent{Title: "Dash", Side: makeSide("Live")}
+	decideTemplate(w, r, "live", data)
+
 }
 
 func failOnError(err error, msg string) {
