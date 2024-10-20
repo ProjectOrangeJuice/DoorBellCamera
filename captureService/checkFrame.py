@@ -25,7 +25,7 @@ def randomString(stringLength=10):
 
 
 
-def checkFrame(image,name, frame,channel):
+def checkFrame(image,name, frame,channel,stamp):
     global settings,frameCount
     # if(frameCount % 2 == 0):
     #     #skip frame
@@ -138,6 +138,8 @@ def checkFrame(image,name, frame,channel):
 
     #Pretend debug switch
     image = cv2.imencode(".jpg",mimg)[1]
+    cv2.putText(image, st, (10, 25),
+	cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
     b64 = base64.b64encode(image)
     
     settings.heldFrames.append({"time":str(time.time()),"name":name,"image":b64.decode('utf-8'),"code":settings.code,

@@ -58,11 +58,11 @@ def readFrames():
     global prev,refresh,failedImage
     while(vcap.isOpened()):
         time_elapsed = time.time() - prev
+        st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
         try:
             ret, frame = vcap.read()
             frame = cv2.flip(frame,1)
             sendFrame = frame
-            st = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             cv2.putText(sendFrame, st, (10, 25),
 		    cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 255), 2)
         except:
@@ -97,7 +97,7 @@ def readFrames():
             #t = Thread(target = cf.checkFrame, args = (b64,cameraName,frame,alertChannel,))
             #t.start()
             if(s.setting.active):
-                cf.checkFrame(b64, cameraName, frame,alertChannel)
+                cf.checkFrame(b64, cameraName, frame,alertChannel,st)
           
             # cv2.imshow("frame2", frame)
             if(minute_passed(refresh)):
