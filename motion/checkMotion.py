@@ -67,38 +67,44 @@ def motionCheck(name,image,time):
         res = cv2.absdiff(cvimg, tc[prevImage])
         res = res.astype(np.uint8)
         percentage = (np.count_nonzero(res) * 100)/ res.size
-       
+
+        print(str(tc[countOn]) + "-" + str(tc[countOff]))
+        print(str(percentage) + " - " +str(tc[threshold]))
+
         if(percentage > tc[threshold]):
-            #motion?
-           
-            
             tc[countOn] += 1
-            
-            if(tc[countOn] > tc[minCount]):
-                print("Motion!!!")
-                #send the held frames
-                for data in tc[heldFrames]:
-                    channel.basic_publish(exchange='',
-                      routing_key='motionAlert',
-                      body=json.dumps(data))
-                #All frames now sent
-                tc[heldFrames].clear()
-                bodyText = {"name":name,"time":time,"image":image,"code":tc[code],"count":tc[countOn]}
-                channel.basic_publish(exchange='',
-                      routing_key='motionAlert',
-                      body=json.dumps(bodyText))
-                tc[countOff] = 0
-                tc[codeUsed] = True
-            else:
-                tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
-                print("Possible motion")
+            tc[countOff] = 0
+            print("Increase counton")
+        
         else:
             tc[countOff] += 1
-            if(tc[countOff] > minCount):
+            if(tc[minCount] < tc[countOff]):
                 tc[countOn] = 0
-                tc[heldFrames].clear()
                 if(tc[codeUsed]):
-                    tc[code] = randomString(10)
+                    #send the held frames
+                    for data in tc[heldFrames]:
+                        channel.basic_publish(exchange='',
+                            routing_key='motionAlert',
+                            body=json.dumps(data))
+                    #All frames now sent
+                tc[heldFrames].clear()
+            
+                print("New code")
+                tc[code] = randomString(10)
+                tc[codeUsed] = False
+                
+            if(tc[countOn] > tc[minCount]):
+               
+                tc[countOn] = tc[minCount]
+                tc[codeUsed] = True 
+            elif (tc[countOn] > 0):
+                #tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
+                tc[countOn] -= 1
+
+        tc[heldFrames].append({"time":time,"image":image,"code":tc[code],"count":tc[countOn]})
+
+       
+
 
     tc[prevImage] = cvimg
 
