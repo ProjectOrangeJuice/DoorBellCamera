@@ -23,9 +23,9 @@ def readConfig():
     global streamLocation,cameraName,serverAddress,serverPort,delay, timed,blur, rotation
     l = "motion:camera:"+cameraName
     streamLocation = r.hget(l,"camAddress")
-    serverAddress = r.hget(l,"serverAddress")
+    serverAddress = "rabbit"
     serverAddress = socket.gethostbyname(serverAddress)
-    serverPort = r.hget(l,"serverPort")
+    serverPort = 5672
     delay = int(r.hget(l,"fps"))
     rotation = int(r.hget(l,"liveRotation"))
     blur = int(r.hget(l,"helpBlur"))
