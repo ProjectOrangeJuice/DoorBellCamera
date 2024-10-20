@@ -13,7 +13,9 @@
     <div class="w3-bar w3-black">
         <button class="w3-bar-item w3-button" onclick="opens('cam')">Camera</button>
         <button class="w3-bar-item w3-button" onclick="opens('accounts')">Accounts</button>
-        <button class="w3-bar-item w3-button" onclick="opens('record')">Record</button>
+        <button class="w3-bar-item w3-button" onclick="opens('notifications')">Notifications</button>
+        <button class="w3-bar-item w3-button" onclick="opens('services')">Services</button>
+        <button class="w3-bar-item w3-button" onclick="opens('records')">Recording</button>
       </div> 
       <p><b>No value must be empty. Leaving an empty value will cause the service to crash.</b></p>
       {{ template "camConf" .}}
@@ -54,7 +56,7 @@ function showNote() {
       function hideNote() {
         document.getElementById("noteBox").style.display = "none";
       }
-hideAlert()
+hideNote()
 </script>
 
 </body>
