@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	b64 "encoding/base64"
 	fmt "fmt"
+	"image"
+	"image/jpeg"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nfnt/resize"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -38,6 +43,12 @@ type zone struct {
 	BoxJump     int
 	SmallIgnore int
 	Area        int
+}
+
+type videoDB struct {
+	Code  string
+	Size  int64
+	Image string
 }
 
 func recvMotionImg(buf chan *Buffer) {
@@ -107,17 +118,51 @@ func makeVideo(codes chan string) {
 		log.Println(output)
 		failOnError(err, "c")
 
-		// Remove images
+		// Generate thumbnail
 		imgLoc := fmt.Sprintf("%s/%s-*.jpg", imageLocation, strings.Replace(vid, " ", "\\ ", -1))
 		files, err := filepath.Glob(imgLoc)
 		if err != nil {
 			panic(err)
 		}
+
+		// Get the middle image
+		mid := len(files) / 2
+		existingImageFile, err := os.Open(files[mid])
+		defer existingImageFile.Close()
+		failOnError(err, "Failed to get image")
+
+		image, _, err := image.Decode(existingImageFile)
+		failOnError(err, "Failed to read image to compress")
+
+		imageres := resize.Resize(160, 0, image, resize.Lanczos3)
+		buf := new(bytes.Buffer)
+		err = jpeg.Encode(buf, imageres, &jpeg.Options{25})
+		failOnError(err, "Failed to encode")
+		sends3 := buf.Bytes()
+		sEnc := b64.StdEncoding.EncodeToString([]byte(sends3))
+
+		// Remove images
 		for _, f := range files {
 			if err := os.Remove(f); err != nil {
 				panic(err)
 			}
 		}
+
+		// Get the video file size
+		fi, err := os.Stat(saveToFull)
+		if err != nil {
+			fmt.Printf("error getting size %v\n", err)
+		}
+		// get the size
+		size := fi.Size()
+
+		// Update the database
+		dbRecord := videoDB{vid, size, sEnc}
+		conn := databaseClient.Database("doorbell")
+		db := conn.Collection("video")
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		db.InsertOne(ctx, dbRecord)
+		cancel()
 	}
 }
 
