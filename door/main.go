@@ -1,5 +1,12 @@
 package main
 
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"strconv"
+)
+
 type config struct {
 	ServerAddress string
 	ServerPort    int
@@ -9,10 +16,84 @@ type cameras struct {
 	Name string
 }
 
+//Message is the json format
+type Message struct {
+	Image    string
+	Time     string
+	Code     string
+	Count    int
+	Name     string
+	Reason   string
+	Location string
+}
+
+type hold struct {
+	Code  string
+	Point int
+	Count int
+}
+
 func readConfig() {
 
 }
 
 func main() {
+	msgs, ch := listenToFanout("motion")
+	var phold hold
+	forever := make(chan bool)
+	go func() {
+		defer ch.Close()
+		for d := range msgs {
+			decodeMessage(d.Body, &phold)
+		}
+	}()
+
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
+}
+
+func decodeMessage(d []byte, held *hold) {
+	var m Message
+	err := json.Unmarshal(d, &m)
+	failOnError(err, "Json decode error")
+	decideFate(m, held)
+}
+
+func decideFate(msg Message, held *hold) {
+
+	//Decode the points
+
+	var locPoints []map[string]interface{}
+	err := json.Unmarshal([]byte(msg.Location), &locPoints)
+	failOnError(err, "Json failed on locpoints")
+	largest := 0
+	down := false
+	for _, loc := range locPoints {
+		v2, _ := strconv.Atoi(fmt.Sprintf("%v", loc["m00"]))
+		v3, _ := strconv.Atoi(fmt.Sprintf("%v", loc["m01"]))
+		mY := v3 / v2
+		if held.Code != msg.Code {
+			log.Print("The code doesn't match. finding the largest point")
+			held.Count = 0
+			if mY > largest {
+				largest = mY
+			}
+		} else {
+			log.Print("The code matches. We can compare now")
+			if mY > held.Point {
+				down = true
+			}
+		}
+	}
+
+	held.Code = msg.Code
+	if down {
+		log.Print("For this frame i would agree that it's likely to come from the gate.")
+		held.Count++
+	}
+
+	if held.Count > 3 {
+		log.Print("I would send a notification now!")
+	}
 
 }
