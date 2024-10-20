@@ -16,3 +16,5 @@ serviceAccountKey.json
 
 
 /v2/mongo/data
+/v2/storage/images
+/v2/storage/videos
