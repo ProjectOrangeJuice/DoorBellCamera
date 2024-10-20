@@ -26,6 +26,7 @@ func main() {
 	}
 	router := mux.NewRouter()
 	router.HandleFunc("/config", getConfig).Methods("GET")
+	router.HandleFunc("/config", setConfig).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8000", router))
 	log.Print("ended")
 }
