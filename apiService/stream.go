@@ -65,6 +65,7 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 	timer := time.NewTimer(duration)
 	alive := true
 	last := time.Now().UnixNano()
+	firstFrame := true
 	for alive {
 		select {
 		case d := <-msgs:
@@ -74,7 +75,8 @@ func sendVideo(cam string, ws *websocket.Conn, compressed bool) {
 			diff := currentTime - last
 			var waitTime int64
 			waitTime = 1000000000 / 2
-			if compressed && diff > waitTime {
+			if compressed && (diff > waitTime || firstFrame) {
+				firstFrame = false
 				err := json.Unmarshal(d.Body, &m)
 				failOnError(err, "Json decode error")
 				sDec, _ := b64.StdEncoding.DecodeString(m.Image)
