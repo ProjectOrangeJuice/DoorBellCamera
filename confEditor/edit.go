@@ -1,5 +1,7 @@
 package main
 
+//CLI for interacting with the config editor
+
 import (
 	"bufio"
 	"encoding/json"
@@ -12,18 +14,21 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type OutMessage struct {
+type outMessage struct {
 	Task  string
 	Inner string
 }
 
+//should take this variable as an argument from the terminal
 var server = "amqp://guest:guest@192.168.1.126:30188/"
 
 func main() {
+	//Get the input from the terminal
 	input := ""
 	read := true
 	reader := bufio.NewReader(os.Stdin)
 	for read {
+		//Options
 		fmt.Printf("%-20s%-5s%-20s\n", "get [service]", "-", "Get the config file of the service")
 		fmt.Printf("%-20s%-5s%-20s\n", "set [service]", "-", "Set the config file of the service")
 		input, _ = reader.ReadString('\n')
@@ -42,6 +47,7 @@ func main() {
 	}
 }
 
+//Listen for the return of the configs
 func goListen(rch chan string, arg string) {
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -95,7 +101,7 @@ func goListen(rch chan string, arg string) {
 
 func decodeMsg(msg []byte, arg string) {
 	arg = strings.Replace(arg, ".", "-", -1)
-	var m OutMessage
+	var m outMessage
 	err := json.Unmarshal(msg, &m)
 	failOnError(err, "Json decode error")
 	err = ioutil.WriteFile(fmt.Sprintf("configs/%s.json", arg), []byte(m.Inner), 0644)
@@ -103,6 +109,7 @@ func decodeMsg(msg []byte, arg string) {
 
 }
 
+//Send the command to get the config file
 func getCommand(arg string) {
 	returnCh := make(chan string)
 	go goListen(returnCh, arg)
@@ -113,7 +120,7 @@ func getCommand(arg string) {
 	failOnError(err, "Failed to connect to RabbitMQ (get)")
 	defer conn.Close()
 
-	body := OutMessage{"read", "test"}
+	body := outMessage{"read", "test"}
 	b, err := json.Marshal(body)
 
 	ch, err := conn.Channel()
@@ -157,6 +164,7 @@ func failOnError(err error, msg string) {
 	}
 }
 
+//Push the config file
 func setCommand(arg string) {
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ (get)")
@@ -164,7 +172,7 @@ func setCommand(arg string) {
 	arg2 := strings.Replace(arg, ".", "-", -1)
 	dat, err := ioutil.ReadFile(fmt.Sprintf("configs/%s.json", arg2))
 	failOnError(err, "Couldn't read file")
-	body := OutMessage{"update", string(dat)}
+	body := outMessage{"update", string(dat)}
 	b, err := json.Marshal(body)
 
 	ch, err := conn.Channel()

@@ -3,6 +3,8 @@ import time,sys,base64
 import pika
 import json
 import datetime
+'''This script gets a network cameras frames and streams them to a rabbit server'''
+
 
 
 # Open the config file and read the values from it
