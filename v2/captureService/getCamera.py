@@ -43,14 +43,15 @@ def readFrames():
     global prev
     while(vcap.isOpened()):
         time_elapsed = time.time() - prev
-        if(time_elapsed > 1./15):
+        try:
+            ret, frame = vcap.read()
+        except:
+            #Error with frame, try again.
+            print("Error with frame")
+            continue
+        if(time_elapsed > 1./5):
             prev = time.time()
-            try:
-                ret, frame = vcap.read()
-            except:
-                #Error with frame, try again.
-                print("Error with frame")
-                continue
+            
             #rotation
             ### TODO ###
 
@@ -64,9 +65,8 @@ def readFrames():
             #sf.sendFrame(b64,cameraName,broadcastChannel)
             ##Do this on a different thread
             cf.checkFrame("b64", cameraName, frame)
-            # cv2.imshow("frame2", frame)
-        else:
-            vcap.grab()
+            cv2.imshow("frame2", frame)
+        
         
 
 readConfig()
