@@ -5,6 +5,8 @@ import json
 import datetime
 '''This script gets a network cameras frames and streams them to a rabbit server'''
 
+import signal
+import sys
 
 
 # Open the config file and read the values from it
@@ -32,36 +34,41 @@ def openConnection():
 readConfig()
 #Timing for fps
 prev = 0
-
 vcap = cv2.VideoCapture(streamLocation)
 openConnection()
 #Should stream forever
-while(1):
-    while(vcap.isOpened()):
-        #For fps
-        time_elapsed = time.time() - prev
-        try:
-            ret, frame = vcap.read()
-        except:
-            #Error with frame, try again.
-            print("Error with frame")
-            continue
-        if(time_elapsed > 1./delay):
-            image = cv2.imencode(".jpg",frame)[1]
-            b64 = base64.b64encode(image)
-            #Testing of sizes
-            print("size of b64: "+str((len(b64)/1024)/1024))
+try:
+    while(1):
+        while(vcap.isOpened()):
+            #For fps
+            time_elapsed = time.time() - prev
+            try:
+                ret, frame = vcap.read()
+            except:
+                #Error with frame, try again.
+                print("Error with frame")
+                continue
+            if(time_elapsed > 1./delay):
+                image = cv2.imencode(".jpg",frame)[1]
+                b64 = base64.b64encode(image)
+                #Testing of sizes
+                #print("size of b64: "+str((len(b64)/1024)/1024))
+                
+                #The json to send to rabbit
+                bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
+                #TOPIC rabbit, with the topic being the camera name
+                print("Sending to routing key.. "+str(cameraName.replace(" ",".")))
+                channel.basic_publish(exchange='videoStream',
+                            routing_key=cameraName.replace(" ","."),
+                            body=json.dumps(bodyText))
             
-            #The json to send to rabbit
-            bodyText = {"cameraName":cameraName,"time":str(datetime.datetime.now()),"image":b64.decode('utf-8')}
-            #TOPIC rabbit, with the topic being the camera name
-            channel.basic_publish(exchange='videoStream',
-                        routing_key=cameraName.replace(" ","."),
-                        body=json.dumps(bodyText))
-        
-        
-            prev = time.time()
-    #Delay reconnection attempt
-    time.sleep(5)
-    vcap = cv2.VideoCapture(streamLocation)
-   
+            
+                prev = time.time()
+        #Delay reconnection attempt
+        time.sleep(5)
+        vcap = cv2.VideoCapture(streamLocation)
+    
+except KeyboardInterrupt:
+    print("Bye!")
+    vcap.release() 
+    connection.close()
