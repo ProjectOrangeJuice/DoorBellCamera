@@ -60,6 +60,7 @@ func main() {
 	router.HandleFunc("/delete/{code}", delMotion).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
 	router.HandleFunc("/stream/{camera}", wsHandler)
+	router.HandleFunc("/streamMotion", wsHandlerMotion)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
@@ -130,6 +131,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	cam := params["camera"]
 	go DoStream(cam, ws)
+}
+
+//Socket handler
+func wsHandlerMotion(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	failOnError(err, "Couldn't upgrade")
+	// register client
+	params := mux.Vars(r)
+	cam := params["camera"]
+	go doMotionCheck(cam, ws)
 }
 
 //GET for getconfig
