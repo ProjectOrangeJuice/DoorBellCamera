@@ -25,6 +25,11 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/config", getConfig).Methods("GET")
 	router.HandleFunc("/config", setConfig).Methods("POST")
+
+	// Directly get video
+	router.HandleFunc("/motion/hq/{code}", getHQVideo).Methods("GET")
+	router.HandleFunc("/motion/lq/{code}", getLQVideo).Methods("GET")
+
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"content-type"}),
 		handlers.AllowedOrigins([]string{"*"}),
