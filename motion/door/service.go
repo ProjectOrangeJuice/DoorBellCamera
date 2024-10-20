@@ -145,7 +145,7 @@ func decideFate(m Message) {
 				}
 			}
 			if !alerted {
-				log.Printf("Failed for alert testing")
+
 				current.Failed = time.Now().Unix()
 			}
 		} else {
