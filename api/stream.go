@@ -61,35 +61,44 @@ func sendVideo(cam string, ws *websocket.Conn) {
 	msgs, ch := listenToExchange("videoStream", strings.Replace(cam, " ", ".", -1))
 	forever := make(chan bool)
 	var m Message
-	go func() {
-		defer closeThis(ch)
-		const duration = 3 * time.Second
-		timer := time.NewTimer(duration)
-		for {
-			select {
-			case d := <-msgs:
-				timer.Reset(duration)
-				err := json.Unmarshal(d.Body, &m)
-				failOnError(err, "Json decode error")
 
-				err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
+	defer closeThis(ch)
+	const duration = 3 * time.Second
+	timer := time.NewTimer(duration)
+	for !connect.IsClosed() {
+		select {
+		case d := <-msgs:
+			timer.Reset(duration)
+			err := json.Unmarshal(d.Body, &m)
+			failOnError(err, "Json decode error")
 
-				if err != nil {
-					log.Printf("Websocket error: %s", err)
-					ws.Close()
-					msgs = nil
-					return
-				}
+			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
 
-			case <-timer.C:
-				fmt.Println("Timeout !")
+			if err != nil {
+				log.Printf("Websocket error: %s", err)
 				ws.Close()
-				return
+				closeThis(ch)
+				msgs = nil
+				forever = nil
+				d = amqp.Delivery{}
+				err = nil
+				break
 			}
-		}
 
-	}()
+		case <-timer.C:
+			fmt.Println("Timeout !")
+			ws.Close()
+			break
+		}
+		print("For loop!")
+	}
+	print("Ended?")
+	connect = nil
+	m = Message{}
+	ws = nil
+	return
 	<-forever
+	print("Ended forever")
 }
 
 func closeThis(ch *amqp.Channel) {
