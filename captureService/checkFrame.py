@@ -122,8 +122,10 @@ def checkFrame(image,name, frame,channel,stamp):
                     settings.heldFrames.clear()
                     settings.imgCount = 0
                     if(settings.codeUsed):
+                        sendEnd(settings.name,channel,settings.code)
                         settings.code = randomString(5)
                         settings.codeUsed = False
+                        
 
         #Has the number of motion frames gone above the min required?
         if(settings.countOn[count] > settings.minCount[count]):
@@ -165,3 +167,7 @@ def sendFrames(name,channel):
         body= json.dumps(frame))
     settings.heldFrames.clear()
 
+def sendEnd(name,channel,code):
+    channel.basic_publish(exchange='motion',
+        routing_key= name.replace(" ","."),
+        body= json.dumps({"code":code,"end":True}))
