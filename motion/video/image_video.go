@@ -138,7 +138,6 @@ func convert(msg []byte) {
 	rows, err := db.Query("select location,time,reason from motion where motionCode = ?", m.Code)
 	failOnError(err, "prep failed")
 	defer rows.Close()
-	root := "/home/oharris/Documents/cameraProject/motion"
 
 	var fr []string
 	var high = 0
@@ -163,11 +162,11 @@ func convert(msg []byte) {
 			endTime = time
 		}
 
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", root, location))
+		data, err := ioutil.ReadFile(fmt.Sprintf("%s", location))
 		failOnError(err, "Failed reading image")
 		err = aw.AddFrame(data)
 		failOnError(err, "failed to add frame")
-		fr = append(fr, fmt.Sprintf("%s/%s", root, location))
+		fr = append(fr, fmt.Sprintf("%s", location))
 
 	}
 	err = aw.Close()
