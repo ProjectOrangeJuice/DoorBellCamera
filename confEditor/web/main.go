@@ -39,9 +39,8 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/config/{service}", getConfig).Methods("GET")
 	router.HandleFunc("/config/{service}", setConfig).Methods("POST")
-	router.HandleFunc("/stream", wsHandler)
+	router.HandleFunc("/stream/{camera}", wsHandler)
 
-	go doStream()
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
@@ -49,10 +48,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	failOnError(err, "Couldn't upgrade")
 	// register client
-	clients[ws] = true
+	params := mux.Vars(r)
+	cam := params["camera"]
+	go doStream(cam, ws)
 }
 
-func doStream() {
+func doStream(cam string, ws *websocket.Conn) {
+	log.Printf("Setting up connection for %s", cam)
 	conn, err := amqp.Dial(server)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -60,16 +62,33 @@ func doStream() {
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
+	err = ch.ExchangeDeclare(
 		"videoStream", // name
+		"topic",       // type
 		false,         // durable
-		false,         // delete when usused
-		false,         // exclusive
+		false,         // auto-deleted
+		false,         // internal
 		false,         // no-wait
 		nil,           // arguments
 	)
+	failOnError(err, "Failed to declare an exchange")
+	q, err := ch.QueueDeclare(
+		"",    // name
+		false, // durable
+		false, // delete when usused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
 	failOnError(err, "Failed to declare a queue")
+
+	err = ch.QueueBind(
+		q.Name, // queue name
+		strings.Replace(cam, " ", ".", -1), // routing key
+		"videoStream",                      // exchange
+		false,
+		nil)
+	failOnError(err, "Failed to bind a queue")
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
@@ -90,13 +109,11 @@ func doStream() {
 			err := json.Unmarshal(d.Body, &m)
 			failOnError(err, "Json decode error")
 
-			for client := range clients {
-				err := client.WriteMessage(websocket.TextMessage, []byte(m.Image))
-				if err != nil {
-					log.Printf("Websocket error: %s", err)
-					client.Close()
-					delete(clients, client)
-				}
+			err = ws.WriteMessage(websocket.TextMessage, []byte(m.Image))
+			if err != nil {
+				log.Printf("Websocket error: %s", err)
+				ws.Close()
+				return
 			}
 
 		}
@@ -104,6 +121,7 @@ func doStream() {
 
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
+	log.Printf("Finished..")
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
