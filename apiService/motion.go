@@ -40,7 +40,7 @@ func getMotions(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getMotionYester(w http.ResponseWriter, r *http.Request) {
+func getMotion24(w http.ResponseWriter, r *http.Request) {
 	log.Print("get motion")
 	t := time.Now()
 	t = t.Add(time.Duration(-24) * time.Hour)

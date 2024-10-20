@@ -36,7 +36,7 @@ func main() {
 	router.HandleFunc("/mobilestream/{camera}", getCompressedVideo).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motionAlert", getMotionAlert).Methods("GET", "OPTIONS")
 	router.HandleFunc("/motion", getMotions).Methods("GET")
-	router.HandleFunc("/fromyesterday", getMotionYester).Methods("GET")
+	router.HandleFunc("/from24", getMotion24).Methods("GET")
 	router.HandleFunc("/motion/{code}", getMotion).Methods("GET")
 	router.HandleFunc("/motion/{code}", deleteMotion).Methods("DELETE")
 
