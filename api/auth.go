@@ -120,8 +120,16 @@ func auth(h http.Handler) http.Handler {
 
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
+
 			w.Header().Set("Access-Control-Allow-Origin", "http://192.168.1.126:30016")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Access-Control-Allow-Origin, access-control-allow-headers")
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
 			// We can obtain the session token from the requests cookies, which come with every request
 			c, err := r.Cookie("token")
 			if err != nil {
