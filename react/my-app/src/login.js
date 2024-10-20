@@ -2,7 +2,19 @@ import React from 'react';
 
 
 function ErrorDisplay() {
-    return <p>Unable to sign in</p>;
+    return (<div class="w3-panel w3-red">
+        <h3>Unable to login!</h3>
+        <p>Username/password is incorrect</p>
+    </div>);
+}
+
+function OtherError() {
+    return (
+        <div class="w3-panel w3-yellow">
+            <h3>Oh no!</h3>
+            <p>I wasn't able to connect to the API.</p>
+        </div>
+    );
 }
 
 class LoginForm extends React.Component {
@@ -11,7 +23,8 @@ class LoginForm extends React.Component {
         this.state = {
             username: '',
             password: '',
-            error: false
+            error: false,
+            connectionError: false
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -39,28 +52,33 @@ class LoginForm extends React.Component {
                 password: this.state.password,
             })
         })
-        .then((res) => {
-            if(res.status === 401 ){
-                this.setState({error: true})
-            }else if(res.status === 200){
-                console.log("logged in");
-            }
-           
-        })
+            .then((res) => {
+                if (res.status === 401) {
+                    this.setState({ error: true })
+                } else if (res.status === 200) {
+                    console.log("logged in");
+                }
 
+            },
+                (error) => {
+                    this.setState({
+                        connectionError: true
+                    });
+                }
+            )
 
-       
-        this.setState({ username: "no" })
-        alert('A name was submitted: ' + this.state.value);
         event.preventDefault();
     }
 
     render() {
-        console.log("rendering.. "+this.state.error)
+
         return (
             <div class="w3-display-topmiddle">
-                { this.state.error &&
+                {this.state.error &&
                     <ErrorDisplay />
+                }
+                {this.state.connectionError &&
+                    <OtherError />
                 }
                 <form class="w3-container" onSubmit={this.handleSubmit}>
                     <div class="w3-section">
