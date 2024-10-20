@@ -2,16 +2,68 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Get motions ( pagination )
+type videoRecord struct {
+	Code  string
+	Size  int64
+	Image string
+	Stamp int64
+}
+
+// Get next 5 videos after the date given. If no date given, from the last record
+func getNextSet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	conn := databaseClient.Database("doorbell")
+	collection := conn.Collection("video")
+	findOptions := options.Find()
+	// Sort by
+	findOptions.SetSort(bson.D{{"start", -1}})
+	findOptions.SetLimit(5)
+
+	// Skip the ones we've seen
+	last, ok := params["last"]
+	var filter bson.M
+	if ok {
+		n, err := strconv.ParseInt(last, 10, 64)
+		if err != nil {
+			log.Printf("Failed to convert string(%s) to int64 - %v", last, err)
+		}
+		filter = bson.M{
+			"stamp": bson.M{"$gt": n},
+		}
+	}
+
+	cur, err := collection.Find(context.TODO(), filter, findOptions)
+	if err != nil {
+		log.Printf("Failed to get video records %v", err)
+	}
+
+	var records []videoRecord
+	for cur.Next(context.TODO()) {
+		var record videoRecord
+		cur.Decode(&record)
+		records = append(records, record)
+	}
+
+	json.NewEncoder(w).Encode(records)
+}
+
+// Get all the videos between two dates
+func getBetween(w http.ResponseWriter, r *http.Request) {
+
+}
 
 // Delete motion
 
@@ -24,7 +76,9 @@ func deleteMotion(w http.ResponseWriter, r *http.Request) {
 	filter := bson.M{"code": params["code"]}
 	collection.DeleteOne(context.TODO(), filter)
 	err := os.Remove(fmt.Sprintf("%s/%s.mp4", videoLoc, params["code"]))
-	log.Printf("Failed to delete %s because %v", params["code"], err)
+	if err != nil {
+		log.Printf("Failed to delete %s because %v", params["code"], err)
+	}
 
 }
 
